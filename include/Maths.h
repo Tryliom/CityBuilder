@@ -22,21 +22,21 @@ struct Vector2
 {
     T X, Y;
 
-    Vector2(){};
+    Vector2() = default;
     Vector2(T x, T y)
     {
         this->X = x;
         this->Y = y;
     };
 
-    static const Vector2 zero;
-    static const Vector2 one;
-    static const Vector2 up;
-    static const Vector2 right;
-    static const Vector2 left;
-    static const Vector2 down;
+    static const Vector2 Zero;
+    static const Vector2 One;
+    static const Vector2 Up;
+    static const Vector2 Right;
+    static const Vector2 Left;
+    static const Vector2 Down;
 
-    float Length() const
+    [[nodiscard]] float Length() const
     {
         return sqrt(X * X + Y * Y);
     }
@@ -105,18 +105,18 @@ struct Vector2
 
     constexpr bool operator!=(const Vector2<T>& v) const
     {
-        return !(*this == v);
+        return *this != v;
     }
 
     #pragma endregion Operator Overloads 
 };
 
-template<class T> const Vector2<T> Vector2<T>::zero  = Vector2<T>(0, 0);
-template<class T> const Vector2<T> Vector2<T>::one   = Vector2<T>(1, 1);
-template<class T> const Vector2<T> Vector2<T>::up    = Vector2<T>(0, 1);
-template<class T> const Vector2<T> Vector2<T>::right = Vector2<T>(1, 0);
-template<class T> const Vector2<T> Vector2<T>::left  = Vector2<T>(-1, 0);
-template<class T> const Vector2<T> Vector2<T>::down  = Vector2<T>(0, -1);
+template<class T> const Vector2<T> Vector2<T>::Zero  = Vector2<T>(0, 0);
+template<class T> const Vector2<T> Vector2<T>::One   = Vector2<T>(1, 1);
+template<class T> const Vector2<T> Vector2<T>::Up    = Vector2<T>(0, 1);
+template<class T> const Vector2<T> Vector2<T>::Right = Vector2<T>(1, 0);
+template<class T> const Vector2<T> Vector2<T>::Left  = Vector2<T>(-1, 0);
+template<class T> const Vector2<T> Vector2<T>::Down  = Vector2<T>(0, -1);
 
 using Vector2F   = Vector2<float>;
 using Vector2Int = Vector2<int>;
