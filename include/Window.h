@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vector>
-#include "Vector.h"
+#include "Maths.h"
 #include "Color.h"
 #include "Texture.h"
 #include "DrawableObject.h"
