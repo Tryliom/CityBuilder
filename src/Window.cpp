@@ -1,7 +1,5 @@
 #include "Window.h"
 
-#include <utility>
-
 #define SOKOL_IMPL
 #define SOKOL_GLCORE33
 #include "sokol_app.h"
@@ -21,6 +19,7 @@
 #include "Input.h"
 #include "Image.h"
 #include "Logger.h"
+#include "Timer.h"
 
 static struct {
     sg_pipeline pip;
@@ -151,6 +150,7 @@ void frame()
     Clear();
 
     Input::Update();
+    Timer::Update();
     frameCount++;
     OnFrame();
 
@@ -181,7 +181,7 @@ sapp_desc sokol_main(int argc, char* argv[])
             .height = 640,
             .window_title = "City builder",
             .logger = { .func = slog_func },
-            .win32_console_create = true // Use it if you want to see console output
+            //.win32_console_create = true // Use it if you want to see console output
     };
 }
 

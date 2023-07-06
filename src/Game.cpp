@@ -3,6 +3,7 @@
 #include "Window.h"
 #include "Input.h"
 #include "sokol_app.h"
+#include "Timer.h"
 
 DrawableObject movableObject = 
 {
@@ -13,28 +14,39 @@ DrawableObject movableObject =
     .TextureName = TextureName::Top
 };
 
-float speed = 3;
+DrawableObject player =
+{
+    .Position = { 300, 300 },
+    .Pivot = { 0.5f, 0.5f },
+    .Size = { 50, 50 },
+    .UseTexture = true,
+    .TextureName = TextureName::CenterLeft
+};
+
+float speed = 200.f;
 
 void OnFrame()
 {
     auto mousePosition = Input::GetMousePosition();
     auto previousMousePosition = Input::GetPreviousMousePosition();
+    auto smoothDeltaTime = Timer::GetSmoothDeltaTime();
+    auto movementValue = speed * smoothDeltaTime;
 
     if (Input::IsKeyHeld(SAPP_KEYCODE_A))
     {
-        movableObject.Position.X -= speed;
+        player.Position.X -= movementValue;
     }
     if (Input::IsKeyHeld(SAPP_KEYCODE_D))
     {
-        movableObject.Position.X += speed;
+        player.Position.X += movementValue;
     }
     if (Input::IsKeyHeld(SAPP_KEYCODE_W))
     {
-        movableObject.Position.Y += speed;
+        player.Position.Y += movementValue;
     }
     if (Input::IsKeyHeld(SAPP_KEYCODE_S))
     {
-        movableObject.Position.Y -= speed;
+        player.Position.Y -= movementValue;
     }
 
     if (Input::IsKeyHeld(SAPP_KEYCODE_Z))
@@ -51,10 +63,10 @@ void OnFrame()
         Window::MoveCamera(mousePosition - previousMousePosition);
     }
 
-    auto frame = Window::GetFrameCount();
-    float scale = std::sin(frame / 100.f) * 0.5f + 0.5f;
+    auto value = std::abs(std::sin(Timer::GetTime()));
 
-    movableObject.Scale = { scale, scale };
+    movableObject.Scale = { value, value };
 
     Window::DrawObject(movableObject);
+    Window::DrawObject(player);
 }
