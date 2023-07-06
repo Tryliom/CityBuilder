@@ -1,0 +1,1 @@
+C:\tools\sokol-tools-bin\bin\win32\sokol-shdc.exe --input shader/basic-sapp.glsl --output libs/include/basic-sapp.glsl.h --slang hlsl5:glsl330

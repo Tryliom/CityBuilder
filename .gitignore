@@ -1,0 +1,11 @@
+bin/game.exe
+bin/game.js
+bin/game.wasm
+bin/game.data
+bin/game.js.mem
+bin/assets/*
+cmake-build-debug
+cmake-build-web
+.idea
+.vs
+assets/levels/*
