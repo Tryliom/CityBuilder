@@ -29,7 +29,7 @@ void OnFrame()
 {
     auto mousePosition = Input::GetMousePosition();
     auto previousMousePosition = Input::GetPreviousMousePosition();
-    auto smoothDeltaTime = Timer::GetSmoothDeltaTime();
+    auto smoothDeltaTime = Timer::SmoothDeltaTime;
     auto movementValue = speed * smoothDeltaTime;
 
     if (Input::IsKeyHeld(SAPP_KEYCODE_A))
@@ -63,7 +63,7 @@ void OnFrame()
         Window::MoveCamera(mousePosition - previousMousePosition);
     }
 
-    auto value = std::abs(std::sin(Timer::GetTime()));
+    auto value = std::abs(std::sin(Timer::Time));
 
     movableObject.Scale = { value, value };
 

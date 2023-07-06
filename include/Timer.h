@@ -2,10 +2,7 @@
 
 namespace Timer
 {
-    void Init();
-    void Update();
+    extern float Time, DeltaTime, SmoothDeltaTime;
 
-    float GetSmoothDeltaTime();
-    float GetDeltaTime();
-    float GetTime();
+    void Update();
 }

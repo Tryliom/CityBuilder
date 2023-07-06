@@ -2,13 +2,13 @@
 
 #include "sokol_app.h"
 
-float deltaTime = 0.f;
 int frames = 0;
 float timeStack[200];
-float time;
 
 namespace Timer
 {
+    float Time, DeltaTime, SmoothDeltaTime;
+
     void Update()
     {
         if (frames == 200)
@@ -17,7 +17,7 @@ namespace Timer
             {
                 if (i == 199)
                 {
-                    timeStack[i] = deltaTime;
+                    timeStack[i] = DeltaTime;
                 }
                 else
                 {
@@ -31,13 +31,10 @@ namespace Timer
             frames++;
         }
 
-        deltaTime = sapp_frame_duration();
-        timeStack[frames - 1] = deltaTime;
-        time += deltaTime;
-    }
+        DeltaTime = sapp_frame_duration();
+        timeStack[frames - 1] = DeltaTime;
+        Time += DeltaTime;
 
-    float GetSmoothDeltaTime()
-    {
         auto sum = 0.f;
 
         for (auto i : timeStack)
@@ -45,16 +42,6 @@ namespace Timer
             sum += i;
         }
 
-        return sum / frames;
-    }
-
-    float GetDeltaTime()
-    {
-        return deltaTime;
-    }
-
-    float GetTime()
-    {
-        return time;
+        SmoothDeltaTime = sum / frames;
     }
 }
