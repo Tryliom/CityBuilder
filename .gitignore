@@ -8,4 +8,4 @@ cmake-build-debug
 cmake-build-web
 .idea
 .vs
-assets/levels/*
+.vscode

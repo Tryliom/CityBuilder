@@ -12,6 +12,8 @@
 
 #ifdef __EMSCRIPTEN__
 #define IMAGE_PATH "assets/"
+#elif BAT_RUN
+#define IMAGE_PATH "assets/"
 #else
 #define IMAGE_PATH "../assets/"
 #endif
@@ -179,7 +181,7 @@ sapp_desc sokol_main(int argc, char* argv[])
             .height = 640,
             .window_title = "City builder",
             .logger = { .func = slog_func },
-            //.win32_console_create = true // Use it if you want to see console output
+            .win32_console_create = true // Use it if you want to see console output
     };
 }
 

@@ -37,7 +37,7 @@ namespace Input
 		}
 		else if (event->type == SAPP_EVENTTYPE_MOUSE_MOVE)
 		{
-            previousMousePosition = Vector2F(mousePosition.X, mousePosition.Y);
+            previousMousePosition = Vector2F{mousePosition.X, mousePosition.Y};
 			mousePosition = Window::ConvertInputPosition({ event->mouse_x, event->mouse_y });
             mouseMoved = true;
 		}
@@ -47,7 +47,7 @@ namespace Input
 	{
         if (!mouseMoved)
         {
-            previousMousePosition = Vector2F(mousePosition.X, mousePosition.Y);
+            previousMousePosition = Vector2F{mousePosition.X, mousePosition.Y};
         }
 
         mouseMoved = false;

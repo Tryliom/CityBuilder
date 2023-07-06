@@ -4,7 +4,8 @@
 #include "Input.h"
 #include "sokol_app.h"
 
-DrawableObject movableObject = {
+DrawableObject movableObject = 
+{
     .Position = { 700, 700 },
     .Pivot = { 0.5f, 0.5f },
     .Size = { 100, 100 },
