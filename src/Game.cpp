@@ -1,5 +1,9 @@
 #include <cmath>
 
+#include "iostream"
+
+
+#include "Audio.h"
 #include "Window.h"
 #include "Input.h"
 #include "sokol_app.h"
@@ -24,6 +28,17 @@ DrawableObject player =
 };
 
 float speed = 200.f;
+
+void InitGame()
+{
+    std::cout << "Start Function" << std::endl;
+
+    Audio::SetupSound();
+
+    SoundClip testTheme = Audio::loadSoundClip("assets/testTheme.wav");
+
+    Audio::PlaySoundClip(testTheme, 1.f, 440, 0, 0, true);
+}
 
 void OnFrame()
 {

@@ -4,6 +4,9 @@
 #include <math.h>
 #include <cmath>
 
+#define MAX(a, b) ((a > b) ? a : b)
+#define MIN(a, b) ((a < b) ? a : b)
+
 namespace MathUtility
 {
     constexpr double epsilon = 0.000001;

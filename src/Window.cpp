@@ -54,6 +54,8 @@ Camera camera;
 
 #pragma region SokolFunctions
 
+void InitGame();
+
 void OnFrame();
 
 void Clear()
@@ -64,6 +66,8 @@ void Clear()
 
 static void init()
 {
+    InitGame();
+
     sg_desc desc = (sg_desc){
             .logger = { .func = slog_func },
             .context = sapp_sgcontext()
@@ -181,7 +185,7 @@ sapp_desc sokol_main(int argc, char* argv[])
             .height = 640,
             .window_title = "City builder",
             .logger = { .func = slog_func },
-            //.win32_console_create = true // Use it if you want to see console output
+            .win32_console_create = true // Use it if you want to see console output
     };
 }
 
