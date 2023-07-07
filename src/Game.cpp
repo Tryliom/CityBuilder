@@ -33,11 +33,13 @@ void InitGame()
 {
     std::cout << "Start Function" << std::endl;
 
-    Audio::SetupSound();
+    // TODO : Correct the link problems in the audio file.
 
-    SoundClip testTheme = Audio::loadSoundClip("assets/testTheme.wav");
+    // Audio::SetupSound();
 
-    Audio::PlaySoundClip(testTheme, 1.f, 440, 0, 0, true);
+    // SoundClip testTheme = Audio::loadSoundClip("assets/testTheme.wav");
+
+    // Audio::PlaySoundClip(testTheme, 1.f, 440, 0, 0, true);
 }
 
 void OnFrame()
