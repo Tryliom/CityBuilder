@@ -213,6 +213,14 @@ namespace Window
         return { (position.X + 1) / 2 * width, (position.Y + 1) / 2 * height };
     }
 
+	Vector2F ToUiSpace(Vector2F position)
+	{
+		auto worldPosition = ToWorldSpace(position);
+		auto worldCameraPosition = ToWorldSpace(camera.Position) * camera.Zoom;
+
+		return ToScreenSpace((worldPosition - worldCameraPosition) * 1.f / camera.Zoom);
+	}
+
     Vector2F ConvertInputPosition(Vector2F position)
     {
         return { position.X, sapp_height() - position.Y };
@@ -287,6 +295,58 @@ namespace Window
         indices[indicesUsed++] = startIndex + 2;
         indices[indicesUsed++] = startIndex + 3;
     }
+
+	void DrawCircle(Vector2F position, float radius, Color color, int segments)
+	{
+		int startIndex = vertexesUsed;
+
+		AppendVertex({{position.X, position.Y}, color});
+
+		for (int i = 0; i <= segments; i++)
+		{
+			float angle = (float) i / (float) segments * 2.f * 3.1415926f;
+
+			AppendVertex({{position.X + cosf(angle) * radius, position.Y + sinf(angle) * radius}, color});
+		}
+
+		for (int i = 0; i <= segments; i++)
+		{
+			indices[indicesUsed++] = startIndex + 1;
+			indices[indicesUsed++] = startIndex + i + 1;
+			indices[indicesUsed++] = startIndex + i + 2;
+		}
+	}
+
+	void DrawLine(Vector2F start, Vector2F end, float thickness, Color color)
+	{
+		Vector2F direction = end - start;
+		Vector2F normal = direction.Normalized();
+		normal = {-normal.Y, normal.X};
+
+		Vector2F start1 = start + normal * thickness / 2;
+		Vector2F start2 = start - normal * thickness / 2;
+		Vector2F end1 = end + normal * thickness / 2;
+		Vector2F end2 = end - normal * thickness / 2;
+
+		DrawCustomShape({start1, end1, end2, start2}, color);
+	}
+
+	void DrawCustomShape(std::vector<Vector2F> points, Color color)
+	{
+		int startIndex = vertexesUsed;
+
+		for (auto& point : points)
+		{
+			AppendVertex({{point.X, point.Y}, color});
+		}
+
+		for (int i = 0; i < points.size() - 2; i++)
+		{
+			indices[indicesUsed++] = startIndex;
+			indices[indicesUsed++] = startIndex + i + 1;
+			indices[indicesUsed++] = startIndex + i + 2;
+		}
+	}
 
     void DrawObject(DrawableObject object)
     {

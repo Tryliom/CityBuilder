@@ -80,9 +80,14 @@ void OnFrame()
     }
 
     auto value = std::abs(std::sin(Timer::Time));
+	auto uiMousePosition = Window::ToUiSpace(mousePosition);
 
     movableObject.Scale = { value, value };
 
     Window::DrawObject(movableObject);
     Window::DrawObject(player);
+
+	Window::DrawLine(player.Position, uiMousePosition, 5.f, Color(1.f, 1.f, 1.f, 0.5f));
+	Window::DrawCircle(uiMousePosition, 5.f, Color(0.f, 1.f, 0.f, 0.2f));
+	Window::DrawCustomShape({ { 0, 0 }, { 100, 100 }, { 200, 0 } }, Color(1.f, 0.f, 0.f, 0.5f));
 }
