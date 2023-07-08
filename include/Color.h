@@ -13,20 +13,19 @@ struct Color
 	}
 	explicit Color(uint32_t color)
 	{
-		R = ((color >> 24) & 0xFF) / 255.f;
-		G = ((color >> 16) & 0xFF) / 255.f;
-		B = ((color >> 8) & 0xFF) / 255.f;
-		A = (color & 0xFF) / 255.f;
+		R = (float) ((color >> 24) & 0xFF) / 255.f;
+		G = (float) ((color >> 16) & 0xFF) / 255.f;
+		B = (float) ((color >> 8) & 0xFF) / 255.f;
+		A = (float) (color & 0xFF) / 255.f;
 	}
 
 	float R, G, B, A;
 
-	static const Color red;
-    static const Color green;
-    static const Color blue;
-    static const Color purple;
-    static const Color yellow;
-    static const Color cyan;
-    static const Color white;
-    static const Color baseImg;
+	static const Color Red;
+    static const Color Green;
+    static const Color Blue;
+    static const Color Purple;
+    static const Color Yellow;
+    static const Color Cyan;
+    static const Color White;
 };

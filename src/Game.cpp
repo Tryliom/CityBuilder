@@ -23,6 +23,7 @@ DrawableObject player =
     .Position = { 300, 300 },
     .Pivot = { 0.5f, 0.5f },
     .Size = { 50, 50 },
+	.Color = Color::Red,
     .UseTexture = true,
     .TextureName = TextureName::CenterLeft
 };
