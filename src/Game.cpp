@@ -1,13 +1,13 @@
 #include <cmath>
+#include <iostream>
 
-#include "iostream"
-
-
-#include "Audio.h"
-#include "Window.h"
-#include "Input.h"
 #include "sokol_app.h"
+
+#include "Window.h"
+#include "Audio.h"
+#include "Input.h"
 #include "Timer.h"
+#include "Constants.h"
 
 DrawableObject movableObject = 
 {
@@ -23,7 +23,7 @@ DrawableObject player =
     .Position = { 300, 300 },
     .Pivot = { 0.5f, 0.5f },
     .Size = { 50, 50 },
-	.Color = Color::Red,
+	.Color = Color(1.f, 0.f, 0.f, 1.f),
     .UseTexture = true,
     .TextureName = TextureName::CenterLeft
 };
@@ -34,13 +34,11 @@ void InitGame()
 {
     std::cout << "Start Function" << std::endl;
 
-    // TODO : Correct the link problems in the audio file.
+    Audio::SetupSound();
 
-    // Audio::SetupSound();
+    SoundClip testTheme = Audio::loadSoundClip(ASSETS_PATH "testTheme.wav");
 
-    // SoundClip testTheme = Audio::loadSoundClip("assets/testTheme.wav");
-
-    // Audio::PlaySoundClip(testTheme, 1.f, 440, 0, 0, true);
+    Audio::PlaySoundClip(testTheme, 1.f, 440, 0, 0, true);
 }
 
 void OnFrame()

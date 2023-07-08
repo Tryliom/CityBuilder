@@ -8,14 +8,7 @@
 #include "sokol_glue.h"
 #include "basic-sapp.glsl.h"
 
-#ifdef __EMSCRIPTEN__
-#define IMAGE_PATH "assets/"
-#elif BAT_RUN
-#define IMAGE_PATH "assets/"
-#else
-#define IMAGE_PATH "../assets/"
-#endif
-
+#include "Constants.h"
 #include "Input.h"
 #include "Image.h"
 #include "Logger.h"
@@ -91,7 +84,7 @@ static void init()
             .label = "triangle-indices",
     });
 
-    Image image(IMAGE_PATH "test.png");
+    Image image(ASSETS_PATH "test.png");
 
     textureWidth = image.GetWidth();
     textureHeight = image.GetHeight();
