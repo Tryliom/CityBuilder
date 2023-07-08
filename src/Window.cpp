@@ -29,6 +29,8 @@ static struct {
 
 #pragma region Attributes
 
+// ===== Sokol =====
+
 const int VertexNbAttributes = 9;
 
 float vertexes[10000];
@@ -36,6 +38,8 @@ int vertexesUsed = 0;
 
 uint32_t indices[10000];
 int indicesUsed = 0;
+
+// ===== Window =====
 
 int frameCount = 0;
 int textureWidth = 0;
@@ -111,9 +115,9 @@ static void init()
             {
                 .attrs =
                 {
-                        { .format = SG_VERTEXFORMAT_FLOAT3 },
-                        { .format = SG_VERTEXFORMAT_FLOAT4 },
-                        { .format = SG_VERTEXFORMAT_FLOAT2 }
+                    { .format = SG_VERTEXFORMAT_FLOAT3 },
+                    { .format = SG_VERTEXFORMAT_FLOAT4 },
+                    { .format = SG_VERTEXFORMAT_FLOAT2 }
                 }
             },
             .colors =
@@ -155,6 +159,7 @@ void frame()
 
     Input::Update();
     Timer::Update();
+
     frameCount++;
     OnFrame();
 
@@ -176,16 +181,17 @@ sapp_desc sokol_main(int argc, char* argv[])
     (void) argc;
     (void) argv;
 
-    return (sapp_desc){
-            .init_cb = init,
-            .frame_cb = frame,
-            .cleanup_cb = cleanup,
-            .event_cb = Input::OnInput,
-            .width = 640,
-            .height = 640,
-            .window_title = "City builder",
-            .logger = { .func = slog_func },
-            .win32_console_create = true // Use it if you want to see console output
+    return (sapp_desc)
+	{
+        .init_cb = init,
+        .frame_cb = frame,
+        .cleanup_cb = cleanup,
+        .event_cb = Input::OnInput,
+        .width = 640,
+        .height = 640,
+        .window_title = "City builder",
+        .logger = { .func = slog_func },
+        .win32_console_create = true // Use it if you want to see console output
     };
 }
 
@@ -198,7 +204,7 @@ namespace Window
         return frameCount;
     }
 
-    Vector2F ToScreenSpace(Vector2F position)
+    Vector2F ToWorldSpace(Vector2F position)
     {
         auto width = (float) sapp_width();
         auto height = (float) sapp_height();
@@ -206,7 +212,7 @@ namespace Window
         return { position.X / width * 2 - 1, position.Y / height * 2 - 1 };
     }
 
-    Vector2F ToWorldSpace(Vector2F position)
+    Vector2F ToScreenSpace(Vector2F position)
     {
         auto width = (float) sapp_width();
         auto height = (float) sapp_height();
@@ -234,7 +240,7 @@ namespace Window
         };
     }
 
-    Vector2F GetScaledPosition(Vector2F position, Vector2F pivot, Vector2F scale, float rotationDegree, Vector2F size)
+    Vector2F GetTransformedPosition(Vector2F position, Vector2F pivot, Vector2F scale, float rotationDegree, Vector2F size)
     {
         //TODO: Implement rotation
 
@@ -250,8 +256,8 @@ namespace Window
 
     void AppendVertex(Vertex vertex)
     {
-        auto position = ToScreenSpace(vertex.Position);
-        auto cameraOffset = ToScreenSpace(camera.Position);
+        auto position = ToWorldSpace(vertex.Position);
+        auto cameraOffset = ToWorldSpace(camera.Position);
         int vertexIndex = vertexesUsed * VertexNbAttributes;
 
         vertexes[vertexIndex] = (position.X + cameraOffset.X) * camera.Zoom;
@@ -298,7 +304,7 @@ namespace Window
             uvs = GetUvs(object.TextureName);
         }
 
-        Vector2F position = GetScaledPosition(object.Position, object.Pivot, object.Scale, object.Rotation, object.Size);
+        Vector2F position = GetTransformedPosition(object.Position, object.Pivot, object.Scale, object.Rotation, object.Size);
 
         DrawRect(position, object.Size * object.Scale, object.Color, uvs);
     }
