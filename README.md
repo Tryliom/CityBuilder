@@ -1,23 +1,13 @@
 # City builder
 
-## Build
+## Menu
 
-### CLion
+- [Build](documentation/Build.md)
+- [Naming convention](documentation/NamingConvention.md)
+- [Faq](documentation/Faq.md)
 
-- Go to `File` -> `Settings` -> `Build, Execution, Deployment` -> `Toolchains` -> `+` -> `System`
+## Description
 
-[Clion toolchains](documentation/images/clion_toolchains.png)
+This project is a city builder game. The goal is to build a city and manage it.
 
-- Go to `File` -> `Settings` -> `Build, Execution, Deployment` -> `CMake` -> add a new profile with the toolchain you just created named `Debug`
-
-[Clion CMake](documentation/images/clion_cmake.png)
-
-- Go to `CMakeLists.txt` and reload it
-
-### VsCode/Vs
-
-Run `build.bat`
-
-## How to compile the shader
-
-Run `buildShader.bat`
+Made with Sokol in C++ by a team of 4 students.
