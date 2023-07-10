@@ -9,24 +9,24 @@
 #include "Timer.h"
 #include "Constants.h"
 
-DrawableObject movableObject = 
-{
-    .Position = { 700, 700 },
-    .Pivot = { 0.5f, 0.5f },
-    .Size = { 100, 100 },
-    .UseTexture = true,
-    .TextureName = TextureName::Top
-};
+void UpdateCamera();
+
+DrawableObject movableObject =
+    {
+        .Position = {700, 700},
+        .Pivot = {0.5f, 0.5f},
+        .Size = {100, 100},
+        .UseTexture = true,
+        .TextureName = TextureName::Top};
 
 DrawableObject player =
-{
-    .Position = { 300, 300 },
-    .Pivot = { 0.5f, 0.5f },
-    .Size = { 50, 50 },
-	.Color = Color(1.f, 0.f, 0.f, 1.f),
-    .UseTexture = true,
-    .TextureName = TextureName::CenterLeft
-};
+    {
+        .Position = {300, 300},
+        .Pivot = {0.5f, 0.5f},
+        .Size = {50, 50},
+        .Color = Color(1.f, 0.f, 0.f, 1.f),
+        .UseTexture = true,
+        .TextureName = TextureName::CenterLeft};
 
 float speed = 200.f;
 
@@ -38,10 +38,29 @@ void InitGame()
 
     SoundClip testTheme = Audio::loadSoundClip(ASSETS_PATH "testTheme.wav");
 
-    Audio::PlaySoundClip(testTheme, 1.f, 440, 0, 0, true);
+    // Audio::PlaySoundClip(testTheme, 1.f, 440, 0, 0, true);
 }
 
 void OnFrame()
+{
+    auto mousePosition = Input::GetMousePosition();
+
+    UpdateCamera();
+
+    auto value = std::abs(std::sin(Timer::Time));
+    auto uiMousePosition = Window::ToUiSpace(mousePosition);
+
+    movableObject.Scale = {value, value};
+
+    Window::DrawObject(movableObject);
+    Window::DrawObject(player);
+
+    Window::DrawLine(player.Position, uiMousePosition, 5.f, Color(1.f, 1.f, 1.f, 0.5f));
+    Window::DrawCircle(uiMousePosition, 5.f, Color(0.f, 1.f, 0.f, 0.2f));
+    Window::DrawCustomShape({{0, 0}, {100, 100}, {200, 0}}, Color(1.f, 0.f, 0.f, 0.5f));
+}
+
+void UpdateCamera()
 {
     auto mousePosition = Input::GetMousePosition();
     auto previousMousePosition = Input::GetPreviousMousePosition();
@@ -50,19 +69,19 @@ void OnFrame()
 
     if (Input::IsKeyHeld(SAPP_KEYCODE_A))
     {
-        player.Position.X -= movementValue;
+        Window::MoveCamera({-movementValue, 0});
     }
     if (Input::IsKeyHeld(SAPP_KEYCODE_D))
     {
-        player.Position.X += movementValue;
+        Window::MoveCamera({movementValue, 0});
     }
     if (Input::IsKeyHeld(SAPP_KEYCODE_W))
     {
-        player.Position.Y += movementValue;
+        Window::MoveCamera({0, movementValue});
     }
     if (Input::IsKeyHeld(SAPP_KEYCODE_S))
     {
-        player.Position.Y -= movementValue;
+        Window::MoveCamera({0, -movementValue});
     }
 
     if (Input::IsKeyHeld(SAPP_KEYCODE_Z))
@@ -78,16 +97,4 @@ void OnFrame()
     {
         Window::MoveCamera(mousePosition - previousMousePosition);
     }
-
-    auto value = std::abs(std::sin(Timer::Time));
-	auto uiMousePosition = Window::ToUiSpace(mousePosition);
-
-    movableObject.Scale = { value, value };
-
-    Window::DrawObject(movableObject);
-    Window::DrawObject(player);
-
-	Window::DrawLine(player.Position, uiMousePosition, 5.f, Color(1.f, 1.f, 1.f, 0.5f));
-	Window::DrawCircle(uiMousePosition, 5.f, Color(0.f, 1.f, 0.f, 0.2f));
-	Window::DrawCustomShape({ { 0, 0 }, { 100, 100 }, { 200, 0 } }, Color(1.f, 0.f, 0.f, 0.5f));
 }
