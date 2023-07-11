@@ -38,12 +38,8 @@ int frameCount = 0;
 int textureWidth = 0;
 int textureHeight = 0;
 
-// Texture 96x96
-Texture textures[9] = {
-    { 0, 0, 32, 32 }, { 32, 0, 32, 32 }, { 64, 0, 32, 32 },
-    { 0, 32, 32, 32 }, { 32, 32, 32, 32 }, { 64, 32, 32, 32 },
-    { 0, 64, 32, 32 }, { 32, 64, 32, 32 }, { 64, 64, 32, 32 }
-};
+// Textures
+std::vector<Texture> textures = {};
 
 Camera camera;
 
@@ -84,7 +80,7 @@ static void init()
             .label = "triangle-indices",
     });
 
-    Image image(ASSETS_PATH "test.png");
+    Image image(ASSETS_PATH "road.png");
 
     textureWidth = image.GetWidth();
     textureHeight = image.GetHeight();
@@ -96,6 +92,11 @@ static void init()
            .data = {.subimage = {{{ .ptr = image.GetBuffer(), .size = image.GetBufferSize() }}}},
            .label = "test-image"
     });
+
+	for (auto i = 0; i < textureWidth / textureHeight; i++)
+	{
+		textures.push_back(Texture(i * textureHeight, 0, textureHeight, textureHeight));
+	}
 
     // Create shader from code-generated sg_shader_desc
     sg_shader shd = sg_make_shader(ui_shader_desc(sg_query_backend()));
@@ -139,6 +140,11 @@ static void init()
     {
         .colors = { { .load_action = SG_LOADACTION_CLEAR, .clear_value = { 0.0f, 0.0f, 0.0f, 1.0f } } }
     };
+
+	int width = sapp_width();
+	int height = sapp_height();
+
+	camera.Position = { (float) width, (float) height};
 }
 
 void frame()
@@ -361,6 +367,23 @@ namespace Window
 
         DrawRect(position, object.Size * object.Scale, object.Color, uvs);
     }
+
+	void DrawGrid(const Grid& grid)
+	{
+		float width = sapp_widthf();
+		float height = sapp_heightf();
+
+		for (Tile tile : grid.Tiles)
+		{
+			DrawObject({
+				.Position = tile.Position - Vector2F{width / 2, height / 2},
+				.Size = Vector2F{(float) grid.TileSize, (float) grid.TileSize},
+				.Color = tile.Color,
+				.UseTexture = tile.TextureName != TextureName::None,
+				.TextureName = tile.TextureName,
+			});
+		}
+	}
 
     void MoveCamera(Vector2F position)
     {

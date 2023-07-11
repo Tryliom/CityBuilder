@@ -10,25 +10,11 @@
 #include "Constants.h"
 
 void UpdateCamera();
-
-DrawableObject movableObject =
-    {
-        .Position = {700, 700},
-        .Pivot = {0.5f, 0.5f},
-        .Size = {100, 100},
-        .UseTexture = true,
-        .TextureName = TextureName::Top};
-
-DrawableObject player =
-    {
-        .Position = {300, 300},
-        .Pivot = {0.5f, 0.5f},
-        .Size = {50, 50},
-        .Color = Color(1.f, 0.f, 0.f, 1.f),
-        .UseTexture = true,
-        .TextureName = TextureName::CenterLeft};
+void UpdateGrid();
 
 float speed = 200.f;
+
+Grid road(800, 800, 50);
 
 void InitGame()
 {
@@ -39,6 +25,11 @@ void InitGame()
     SoundClip testTheme = Audio::loadSoundClip(ASSETS_PATH "testTheme.wav");
 
     // Audio::PlaySoundClip(testTheme, 1.f, 440, 0, 0, true);
+
+	for (Tile& tile : road.Tiles)
+	{
+		tile.TextureName = TextureName::SingleRoad;
+	}
 }
 
 void OnFrame()
@@ -47,17 +38,27 @@ void OnFrame()
 
     UpdateCamera();
 
-    auto value = std::abs(std::sin(Timer::Time));
-    auto uiMousePosition = Window::ToUiSpace(mousePosition);
+	UpdateGrid();
 
-    movableObject.Scale = {value, value};
+	Window::DrawGrid(road);
+}
 
-    Window::DrawObject(movableObject);
-    Window::DrawObject(player);
+void UpdateGrid()
+{
+	auto mousePosition = Input::GetMousePosition();
 
-    Window::DrawLine(player.Position, uiMousePosition, 5.f, Color(1.f, 1.f, 1.f, 0.5f));
-    Window::DrawCircle(uiMousePosition, 5.f, Color(0.f, 1.f, 0.f, 0.2f));
-    Window::DrawCustomShape({{0, 0}, {100, 100}, {200, 0}}, Color(1.f, 0.f, 0.f, 0.5f));
+	for (Tile& tile : road.Tiles)
+	{
+		if (tile.Position.X < mousePosition.X && tile.Position.X + tile.Size.X > mousePosition.X &&
+			tile.Position.Y < mousePosition.Y && tile.Position.Y + tile.Size.Y > mousePosition.Y)
+		{
+			tile.SetSelected(true);
+		}
+		else
+		{
+			tile.SetSelected(false);
+		}
+	}
 }
 
 void UpdateCamera()

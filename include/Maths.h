@@ -122,4 +122,4 @@ template<class T> const Vector2<T> Vector2<T>::Left  = Vector2<T>(-1, 0);
 template<class T> const Vector2<T> Vector2<T>::Down  = Vector2<T>(0, -1);
 
 using Vector2F   = Vector2<float>;
-using Vector2Int = Vector2<int>;
+using Vector2I = Vector2<int>;

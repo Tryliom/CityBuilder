@@ -10,7 +10,5 @@ struct Texture
 
 enum class TextureName
 {
-    BottomLeft, Bottom, BottomRight,
-    CenterLeft, Center, CenterRight,
-    TopLeft, Top, TopRight
+    None = -1, Grass, Flower1, Flower2, Flower3, SingleRoad
 };

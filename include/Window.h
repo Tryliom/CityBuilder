@@ -6,6 +6,7 @@
 #include "Color.h"
 #include "Texture.h"
 #include "DrawableObject.h"
+#include "Grid.h"
 
 struct Vertex
 {
@@ -111,6 +112,8 @@ namespace Window
 	 * @param object The object to draw
 	 */
     void DrawObject(DrawableObject object);
+
+	void DrawGrid(const Grid& grid);
 
 	/**
 	 * @brief Move the camera by the given amount

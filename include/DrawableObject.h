@@ -14,5 +14,5 @@ struct DrawableObject
     Color Color{ 1.f, 1.f, 1.f, 1.f };
 
     bool UseTexture = false;
-    TextureName TextureName = TextureName::Center;
+    TextureName TextureName = TextureName::None;
 };
