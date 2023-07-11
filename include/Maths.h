@@ -34,6 +34,10 @@ struct Vector2
         this->Y = y;
     }
 
+    template<class K>
+    constexpr Vector2(const Vector2<K>& vector)
+        : X(static_cast<T>(vector.X)), Y(static_cast<T>(vector.Y)) {}
+
     static const Vector2 Zero;
     static const Vector2 One;
     static const Vector2 Up;
@@ -113,13 +117,13 @@ struct Vector2
         return *this != v;
     }
 
-    template <class U>
-    Vector2<T>& operator=(const Vector2<U>& v)
-    {
-        this->X = static_cast<T>(v.X);
-        this->Y = static_cast<T>(v.Y);
-        return *this;
-    }
+    // template <class U>
+    // Vector2<T>& operator=(const Vector2<U>& v)
+    // {
+    //     this->X = static_cast<T>(v.X);
+    //     this->Y = static_cast<T>(v.Y);
+    //     return *this;
+    // }
 
 
     #pragma endregion Operator Overloads 

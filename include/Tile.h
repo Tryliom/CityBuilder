@@ -7,7 +7,7 @@
 class Tile : public DrawableObject
 {
 public:
-	explicit Tile(Vector2F position, int tileSize, bool isWalkable = true);
+	explicit Tile(Vector2I position, int tileSize, bool isWalkable = true);
 
 	bool IsWalkable = true;
 
