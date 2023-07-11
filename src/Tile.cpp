@@ -3,7 +3,7 @@
 Tile::Tile(Vector2F position, int tileSize, bool isWalkable)
 {
 	DrawableObject::Position = position;
-	DrawableObject::Size = { static_cast<float>(tileSize), static_cast<float>(tileSize) };
+	DrawableObject::Size = { tileSize, tileSize };
 	IsWalkable = isWalkable;
 }
 

@@ -25,12 +25,14 @@ struct Vector2
 {
     T X, Y;
 
-    Vector2() = default;
-    Vector2(T x, T y)
+	constexpr Vector2() = default;
+
+	template<class X, class Y>
+	constexpr Vector2(X x, Y y)
     {
         this->X = x;
         this->Y = y;
-    };
+    }
 
     static const Vector2 Zero;
     static const Vector2 One;
@@ -111,6 +113,15 @@ struct Vector2
         return *this != v;
     }
 
+    template <class U>
+    Vector2<T>& operator=(const Vector2<U>& v)
+    {
+        this->X = static_cast<T>(v.X);
+        this->Y = static_cast<T>(v.Y);
+        return *this;
+    }
+
+
     #pragma endregion Operator Overloads 
 };
 
@@ -122,4 +133,4 @@ template<class T> const Vector2<T> Vector2<T>::Left  = Vector2<T>(-1, 0);
 template<class T> const Vector2<T> Vector2<T>::Down  = Vector2<T>(0, -1);
 
 using Vector2F   = Vector2<float>;
-using Vector2I = Vector2<int>;
+using Vector2I   = Vector2<int>;
