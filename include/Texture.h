@@ -1,6 +1,6 @@
 #pragma once
 
-enum class TileMap
+enum class TileSheet
 {
     None = -1, Road, Buildings, Ressources, Characters, Icons
 };
@@ -33,12 +33,12 @@ enum class Icons
 struct Texture
 {
     Texture() = default;
-    explicit Texture(Road road) : TileMapIndex(TileMap::Road), TileIndex((int) road) {}
-    explicit Texture(Buildings buildings) : TileMapIndex(TileMap::Buildings), TileIndex((int) buildings) {}
-    explicit Texture(Ressources ressources) : TileMapIndex(TileMap::Ressources), TileIndex((int) ressources) {}
-    explicit Texture(Characters characters) : TileMapIndex(TileMap::Characters), TileIndex((int) characters) {}
-    explicit Texture(Icons icons) : TileMapIndex(TileMap::Icons), TileIndex((int) icons) {}
+    explicit Texture(Road road) : TileSheetIndex(TileSheet::Road), TileIndex((int) road) {}
+    explicit Texture(Buildings buildings) : TileSheetIndex(TileSheet::Buildings), TileIndex((int) buildings) {}
+    explicit Texture(Ressources ressources) : TileSheetIndex(TileSheet::Ressources), TileIndex((int) ressources) {}
+    explicit Texture(Characters characters) : TileSheetIndex(TileSheet::Characters), TileIndex((int) characters) {}
+    explicit Texture(Icons icons) : TileSheetIndex(TileSheet::Icons), TileIndex((int) icons) {}
 
-    TileMap TileMapIndex = TileMap::None;
+    TileSheet TileSheetIndex = TileSheet::None;
     int TileIndex = -1;
 };

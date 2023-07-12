@@ -18,6 +18,7 @@ struct vs_window
 {
     float width;
     float height;
+    float pad0, pad1;
 };
 
 static struct {
@@ -33,10 +34,11 @@ static struct {
 
 const int VertexNbAttributes = 9;
 
-float vertexes[10000];
+const int maxVertexes = 100000;
+float vertexes[maxVertexes];
 int vertexesUsed = 0;
 
-uint32_t indices[10000];
+uint32_t indices[maxVertexes];
 int indicesUsed = 0;
 
 // ===== Window =====
@@ -46,7 +48,7 @@ int textureWidth = 0;
 int textureHeight = 0;
 
 // Textures
-std::vector<Image> tileMaps =
+std::vector<Image> tileSheets =
 {
     Image(ASSETS_PATH "road.png"),
     Image(ASSETS_PATH "buildings.png"),
@@ -98,7 +100,7 @@ static void init()
 
     Image tileMap;
 
-    tileMap.AddImagesAtRow(tileMaps);
+    tileMap.AddImagesAtRow(tileSheets);
 
     textureWidth = tileMap.GetWidth();
     textureHeight = tileMap.GetHeight();
@@ -184,7 +186,7 @@ void frame()
     sg_update_buffer(state.bind.index_buffer, (sg_range) { .ptr = indices, .size = indicesUsed * sizeof(*indices) });
 
     sg_draw(0, vertexesUsed * VertexNbAttributes, 1);
-    sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, (sg_range) { .ptr = &state.vs_window, .size = sizeof(state.vs_window) * 2 });
+    sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, (sg_range) { .ptr = &state.vs_window, .size = sizeof(state.vs_window) });
     sg_end_pass();
     sg_commit();
 }
@@ -229,13 +231,13 @@ namespace Window
 
     std::vector <Vector2F> GetUvs(Texture texture)
     {
-        int tileMapIndex = static_cast<int>(texture.TileMapIndex);
-        int textureSize = tileMaps[tileMapIndex].GetHeight();
+        int tileSheetIndex = static_cast<int>(texture.TileSheetIndex);
+        int textureSize = tileSheets[tileSheetIndex].GetHeight();
         int tileMapY = 0;
 
-        for (int i = 0; i < tileMapIndex; i++)
+        for (int i = 0; i < tileSheetIndex; i++)
         {
-            tileMapY += tileMaps[i].GetHeight();
+            tileMapY += tileSheets[i].GetHeight();
         }
 
         float width = textureSize / (float) textureWidth;
@@ -268,6 +270,8 @@ namespace Window
     void AppendVertex(Vertex vertex)
     {
         int vertexIndex = vertexesUsed * VertexNbAttributes;
+
+        assert(vertexIndex + VertexNbAttributes < maxVertexes && "Exceeded max vertexes");
 
         vertexes[vertexIndex] = (vertex.Position.X + camera.Position.X) * camera.Zoom;
         vertexes[vertexIndex + 1] = (-vertex.Position.Y + camera.Position.Y) * camera.Zoom;
@@ -360,7 +364,7 @@ namespace Window
     {
         std::vector<Vector2F> uvs = {};
 
-        if (object.Texture.TileMapIndex != TileMap::None)
+        if (object.Texture.TileSheetIndex != TileSheet::None)
         {
             uvs = GetUvs(object.Texture);
         }
