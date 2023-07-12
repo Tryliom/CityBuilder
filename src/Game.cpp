@@ -13,7 +13,7 @@ void UpdateGrid();
 
 float speed = 200.f;
 
-Grid road(1000, 1000, 100);
+Grid road(1000, 1000, 50);
 
 void InitGame()
 {

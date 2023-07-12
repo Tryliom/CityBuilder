@@ -34,10 +34,11 @@ static struct {
 
 const int VertexNbAttributes = 9;
 
-float vertexes[10000];
+const int maxVertexes = 100000;
+float vertexes[maxVertexes];
 int vertexesUsed = 0;
 
-uint32_t indices[10000];
+uint32_t indices[maxVertexes];
 int indicesUsed = 0;
 
 // ===== Window =====
@@ -269,6 +270,8 @@ namespace Window
     void AppendVertex(Vertex vertex)
     {
         int vertexIndex = vertexesUsed * VertexNbAttributes;
+
+        assert(vertexIndex + VertexNbAttributes < maxVertexes && "Exceeded max vertexes");
 
         vertexes[vertexIndex] = (vertex.Position.X + camera.Position.X) * camera.Zoom;
         vertexes[vertexIndex + 1] = (-vertex.Position.Y + camera.Position.Y) * camera.Zoom;
