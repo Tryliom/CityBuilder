@@ -26,10 +26,23 @@ void InitGame()
 
     // Audio::PlaySoundClip(testTheme, 1.f, 440, 0, 0, true);
 
-	for (Tile& tile : road.Tiles)
-	{
-		tile.TextureName = TextureName::SingleRoad;
-	}
+    for (Tile &tile : road.Tiles)
+    {
+        tile.TextureName = TextureName::SingleRoad;
+    }
+    Vector2F myVec(3,4);
+    Matrix_2_3 id =  Matrix_2_3::IdentityMatrix();
+    Matrix_2_3 tr =  Matrix_2_3::TranslationMatrix({15,10});
+    Matrix_2_3 rot = Matrix_2_3::RotationMatrix(90);
+    Matrix_2_3 sc  = Matrix_2_3::ScaleMatrix({2, 2});
+
+    std::cout << Matrix_2_3::Multiply(id,myVec).X  << " " << Matrix_2_3::Multiply(id,myVec).Y  << std::endl;
+    std::cout << Matrix_2_3::Multiply(tr,myVec).X  << " " << Matrix_2_3::Multiply(tr,myVec).Y  << std::endl;
+    std::cout << Matrix_2_3::Multiply(rot,myVec).X << " " << Matrix_2_3::Multiply(rot,myVec).Y << std::endl;
+    std::cout << Matrix_2_3::Multiply(sc,myVec).X  << " " << Matrix_2_3::Multiply(sc,myVec).Y  << std::endl;
+
+    Matrix_2_3 mutlipled = Matrix_2_3::Multiply(rot,tr);
+    std::cout << Matrix_2_3::Multiply(mutlipled,myVec).X  << " " << Matrix_2_3::Multiply(mutlipled,myVec).Y << std::endl;
 }
 
 void OnFrame()
@@ -38,27 +51,27 @@ void OnFrame()
 
     UpdateCamera();
 
-	UpdateGrid();
+    UpdateGrid();
 
-	Window::DrawGrid(road);
+    Window::DrawGrid(road);
 }
 
 void UpdateGrid()
 {
-	auto mousePosition = Input::GetMousePosition();
+    auto mousePosition = Input::GetMousePosition();
 
-	for (Tile& tile : road.Tiles)
-	{
-		if (tile.Position.X < mousePosition.X && tile.Position.X + tile.Size.X > mousePosition.X &&
-			tile.Position.Y < mousePosition.Y && tile.Position.Y + tile.Size.Y > mousePosition.Y)
-		{
-			tile.SetSelected(true);
-		}
-		else
-		{
-			tile.SetSelected(false);
-		}
-	}
+    for (Tile &tile : road.Tiles)
+    {
+        if (tile.Position.X < mousePosition.X && tile.Position.X + tile.Size.X > mousePosition.X &&
+            tile.Position.Y < mousePosition.Y && tile.Position.Y + tile.Size.Y > mousePosition.Y)
+        {
+            tile.SetSelected(true);
+        }
+        else
+        {
+            tile.SetSelected(false);
+        }
+    }
 }
 
 void UpdateCamera()

@@ -7,6 +7,14 @@
 #define MAX(a, b) ((a > b) ? a : b)
 #define MIN(a, b) ((a < b) ? a : b)
 
+template <class T>
+struct Vector2;
+
+using Vector2F = Vector2<float>;
+using Vector2I = Vector2<int>;
+
+struct Matrix_2_3;
+
 namespace MathUtility
 {
     constexpr double epsilon = 0.000001;
@@ -25,17 +33,17 @@ struct Vector2
 {
     T X, Y;
 
-	constexpr Vector2() = default;
+    constexpr Vector2() = default;
 
-	template<class X, class Y>
-	constexpr Vector2(X x, Y y)
+    template <class X, class Y>
+    constexpr Vector2(X x, Y y)
     {
         this->X = x;
         this->Y = y;
     }
 
-    template<class K>
-    constexpr Vector2(const Vector2<K>& vector)
+    template <class K>
+    constexpr Vector2(const Vector2<K> &vector)
         : X(static_cast<T>(vector.X)), Y(static_cast<T>(vector.Y)) {}
 
     static const Vector2 Zero;
@@ -59,14 +67,14 @@ struct Vector2
         return normalized;
     }
 
-    #pragma region Operator Overloads 
+#pragma region Operator Overloads
 
-    constexpr Vector2<T> operator+(const Vector2<T>& v) const
+    constexpr Vector2<T> operator+(const Vector2<T> &v) const
     {
         return Vector2<T>(this->X + v.X, this->Y + v.Y);
     }
 
-    constexpr Vector2<T> operator-(const Vector2<T>& v) const
+    constexpr Vector2<T> operator-(const Vector2<T> &v) const
     {
         return Vector2<T>(this->X - v.X, this->Y - v.Y);
     }
@@ -86,55 +94,130 @@ struct Vector2
         return Vector2<T>(this->X / scale, this->Y / scale);
     }
 
-    constexpr Vector2<T>& operator+=(const Vector2<T>& v)
+    constexpr Vector2<T> &operator+=(const Vector2<T> &v)
     {
         this->X += v.X;
         this->Y += v.Y;
         return *this;
     }
 
-    constexpr Vector2<T>& operator-=(const Vector2<T>& v)
+    constexpr Vector2<T> &operator-=(const Vector2<T> &v)
     {
         this->X -= v.X;
         this->Y -= v.Y;
         return *this;
     }
 
-    constexpr Vector2<T>& operator*=(const Vector2<T>& v)
+    constexpr Vector2<T> &operator*=(const Vector2<T> &v)
     {
         this->X *= v.X;
         this->Y *= v.Y;
         return *this;
     }
 
-    constexpr bool operator==(const Vector2<T>& v) const
+    constexpr bool operator==(const Vector2<T> &v) const
     {
         return abs(X - v.X) < MathUtility::epsilon && abs(Y - v.Y) < MathUtility::epsilon;
     }
 
-    constexpr bool operator!=(const Vector2<T>& v) const
+    constexpr bool operator!=(const Vector2<T> &v) const
     {
         return *this != v;
     }
 
-    // template <class U>
-    // Vector2<T>& operator=(const Vector2<U>& v)
-    // {
-    //     this->X = static_cast<T>(v.X);
-    //     this->Y = static_cast<T>(v.Y);
-    //     return *this;
-    // }
-
-
-    #pragma endregion Operator Overloads 
+#pragma endregion Operator Overloads
 };
 
-template<class T> const Vector2<T> Vector2<T>::Zero  = Vector2<T>(0, 0);
-template<class T> const Vector2<T> Vector2<T>::One   = Vector2<T>(1, 1);
-template<class T> const Vector2<T> Vector2<T>::Up    = Vector2<T>(0, 1);
-template<class T> const Vector2<T> Vector2<T>::Right = Vector2<T>(1, 0);
-template<class T> const Vector2<T> Vector2<T>::Left  = Vector2<T>(-1, 0);
-template<class T> const Vector2<T> Vector2<T>::Down  = Vector2<T>(0, -1);
+template <class T>
+const Vector2<T> Vector2<T>::Zero = Vector2<T>(0, 0);
+template <class T>
+const Vector2<T> Vector2<T>::One = Vector2<T>(1, 1);
+template <class T>
+const Vector2<T> Vector2<T>::Up = Vector2<T>(0, 1);
+template <class T>
+const Vector2<T> Vector2<T>::Right = Vector2<T>(1, 0);
+template <class T>
+const Vector2<T> Vector2<T>::Left = Vector2<T>(-1, 0);
+template <class T>
+const Vector2<T> Vector2<T>::Down = Vector2<T>(0, -1);
 
-using Vector2F   = Vector2<float>;
-using Vector2I   = Vector2<int>;
+struct Matrix_2_3
+{
+    float values[2][3];
+
+    static Matrix_2_3 IdentityMatrix()
+    {
+        Matrix_2_3 mat =
+            {
+                .values =
+                    {
+                        1.f, 0.f, 0.f,
+                        0.f, 1.f, 0.f}};
+
+        return mat;
+    }
+
+    static Matrix_2_3 TranslationMatrix(Vector2F translation)
+    {
+        Matrix_2_3 mat =
+            {
+                .values =
+                    {
+                        1.f, 0.f, translation.X,
+                        0.f, 1.f, translation.Y}};
+
+        return mat;
+    }
+
+    static Matrix_2_3 RotationMatrix(float angle, bool clockWise = true)
+    {
+        Matrix_2_3 mat =
+            {
+                .values =
+                    {
+                        {cosf(MathUtility::DegreesToRadians(angle)), clockWise ? sinf(MathUtility::DegreesToRadians(angle)) : -sinf(MathUtility::DegreesToRadians(angle)), 0},
+                        {clockWise ? -sinf(MathUtility::DegreesToRadians(angle)) : sinf(MathUtility::DegreesToRadians(angle)), cosf(MathUtility::DegreesToRadians(angle)), 0}}};
+
+        return mat;
+    }
+
+    static Matrix_2_3 ScaleMatrix(Vector2F scaleRatio)
+    {
+        Matrix_2_3 mat =
+            {
+                .values =
+                    {
+                        scaleRatio.X, 0.f, 0.f,
+                        0.f, scaleRatio.Y, 0.f}};
+
+        return mat;
+    }
+
+    template <class T>
+    static Vector2<T> Multiply(Matrix_2_3 mat, Vector2<T> vec)
+    {
+        Vector2F result =
+            {
+                vec.X * mat.values[0][0] + vec.Y * mat.values[0][1] + mat.values[0][2],
+                vec.X * mat.values[1][0] + vec.Y * mat.values[1][1] + mat.values[1][2]};
+
+        return result;
+    }
+
+    static Matrix_2_3 Multiply(Matrix_2_3 matA, Matrix_2_3 matB)
+    {
+        Matrix_2_3 result =
+            {
+                .values =
+                    {
+                        {matA.values[0][0] * matB.values[0][0] + matA.values[0][1] * matB.values[1][0] + matA.values[0][2] * 0,
+                         matA.values[0][0] * matB.values[0][1] + matA.values[0][1] * matB.values[1][1] + matA.values[0][2] * 0,
+                         matA.values[0][0] * matB.values[0][2] + matA.values[0][1] * matB.values[1][2] + matA.values[0][2] * 1},
+
+                        {matA.values[1][0] * matB.values[0][0] + matA.values[1][1] * matB.values[1][0] + matA.values[1][2] * 0,
+                         matA.values[1][0] * matB.values[0][1] + matA.values[1][1] * matB.values[1][1] + matA.values[1][2] * 0,
+                         matA.values[1][0] * matB.values[0][2] + matA.values[1][1] * matB.values[1][2] + matA.values[1][2] * 1}}};
+
+        return result;
+    }
+};
