@@ -14,6 +14,6 @@ public:
 	int Height;
 	int TileSize;
 
-	std::vector<Tile> Tiles;
+	std::vector<Tile> Tiles = std::vector<Tile>();
 
 };

@@ -8,27 +8,32 @@
 #include "Input.h"
 #include "Timer.h"
 #include "Constants.h"
+#include "Logger.h"
 
 void UpdateCamera();
 void UpdateGrid();
 
 float speed = 200.f;
 
-Grid road(800, 800, 50);
+Grid road(100, 100, 50);
 
 void InitGame()
 {
     std::cout << "Start Function" << std::endl;
 
-    Audio::SetupSound();
+    /*Audio::SetupSound();
 
-    SoundClip testTheme = Audio::loadSoundClip(ASSETS_PATH "testTheme.wav");
+    SoundClip testTheme = Audio::loadSoundClip(ASSETS_PATH "testTheme.wav");*/
 
     // Audio::PlaySoundClip(testTheme, 1.f, 440, 0, 0, true);
 
+    int i = 0;
+
 	for (Tile& tile : road.Tiles)
 	{
-		tile.TextureName = TextureName::SingleRoad;
+		tile.Texture = Texture(i % 2 == 0 ? Road::Grass : Road::Flower1);
+
+        i++;
 	}
 }
 
@@ -40,6 +45,10 @@ void OnFrame()
 	UpdateGrid();
 
 	Window::DrawGrid(road);
+
+    Window::DrawRect({ -500, -500}, {Window::GetTextureWidth(), Window::GetTextureHeight()},
+                     Color::White,
+                     {{ 0, 0 }, { 1, 0 }, { 1, 1 }, { 0, 1 }});
 }
 
 void UpdateGrid()

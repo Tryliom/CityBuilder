@@ -12,7 +12,5 @@ struct DrawableObject
     Vector2F Size = {0, 0};
     float Rotation = 0;
     Color Color{ 1.f, 1.f, 1.f, 1.f };
-
-    bool UseTexture = false;
-    TextureName TextureName = TextureName::None;
+    Texture Texture = {};
 };
