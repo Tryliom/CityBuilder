@@ -162,17 +162,9 @@ static void init()
 
 void frame()
 {
-    LOG("1");
-
     sg_begin_default_pass(&state.pass_action, sapp_width(), sapp_height());
-
-    LOG("2");
     sg_apply_pipeline(state.pip);
-
-    LOG("3");
     sg_apply_bindings(&state.bind);
-
-    LOG("4");
 
     auto width = sapp_width();
     auto height = sapp_height();
@@ -278,7 +270,7 @@ namespace Window
         int vertexIndex = vertexesUsed * VertexNbAttributes;
 
         vertexes[vertexIndex] = (vertex.Position.X + camera.Position.X) * camera.Zoom;
-        vertexes[vertexIndex + 1] = (vertex.Position.Y + camera.Position.Y) * camera.Zoom;
+        vertexes[vertexIndex + 1] = (-vertex.Position.Y + camera.Position.Y) * camera.Zoom;
         vertexes[vertexIndex + 2] = 0;
         vertexes[vertexIndex + 3] = vertex.Color.R;
         vertexes[vertexIndex + 4] = vertex.Color.G;

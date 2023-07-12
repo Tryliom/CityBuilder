@@ -7,15 +7,13 @@
 #include "Audio.h"
 #include "Input.h"
 #include "Timer.h"
-#include "Constants.h"
-#include "Logger.h"
 
 void UpdateCamera();
 void UpdateGrid();
 
 float speed = 200.f;
 
-Grid road(100, 100, 50);
+Grid road(1000, 1000, 100);
 
 void InitGame()
 {

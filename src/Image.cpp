@@ -89,7 +89,7 @@ void Image::AddImagesAtRow(const std::vector<Image>& images)
         memset(newBuffer, 0, newWidth * newHeight * Channels);
 
         // Copy the old buffer to the top of the image
-        for (int y = 0; y < newHeight; y++)
+        for (int y = 0; y < _height; y++)
         {
             for (int x = 0; x < _width; x++)
             {
@@ -98,7 +98,20 @@ void Image::AddImagesAtRow(const std::vector<Image>& images)
 
                 for (int i = 0; i < Channels; i++)
                 {
-                    newBuffer[newIndex * Channels + i] = _buffer[index * Channels + i];
+                    const int newChannelIndex = newIndex * Channels + i;
+                    const int channelIndex = index * Channels + i;
+
+                    if (newChannelIndex >= newWidth * newHeight * Channels)
+                    {
+                        LOG_ERROR("newChannelIndex >= newWidth * newHeight * Channels");
+                    }
+
+                    if (channelIndex >= _width * _height * Channels)
+                    {
+                        LOG_ERROR("channelIndex >= _width * _height * Channels");
+                    }
+
+                    newBuffer[newChannelIndex] = _buffer[channelIndex];
                 }
             }
         }
@@ -124,5 +137,7 @@ void Image::AddImagesAtRow(const std::vector<Image>& images)
         _height = newHeight;
 
         _buffer = newBuffer;
+
+        free(bufferImage);
     }
 }
