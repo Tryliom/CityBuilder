@@ -1,4 +1,10 @@
 #pragma sokol @vs vs
+uniform vs_window
+{
+    float width;
+    float height;
+};
+
 in vec4 position;
 in vec4 color0;
 in vec2 uv0;
@@ -8,7 +14,7 @@ out vec2 uv;
 
 void main()
 {
-    gl_Position = position;
+    gl_Position = position / vec4(width, height, 1, 1);
     color = color0;
     uv = uv0;
 }

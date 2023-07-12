@@ -14,10 +14,17 @@
 #include "Logger.h"
 #include "Timer.h"
 
+struct vs_window
+{
+    float width;
+    float height;
+};
+
 static struct {
     sg_pipeline pip;
     sg_bindings bind;
     sg_pass_action pass_action;
+    vs_window vs_window;
 } state;
 
 #pragma region Attributes
@@ -66,6 +73,8 @@ static void init()
             .context = sapp_sgcontext()
     };
     sg_setup(desc);
+
+    state.vs_window = { sapp_widthf(), sapp_heightf() };
 
     state.bind.vertex_buffers[0] = sg_make_buffer((sg_buffer_desc){
             .size = sizeof(vertexes),
@@ -153,6 +162,11 @@ void frame()
     sg_apply_pipeline(state.pip);
     sg_apply_bindings(&state.bind);
 
+    auto width = sapp_width();
+    auto height = sapp_height();
+
+    state.vs_window = { (float) width, (float) height };
+
     // Clear buffers
     Clear();
 
@@ -166,6 +180,7 @@ void frame()
     sg_update_buffer(state.bind.index_buffer, (sg_range) { .ptr = indices, .size = indicesUsed * sizeof(*indices) });
 
     sg_draw(0, vertexesUsed * VertexNbAttributes, 1);
+    sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, (sg_range) { .ptr = &state.vs_window, .size = sizeof(state.vs_window) * 2 });
     sg_end_pass();
     sg_commit();
 }
@@ -203,30 +218,6 @@ namespace Window
         return frameCount;
     }
 
-    Vector2F ToWorldSpace(Vector2F position)
-    {
-        auto width = (float) sapp_width();
-        auto height = (float) sapp_height();
-
-        return { position.X / width * 2 - 1, position.Y / height * 2 - 1 };
-    }
-
-    Vector2F ToScreenSpace(Vector2F position)
-    {
-        auto width = (float) sapp_width();
-        auto height = (float) sapp_height();
-
-        return { (position.X + 1) / 2 * width, (position.Y + 1) / 2 * height };
-    }
-
-	Vector2F ToUiSpace(Vector2F position)
-	{
-		auto worldPosition = ToWorldSpace(position);
-		auto worldCameraPosition = ToWorldSpace(camera.Position) * camera.Zoom;
-
-		return ToScreenSpace((worldPosition - worldCameraPosition) * 1.f / camera.Zoom);
-	}
-
     Vector2F ConvertInputPosition(Vector2F position)
     {
         return { position.X, sapp_height() - position.Y };
@@ -263,12 +254,10 @@ namespace Window
 
     void AppendVertex(Vertex vertex)
     {
-        auto position = ToWorldSpace(vertex.Position);
-        auto cameraOffset = ToWorldSpace(camera.Position);
         int vertexIndex = vertexesUsed * VertexNbAttributes;
 
-        vertexes[vertexIndex] = (position.X + cameraOffset.X) * camera.Zoom;
-        vertexes[vertexIndex + 1] = (position.Y + cameraOffset.Y) * camera.Zoom;
+        vertexes[vertexIndex] = (vertex.Position.X + camera.Position.X) * camera.Zoom;
+        vertexes[vertexIndex + 1] = (vertex.Position.Y + camera.Position.Y) * camera.Zoom;
         vertexes[vertexIndex + 2] = 0;
         vertexes[vertexIndex + 3] = vertex.Color.R;
         vertexes[vertexIndex + 4] = vertex.Color.G;

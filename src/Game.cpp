@@ -37,7 +37,6 @@ void OnFrame()
     auto mousePosition = Input::GetMousePosition();
 
     UpdateCamera();
-
 	UpdateGrid();
 
 	Window::DrawGrid(road);

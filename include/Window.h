@@ -26,27 +26,6 @@ namespace Window
     int GetFrameCount();
 
 	/**
-	 * @brief Convert a position (0, 0 to screen width, screen height) to world space (-1, -1 to 1, 1)
-	 * @param position A position in the range (0, 0 to screen width, screen height)
-	 * @return A position in the range (-1, -1 to 1, 1)
-	 */
-	Vector2F ToWorldSpace(Vector2F position);
-
-	/**
-	 * @brief Convert a position (-1, -1 to 1, 1) to world space (0, 0 to screen width, screen height)
-	 * @param position A position in the range (-1, -1 to 1, 1)
-	 * @return A position in the range (0, 0 to screen width, screen height)
-	 */
-    Vector2F ToScreenSpace(Vector2F position);
-
-	/**
-	 * @brief Convert a position (0, 0 to screen width, screen height) to UI space (0, 0 to screen width, screen height) without the camera influence
-	 * @param position A position in the range (0, 0 to screen width, screen height)
-	 * @return A position in the range (0, 0 to screen width, screen height) without the camera influence
-	 */
-	Vector2F ToUiSpace(Vector2F position);
-
-	/**
 	 * @brief Convert a position given by the input system to world space (0, 0 to screen width, screen height)
 	 * @param position An input position given by sokol_input
 	 * @return A position in the range (0, 0 to screen width, screen height)
