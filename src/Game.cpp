@@ -7,29 +7,24 @@
 #include "Audio.h"
 #include "Input.h"
 #include "Timer.h"
-#include "Constants.h"
 
 void UpdateCamera();
 void UpdateGrid();
 
 float speed = 200.f;
 
-Grid road(800, 800, 50);
+Grid road(1000, 1000, 100);
 
 void InitGame()
 {
     std::cout << "Start Function" << std::endl;
 
-    Audio::SetupSound();
+    /*Audio::SetupSound();
 
-    SoundClip testTheme = Audio::loadSoundClip(ASSETS_PATH "testTheme.wav");
+    SoundClip testTheme = Audio::loadSoundClip(ASSETS_PATH "testTheme.wav");*/
 
     // Audio::PlaySoundClip(testTheme, 1.f, 440, 0, 0, true);
 
-    for (Tile &tile : road.Tiles)
-    {
-        tile.TextureName = TextureName::SingleRoad;
-    }
     Vector2F myVec(3,4);
     Matrix_2_3 id =  Matrix_2_3::IdentityMatrix();
     Matrix_2_3 tr =  Matrix_2_3::TranslationMatrix({15,10});
@@ -43,6 +38,16 @@ void InitGame()
 
     Matrix_2_3 mutlipled = Matrix_2_3::Multiply(rot,tr);
     std::cout << Matrix_2_3::Multiply(mutlipled,myVec).X  << " " << Matrix_2_3::Multiply(mutlipled,myVec).Y << std::endl;
+
+    int i = 0;
+
+	for (Tile& tile : road.Tiles)
+	{
+		tile.Texture = Texture(i % 2 == 0 ? Road::Grass : Road::Flower1);
+
+        i++;
+	}
+
 }
 
 void OnFrame()
@@ -50,10 +55,13 @@ void OnFrame()
     auto mousePosition = Input::GetMousePosition();
 
     UpdateCamera();
+	UpdateGrid();
 
-    UpdateGrid();
+	Window::DrawGrid(road);
 
-    Window::DrawGrid(road);
+    Window::DrawRect({ -500, -500}, {Window::GetTextureWidth(), Window::GetTextureHeight()},
+                     Color::White,
+                     {{ 0, 0 }, { 1, 0 }, { 1, 1 }, { 0, 1 }});
 }
 
 void UpdateGrid()

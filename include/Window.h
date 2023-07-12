@@ -26,27 +26,6 @@ namespace Window
     int GetFrameCount();
 
 	/**
-	 * @brief Convert a position (0, 0 to screen width, screen height) to world space (-1, -1 to 1, 1)
-	 * @param position A position in the range (0, 0 to screen width, screen height)
-	 * @return A position in the range (-1, -1 to 1, 1)
-	 */
-	Vector2F ToWorldSpace(Vector2F position);
-
-	/**
-	 * @brief Convert a position (-1, -1 to 1, 1) to world space (0, 0 to screen width, screen height)
-	 * @param position A position in the range (-1, -1 to 1, 1)
-	 * @return A position in the range (0, 0 to screen width, screen height)
-	 */
-    Vector2F ToScreenSpace(Vector2F position);
-
-	/**
-	 * @brief Convert a position (0, 0 to screen width, screen height) to UI space (0, 0 to screen width, screen height) without the camera influence
-	 * @param position A position in the range (0, 0 to screen width, screen height)
-	 * @return A position in the range (0, 0 to screen width, screen height) without the camera influence
-	 */
-	Vector2F ToUiSpace(Vector2F position);
-
-	/**
 	 * @brief Convert a position given by the input system to world space (0, 0 to screen width, screen height)
 	 * @param position An input position given by sokol_input
 	 * @return A position in the range (0, 0 to screen width, screen height)
@@ -55,10 +34,10 @@ namespace Window
 
 	/**
 	 * @brief Get the UVs for a texture name
-	 * @param texture The texture name
+	 * @param texture The texture
 	 * @return The 4 uvs positions for the texture
 	 */
-    std::vector <Vector2F> GetUvs(TextureName texture);
+    std::vector <Vector2F> GetUvs(Texture texture);
 
 	/**
 	 * @brief Get the transformed position for the given parameters
@@ -126,4 +105,9 @@ namespace Window
 	 * @param scale The amount to zoom the camera by
 	 */
     void Zoom(float scale);
+
+    // temp
+
+    int GetTextureWidth();
+    int GetTextureHeight();
 }
