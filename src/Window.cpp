@@ -46,7 +46,14 @@ int textureWidth = 0;
 int textureHeight = 0;
 
 // Textures
-std::vector<Texture> textures = {};
+std::vector<Image> tileMaps =
+{
+    Image(ASSETS_PATH "road.png"),
+    Image(ASSETS_PATH "buildings.png"),
+    Image(ASSETS_PATH "ressources.png"),
+    Image(ASSETS_PATH "characters.png"),
+    Image(ASSETS_PATH "icons.png")
+};
 
 Camera camera;
 
@@ -89,23 +96,20 @@ static void init()
             .label = "triangle-indices",
     });
 
-    Image image(ASSETS_PATH "road.png");
+    Image tileMap;
 
-    textureWidth = image.GetWidth();
-    textureHeight = image.GetHeight();
+    tileMap.AddImagesAtRow(tileMaps);
+
+    textureWidth = tileMap.GetWidth();
+    textureHeight = tileMap.GetHeight();
 
     state.bind.fs_images[SLOT_tex] = sg_make_image((sg_image_desc)
     {
-           .width = textureWidth,
-           .height = textureHeight,
-           .data = {.subimage = {{{ .ptr = image.GetBuffer(), .size = image.GetBufferSize() }}}},
-           .label = "test-image"
+       .width = textureWidth,
+       .height = textureHeight,
+       .data = {.subimage = {{{ .ptr = tileMap.GetBuffer(), .size = tileMap.GetBufferSize() }}}},
+       .label = "tilemap-image"
     });
-
-	for (auto i = 0; i < textureWidth / textureHeight; i++)
-	{
-		textures.push_back(Texture(i * textureHeight, 0, textureHeight, textureHeight));
-	}
 
     // Create shader from code-generated sg_shader_desc
     sg_shader shd = sg_make_shader(ui_shader_desc(sg_query_backend()));
@@ -223,12 +227,21 @@ namespace Window
         return { position.X, sapp_height() - position.Y };
     }
 
-    std::vector <Vector2F> GetUvs(TextureName texture)
+    std::vector <Vector2F> GetUvs(Texture texture)
     {
-        float width = textures[static_cast<int>(texture)].Width / (float) textureWidth;
-        float height = textures[static_cast<int>(texture)].Height / (float) textureHeight;
-        float X = textures[static_cast<int>(texture)].X / (float) textureWidth;
-        float Y = textures[static_cast<int>(texture)].Y / (float) textureHeight;
+        int tileMapIndex = static_cast<int>(texture.TileMapIndex);
+        int textureSize = tileMaps[tileMapIndex].GetHeight();
+        int tileMapY = 0;
+
+        for (int i = 0; i < tileMapIndex; i++)
+        {
+            tileMapY += tileMaps[i].GetHeight();
+        }
+
+        float width = textureSize / (float) textureWidth;
+        float height = textureSize / (float) textureHeight;
+        float X = texture.TileIndex * textureSize / (float) textureWidth;
+        float Y = tileMapY / (float) textureHeight;
 
         return {
                 { X,         Y },
@@ -257,7 +270,7 @@ namespace Window
         int vertexIndex = vertexesUsed * VertexNbAttributes;
 
         vertexes[vertexIndex] = (vertex.Position.X + camera.Position.X) * camera.Zoom;
-        vertexes[vertexIndex + 1] = (vertex.Position.Y + camera.Position.Y) * camera.Zoom;
+        vertexes[vertexIndex + 1] = (-vertex.Position.Y + camera.Position.Y) * camera.Zoom;
         vertexes[vertexIndex + 2] = 0;
         vertexes[vertexIndex + 3] = vertex.Color.R;
         vertexes[vertexIndex + 4] = vertex.Color.G;
@@ -347,9 +360,9 @@ namespace Window
     {
         std::vector<Vector2F> uvs = {};
 
-        if (object.UseTexture)
+        if (object.Texture.TileMapIndex != TileMap::None)
         {
-            uvs = GetUvs(object.TextureName);
+            uvs = GetUvs(object.Texture);
         }
 
         Vector2F position = GetTransformedPosition(object.Position, object.Pivot, object.Scale, object.Rotation, object.Size);
@@ -362,15 +375,17 @@ namespace Window
 		float width = sapp_widthf();
 		float height = sapp_heightf();
 
+        int i = 0;
 		for (Tile tile : grid.Tiles)
 		{
-			DrawObject({
+            DrawObject({
 				.Position = tile.Position - Vector2F{width / 2, height / 2},
 				.Size = Vector2F{(float) grid.TileSize, (float) grid.TileSize},
 				.Color = tile.Color,
-				.UseTexture = tile.TextureName != TextureName::None,
-				.TextureName = tile.TextureName,
+				.Texture = tile.Texture
 			});
+
+            i++;
 		}
 	}
 
@@ -387,5 +402,15 @@ namespace Window
         {
             camera.Zoom = 0.f;
         }
+    }
+
+    int GetTextureWidth()
+    {
+        return textureWidth;
+    }
+
+    int GetTextureHeight()
+    {
+        return textureHeight;
     }
 }

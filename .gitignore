@@ -5,7 +5,8 @@ bin/game.data
 bin/game.js.mem
 bin/assets/*
 cmake-build-debug
-cmake-build-web
+bin/.vs
+out
 .idea
 .vs
 .vscode

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <vector>
 
 class Image
 {
@@ -19,8 +20,10 @@ public:
 	[[nodiscard]] int GetWidth() const { return _width; }
 	[[nodiscard]] int GetHeight() const { return _height; }
 
-    uint8_t* GetBuffer() { return _buffer; }
+    [[nodiscard]] uint8_t* GetBuffer() const { return _buffer; }
     [[nodiscard]] size_t GetBufferSize() const { return _width * _height * 4; }
 
     Image Cut(int x, int y, int width, int height);
+
+    void AddImagesAtRow(const std::vector<Image>& images);
 };

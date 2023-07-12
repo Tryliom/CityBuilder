@@ -34,10 +34,10 @@ namespace Window
 
 	/**
 	 * @brief Get the UVs for a texture name
-	 * @param texture The texture name
+	 * @param texture The texture
 	 * @return The 4 uvs positions for the texture
 	 */
-    std::vector <Vector2F> GetUvs(TextureName texture);
+    std::vector <Vector2F> GetUvs(Texture texture);
 
 	/**
 	 * @brief Get the transformed position for the given parameters
@@ -105,4 +105,9 @@ namespace Window
 	 * @param scale The amount to zoom the camera by
 	 */
     void Zoom(float scale);
+
+    // temp
+
+    int GetTextureWidth();
+    int GetTextureHeight();
 }
