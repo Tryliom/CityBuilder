@@ -1,8 +1,7 @@
 #pragma sokol @vs vs
 uniform vs_window
 {
-    float width;
-    float height;
+    vec4 screen_size;
 };
 
 in vec4 position;
@@ -14,7 +13,7 @@ out vec2 uv;
 
 void main()
 {
-    gl_Position = position / vec4(width, height, 1, 1);
+    gl_Position = position / vec4(screen_size.x, screen_size.y, 1, 1);
     color = color0;
     uv = uv0;
 }
