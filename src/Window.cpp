@@ -59,6 +59,9 @@ std::vector<Image> tileSheets =
 
 Camera camera;
 
+constexpr float MinZoom = 0.5f;
+constexpr float MaxZoom = 2.f;
+
 #pragma endregion
 
 #pragma region SokolFunctions
@@ -397,9 +400,13 @@ namespace Window
     {
         camera.Zoom += scale;
 
-        if (camera.Zoom < 0.f)
+        if (camera.Zoom < MinZoom)
         {
-            camera.Zoom = 0.f;
+            camera.Zoom = MinZoom;
+        }
+        else if (camera.Zoom > MaxZoom)
+        {
+            camera.Zoom = MaxZoom;
         }
     }
 

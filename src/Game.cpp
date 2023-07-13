@@ -8,6 +8,7 @@
 #include "Input.h"
 #include "Timer.h"
 #include "Random.h"
+#include "Logger.h"
 
 void UpdateCamera();
 void UpdateGrid();
@@ -103,13 +104,13 @@ void UpdateCamera()
         Window::MoveCamera({0, -movementValue});
     }
 
-    if (Input::IsKeyHeld(SAPP_KEYCODE_Z))
+    if (Input::IsKeyPressed(SAPP_KEYCODE_Z))
     {
-        Window::Zoom(0.01f);
+        Window::Zoom(0.1f);
     }
-    if (Input::IsKeyHeld(SAPP_KEYCODE_X))
+    if (Input::IsKeyPressed(SAPP_KEYCODE_X))
     {
-        Window::Zoom(-0.01f);
+        Window::Zoom(-0.1f);
     }
 
     if (Input::IsMouseButtonHeld(SAPP_MOUSEBUTTON_LEFT))

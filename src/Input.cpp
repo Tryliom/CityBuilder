@@ -5,9 +5,11 @@
 
 #include "Window.h"
 
+bool tempKeys[SAPP_MAX_KEYCODES + 1];
 bool keys[SAPP_MAX_KEYCODES + 1];
 bool previousKeys[SAPP_MAX_KEYCODES + 1];
 
+bool tempMouseButtons[SAPP_MAX_MOUSEBUTTONS + 1];
 bool mouseButtons[SAPP_MAX_MOUSEBUTTONS + 1];
 bool previousMouseButtons[SAPP_MAX_MOUSEBUTTONS + 1];
 
@@ -21,19 +23,19 @@ namespace Input
 	{
 		if (event->type == SAPP_EVENTTYPE_KEY_DOWN)
 		{
-			keys[event->key_code] = true;
+			tempKeys[event->key_code] = true;
 		}
 		else if (event->type == SAPP_EVENTTYPE_KEY_UP)
 		{
-			keys[event->key_code] = false;
+			tempKeys[event->key_code] = false;
 		}
 		else if (event->type == SAPP_EVENTTYPE_MOUSE_DOWN)
 		{
-			mouseButtons[event->mouse_button] = true;
+			tempMouseButtons[event->mouse_button] = true;
 		}
 		else if (event->type == SAPP_EVENTTYPE_MOUSE_UP)
 		{
-			mouseButtons[event->mouse_button] = false;
+			tempMouseButtons[event->mouse_button] = false;
 		}
 		else if (event->type == SAPP_EVENTTYPE_MOUSE_MOVE)
 		{
@@ -53,6 +55,8 @@ namespace Input
         mouseMoved = false;
 		memcpy(previousKeys, keys, sizeof(keys));
 		memcpy(previousMouseButtons, mouseButtons, sizeof(mouseButtons));
+		memcpy(keys, tempKeys, sizeof(keys));
+		memcpy(mouseButtons, tempMouseButtons, sizeof(mouseButtons));
 	}
 
 	bool IsKeyPressed(int key)
@@ -72,12 +76,12 @@ namespace Input
 
 	bool IsMouseButtonPressed(int button)
 	{
-		return mouseButtons[button] && previousMouseButtons[button] == 0;
+		return mouseButtons[button] && !previousMouseButtons[button];
 	}
 
 	bool IsMouseButtonReleased(int button)
 	{
-		return mouseButtons[button] == 0 && previousMouseButtons[button];
+		return !mouseButtons[button] && previousMouseButtons[button];
 	}
 
 	bool IsMouseButtonHeld(int button)
