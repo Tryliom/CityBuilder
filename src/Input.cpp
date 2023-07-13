@@ -40,7 +40,7 @@ namespace Input
 		else if (event->type == SAPP_EVENTTYPE_MOUSE_MOVE)
 		{
             previousMousePosition = Vector2F{ mousePosition.X, mousePosition.Y };
-			mousePosition = Window::ConvertInputPosition({ event->mouse_x, event->mouse_y });
+			mousePosition = { event->mouse_x, event->mouse_y };
             mouseMoved = true;
 		}
 	}

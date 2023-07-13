@@ -26,13 +26,6 @@ namespace Window
     int GetFrameCount();
 
 	/**
-	 * @brief Convert a position given by the input system to world space (0, 0 to screen width, screen height)
-	 * @param position An input position given by sokol_input
-	 * @return A position in the range (0, 0 to screen width, screen height)
-	 */
-    Vector2F ConvertInputPosition(Vector2F position);
-
-	/**
 	 * @brief Get the UVs for a texture name
 	 * @param texture The texture
 	 * @return The 4 uvs positions for the texture

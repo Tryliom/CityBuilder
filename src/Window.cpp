@@ -222,11 +222,6 @@ namespace Window
         return frameCount;
     }
 
-    Vector2F ConvertInputPosition(Vector2F position)
-    {
-        return { position.X, sapp_height() - position.Y };
-    }
-
     std::vector <Vector2F> GetUvs(Texture texture)
     {
         int tileSheetIndex = static_cast<int>(texture.TileSheetIndex);

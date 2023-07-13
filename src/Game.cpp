@@ -89,19 +89,19 @@ void UpdateCamera()
 
     if (Input::IsKeyHeld(SAPP_KEYCODE_A))
     {
-        Window::MoveCamera({-movementValue, 0});
+        Window::MoveCamera({movementValue, 0});
     }
     if (Input::IsKeyHeld(SAPP_KEYCODE_D))
     {
-        Window::MoveCamera({movementValue, 0});
+        Window::MoveCamera({-movementValue, 0});
     }
     if (Input::IsKeyHeld(SAPP_KEYCODE_W))
     {
-        Window::MoveCamera({0, movementValue});
+        Window::MoveCamera({0, -movementValue});
     }
     if (Input::IsKeyHeld(SAPP_KEYCODE_S))
     {
-        Window::MoveCamera({0, -movementValue});
+        Window::MoveCamera({0, movementValue});
     }
 
     if (Input::IsKeyPressed(SAPP_KEYCODE_Z))
@@ -115,6 +115,6 @@ void UpdateCamera()
 
     if (Input::IsMouseButtonHeld(SAPP_MOUSEBUTTON_LEFT))
     {
-        Window::MoveCamera(mousePosition - previousMousePosition);
+        Window::MoveCamera((mousePosition - previousMousePosition) * Vector2F{1, -1});
     }
 }
