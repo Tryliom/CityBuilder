@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "Tile.h"
+#include "Maths.h"
 
 class Grid
 {
@@ -19,7 +20,9 @@ private:
 
 public:
     void Draw();
+    void Update();
 
-    void SetTile(int x, int y, Tile tile);
-    void RemoveTile(int x, int y);
+    Vector2I GetTilePosition(Vector2F position) const;
+    void SetTile(Vector2I position, Tile tile);
+    void RemoveTile(Vector2I position);
 };

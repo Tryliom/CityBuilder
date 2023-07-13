@@ -2,6 +2,7 @@
 #include "Window.h"
 #include "Random.h"
 #include "Input.h"
+#include "Timer.h"
 
 Grid::Grid(int width, int height, int tileSize)
 {
@@ -72,12 +73,53 @@ void Grid::Draw()
     Random::StopUseSeed();
 }
 
-void Grid::SetTile(int x, int y, Tile tile)
+void Grid::Update()
 {
-    _tiles[x + y * _width] = tile;
+    float smoothDeltaTime = Timer::SmoothDeltaTime;
+
+    // Check tree
+    for (int x = 0; x < _width / _tileSize; x++)
+    {
+        for (int y = 0; y < _height / _tileSize; y++)
+        {
+            Tile& tile = _tiles[x + y * _width];
+
+            if (tile.Texture == Ressources::TreeSprout)
+            {
+                tile.TreeGrowth += smoothDeltaTime;
+
+                if (tile.TreeGrowth >= 15.f)
+                {
+                    tile.Texture = Texture(Ressources::TreeMiddle);
+                }
+            }
+            else if (tile.Texture == Ressources::TreeMiddle)
+            {
+                tile.TreeGrowth += smoothDeltaTime;
+
+                if (tile.TreeGrowth >= 30.f)
+                {
+                    tile.Texture = Texture(Ressources::TreeFull);
+                }
+            }
+        }
+    }
 }
 
-void Grid::RemoveTile(int x, int y)
+Vector2I Grid::GetTilePosition(Vector2F position) const
 {
-    _tiles[x + y * _width] = Tile();
+    return Vector2I{
+        (int) (position.X + _width / 2.f) / _tileSize,
+        (int) (position.Y + _height / 2.f) / _tileSize
+    };
+}
+
+void Grid::SetTile(Vector2I position, Tile tile)
+{
+    _tiles[position.X + position.Y * _width] = tile;
+}
+
+void Grid::RemoveTile(Vector2I position)
+{
+    _tiles[position.X + position.Y * _width] = Tile();
 }

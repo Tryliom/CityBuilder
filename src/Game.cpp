@@ -45,6 +45,7 @@ void OnFrame()
 
     UpdateCamera();
 
+    grid.Update();
     grid.Draw();
 }
 
@@ -83,8 +84,19 @@ void UpdateCamera()
 
     Window::Zoom(Input::GetMouseWheelDelta() / 50.f);
 
-    if (Input::IsMouseButtonHeld(SAPP_MOUSEBUTTON_LEFT))
+    if (Input::IsMouseButtonHeld(SAPP_MOUSEBUTTON_MIDDLE))
     {
         Window::MoveCamera((mousePosition - previousMousePosition) * Vector2F{1, -1} * 1.f / Window::GetZoom());
     }
+
+    if (Input::IsMouseButtonPressed(SAPP_MOUSEBUTTON_LEFT))
+    {
+        grid.SetTile(grid.GetTilePosition(mousePosition), Tile(Texture(Ressources::TreeSprout)));
+    }
+    if (Input::IsMouseButtonPressed(SAPP_MOUSEBUTTON_RIGHT))
+    {
+        grid.RemoveTile(grid.GetTilePosition(mousePosition));
+    }
+
+
 }
