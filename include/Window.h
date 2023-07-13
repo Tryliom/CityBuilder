@@ -99,6 +99,10 @@ namespace Window
 
     float GetZoom();
 
+	void CalculTransformationMatrix();
+
+    Vector2F ScreenToWorld(Vector2F vec);
+
     // temp
 
     int GetTextureWidth();

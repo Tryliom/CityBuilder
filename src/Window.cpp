@@ -60,6 +60,9 @@ std::vector<Image> tileSheets =
 
 Camera camera;
 
+Matrix2x3F transformMatrix;
+Matrix2x3F inversedTransMatrix;
+
 constexpr float MinZoom = 1.f;
 constexpr float MaxZoom = 2.f;
 
@@ -250,13 +253,13 @@ namespace Window
 
     void AppendVertex(Vertex vertex)
     {
-        vertex.Position = Matrix2x3F::Multiply(Matrix2x3F::TransformMatrix({camera.Zoom, camera.Zoom}, 0, camera.Position), vertex.Position);
+        vertex.Position = Matrix2x3F::Multiply(transformMatrix, vertex.Position);
         int vertexIndex = vertexesUsed * VertexNbAttributes;
 
         assert(vertexIndex + VertexNbAttributes < maxVertexes && "Exceeded max vertexes");
 
         vertexes[vertexIndex + 0] = vertex.Position.X;  // + camera.Position.X) * camera.Zoom;
-        vertexes[vertexIndex + 1] = vertex.Position.Y; //+ camera.Position.Y) * camera.Zoom;
+        vertexes[vertexIndex + 1] = -vertex.Position.Y; //+ camera.Position.Y) * camera.Zoom;
         vertexes[vertexIndex + 2] = 0;
         vertexes[vertexIndex + 3] = vertex.Color.R;
         vertexes[vertexIndex + 4] = vertex.Color.G;
@@ -378,6 +381,17 @@ namespace Window
     float GetZoom()
     {
         return camera.Zoom;
+    }
+
+    void CalculTransformationMatrix()
+    {
+        transformMatrix     = Matrix2x3F::TransformMatrix({camera.Zoom, camera.Zoom}, 45, camera.Position);
+        inversedTransMatrix = Matrix2x3F::Invert(transformMatrix);
+    }
+
+    Vector2F ScreenToWorld(Vector2F vec)
+    {
+        return Matrix2x3F::Multiply(inversedTransMatrix, vec);
     }
 
     int GetTextureWidth()

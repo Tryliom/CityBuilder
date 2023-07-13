@@ -180,8 +180,8 @@ struct Matrix2x3
             {
                 .values =
                     {
-                        {cosf(MathUtility::DegreesToRadians(angle)), sinf(MathUtility::DegreesToRadians(angle)), 0},
-                        {-sinf(MathUtility::DegreesToRadians(angle)), cosf(MathUtility::DegreesToRadians(angle)), 0}}};
+                        {cosf(MathUtility::DegreesToRadians(angle)), -sinf(MathUtility::DegreesToRadians(angle)), 0},
+                        {sinf(MathUtility::DegreesToRadians(angle)), cosf(MathUtility::DegreesToRadians(angle)), 0}}};
 
         return mat;
     }

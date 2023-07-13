@@ -4,6 +4,8 @@
 #include "Input.h"
 #include "Timer.h"
 
+#include <iostream>
+
 Grid::Grid(int width, int height, int tileSize)
 {
     _width = width;
@@ -27,6 +29,14 @@ void Grid::Draw()
 {
     Random::SetSeed(42);
     Random::UseSeed();
+
+    auto mousePosition = Input::GetMousePosition();
+
+    std::cout << "Screen " << mousePosition.X << " " << mousePosition.Y << std::endl;
+
+    Vector2F worldMousePosition = Window::ScreenToWorld(mousePosition);
+
+    std::cout << "World  " << worldMousePosition.X << " " << worldMousePosition.Y << std::endl;
 
     for (int x = 0; x < _width / _tileSize; x++)
     {
@@ -56,10 +66,10 @@ void Grid::Draw()
                 });
             }
 
-            auto mousePosition = Input::GetMousePosition();
+            
 
-            if (position.X < mousePosition.X && position.X + _tileSize > mousePosition.X &&
-                position.Y < mousePosition.Y && position.Y + _tileSize > mousePosition.Y)
+            if (position.X < worldMousePosition.X && position.X + _tileSize > worldMousePosition.X &&
+                position.Y < worldMousePosition.Y && position.Y + _tileSize > worldMousePosition.Y)
             {
                 Window::DrawRect(
                     position,

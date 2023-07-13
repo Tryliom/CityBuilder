@@ -72,6 +72,8 @@ void OnFrame()
 
     UpdateCamera();
 
+    Window::CalculTransformationMatrix();
+
     grid.Update();
     grid.Draw();
 }
