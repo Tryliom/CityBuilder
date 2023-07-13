@@ -13,7 +13,11 @@ struct Vector2;
 using Vector2F = Vector2<float>;
 using Vector2I = Vector2<int>;
 
-struct Matrix_2_3;
+template <class T>
+struct Matrix2x3;
+
+using Matrix2x3F = Matrix2x3<float>;
+using Matrix2x3I = Matrix2x3<int>;
 
 namespace MathUtility
 {
@@ -141,13 +145,14 @@ const Vector2<T> Vector2<T>::Left = Vector2<T>(-1, 0);
 template <class T>
 const Vector2<T> Vector2<T>::Down = Vector2<T>(0, -1);
 
-struct Matrix_2_3
+template <class T>
+struct Matrix2x3
 {
-    float values[2][3];
+    T values[2][3];
 
-    static Matrix_2_3 IdentityMatrix()
+    static Matrix2x3<T> IdentityMatrix()
     {
-        Matrix_2_3 mat =
+        Matrix2x3<T> mat =
             {
                 .values =
                     {
@@ -157,9 +162,9 @@ struct Matrix_2_3
         return mat;
     }
 
-    static Matrix_2_3 TranslationMatrix(Vector2F translation)
+    static Matrix2x3<T> TranslationMatrix(Vector2F translation)
     {
-        Matrix_2_3 mat =
+        Matrix2x3<T> mat =
             {
                 .values =
                     {
@@ -169,9 +174,9 @@ struct Matrix_2_3
         return mat;
     }
 
-    static Matrix_2_3 RotationMatrix(float angle, bool clockWise = true)
+    static Matrix2x3<T> RotationMatrix(float angle, bool clockWise = true)
     {
-        Matrix_2_3 mat =
+        Matrix2x3<T> mat =
             {
                 .values =
                     {
@@ -181,9 +186,9 @@ struct Matrix_2_3
         return mat;
     }
 
-    static Matrix_2_3 ScaleMatrix(Vector2F scaleRatio)
+    static Matrix2x3<T> ScaleMatrix(Vector2F scaleRatio)
     {
-        Matrix_2_3 mat =
+        Matrix2x3<T> mat =
             {
                 .values =
                     {
@@ -193,10 +198,10 @@ struct Matrix_2_3
         return mat;
     }
 
-    template <class T>
-    static Vector2<T> Multiply(Matrix_2_3 mat, Vector2<T> vec)
+    template <class K>
+    static Vector2<K> Multiply(Matrix2x3<T> mat, Vector2<K> vec)
     {
-        Vector2F result =
+        Vector2<K> result =
             {
                 vec.X * mat.values[0][0] + vec.Y * mat.values[0][1] + mat.values[0][2],
                 vec.X * mat.values[1][0] + vec.Y * mat.values[1][1] + mat.values[1][2]};
@@ -204,9 +209,9 @@ struct Matrix_2_3
         return result;
     }
 
-    static Matrix_2_3 Multiply(Matrix_2_3 matA, Matrix_2_3 matB)
+    static Matrix2x3<T> Multiply(Matrix2x3<T> matA, Matrix2x3<T> matB)
     {
-        Matrix_2_3 result =
+        Matrix2x3<T> result =
             {
                 .values =
                     {

@@ -26,18 +26,18 @@ void InitGame()
     // Audio::PlaySoundClip(testTheme, 1.f, 440, 0, 0, true);
 
     Vector2F myVec(3,4);
-    Matrix_2_3 id =  Matrix_2_3::IdentityMatrix();
-    Matrix_2_3 tr =  Matrix_2_3::TranslationMatrix({15,10});
-    Matrix_2_3 rot = Matrix_2_3::RotationMatrix(90);
-    Matrix_2_3 sc  = Matrix_2_3::ScaleMatrix({2, 2});
+    Matrix2x3F id =  Matrix2x3F::IdentityMatrix();
+    Matrix2x3F tr =  Matrix2x3F::TranslationMatrix({15,10});
+    Matrix2x3F rot = Matrix2x3F::RotationMatrix(90);
+    Matrix2x3F sc  = Matrix2x3F::ScaleMatrix({2, 2});
 
-    std::cout << Matrix_2_3::Multiply(id,myVec).X  << " " << Matrix_2_3::Multiply(id,myVec).Y  << std::endl;
-    std::cout << Matrix_2_3::Multiply(tr,myVec).X  << " " << Matrix_2_3::Multiply(tr,myVec).Y  << std::endl;
-    std::cout << Matrix_2_3::Multiply(rot,myVec).X << " " << Matrix_2_3::Multiply(rot,myVec).Y << std::endl;
-    std::cout << Matrix_2_3::Multiply(sc,myVec).X  << " " << Matrix_2_3::Multiply(sc,myVec).Y  << std::endl;
+    std::cout << Matrix2x3F::Multiply(id,myVec).X  << " " << Matrix2x3F::Multiply(id,myVec).Y  << std::endl;
+    std::cout << Matrix2x3F::Multiply(tr,myVec).X  << " " << Matrix2x3F::Multiply(tr,myVec).Y  << std::endl;
+    std::cout << Matrix2x3F::Multiply(rot,myVec).X << " " << Matrix2x3F::Multiply(rot,myVec).Y << std::endl;
+    std::cout << Matrix2x3F::Multiply(sc,myVec).X  << " " << Matrix2x3F::Multiply(sc,myVec).Y  << std::endl;
 
-    Matrix_2_3 mutlipled = Matrix_2_3::Multiply(rot,tr);
-    std::cout << Matrix_2_3::Multiply(mutlipled,myVec).X  << " " << Matrix_2_3::Multiply(mutlipled,myVec).Y << std::endl;
+    Matrix2x3F mutlipled = Matrix2x3F::Multiply(rot,tr);
+    std::cout << Matrix2x3F::Multiply(mutlipled,myVec).X  << " " << Matrix2x3F::Multiply(mutlipled,myVec).Y << std::endl;
 
     int i = 0;
 
@@ -47,7 +47,6 @@ void InitGame()
 
         i++;
 	}
-
 }
 
 void OnFrame()
