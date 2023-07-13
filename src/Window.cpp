@@ -155,11 +155,6 @@ static void init()
     {
         .colors = { { .load_action = SG_LOADACTION_CLEAR, .clear_value = { 0.0f, 0.0f, 0.0f, 1.0f } } }
     };
-
-	int width = sapp_width();
-	int height = sapp_height();
-
-	camera.Position = { (float) width, (float) height};
 }
 
 void frame()
