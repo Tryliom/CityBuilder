@@ -57,10 +57,6 @@ void OnFrame()
 	UpdateGrid();
 
 	Window::DrawGrid(road);
-
-    Window::DrawRect({ -500, -500}, {Window::GetTextureWidth(), Window::GetTextureHeight()},
-                     Color::White,
-                     {{ 0, 0 }, { 1, 0 }, { 1, 1 }, { 0, 1 }});
 }
 
 void UpdateGrid()
