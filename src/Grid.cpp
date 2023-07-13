@@ -57,12 +57,7 @@ void Grid::Draw()
     Random::UseSeed();
 
     auto mousePosition = Input::GetMousePosition();
-
-    std::cout << "Screen " << mousePosition.X << " " << mousePosition.Y << std::endl;
-
     Vector2F worldMousePosition = Window::ScreenToWorld(mousePosition);
-
-    std::cout << "World  " << worldMousePosition.X << " " << worldMousePosition.Y << std::endl;
 
     for (int x = 0; x < _width / _tileSize; x++)
     {
