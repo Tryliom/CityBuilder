@@ -13,9 +13,9 @@
 void UpdateCamera();
 void UpdateGrid();
 
-float speed = 200.f;
+float speed = 500.f;
 
-Grid road(1000, 1000, 50);
+Grid road(5000, 5000, 100);
 
 void InitGame()
 {
@@ -113,8 +113,10 @@ void UpdateCamera()
         Window::Zoom(-0.1f);
     }
 
+    Window::Zoom(Input::GetMouseWheelDelta() / 50.f);
+
     if (Input::IsMouseButtonHeld(SAPP_MOUSEBUTTON_LEFT))
     {
-        Window::MoveCamera((mousePosition - previousMousePosition) * Vector2F{1, -1});
+        Window::MoveCamera((mousePosition - previousMousePosition) * Vector2F{1, -1} * 1.f / Window::GetZoom());
     }
 }

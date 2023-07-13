@@ -59,7 +59,7 @@ std::vector<Image> tileSheets =
 
 Camera camera;
 
-constexpr float MinZoom = 0.5f;
+constexpr float MinZoom = 1.f;
 constexpr float MaxZoom = 2.f;
 
 #pragma endregion
@@ -369,14 +369,11 @@ namespace Window
 
 	void DrawGrid(const Grid& grid)
 	{
-		float width = sapp_widthf();
-		float height = sapp_heightf();
-
         int i = 0;
 		for (Tile tile : grid.Tiles)
 		{
             DrawObject({
-				.Position = tile.Position - Vector2F{width / 2, height / 2},
+				.Position = tile.Position - Vector2F{grid.Width, grid.Height} / 2,
 				.Size = Vector2F{(float) grid.TileSize, (float) grid.TileSize},
 				.Color = tile.Color,
 				.Texture = tile.Texture
@@ -403,6 +400,11 @@ namespace Window
         {
             camera.Zoom = MaxZoom;
         }
+    }
+
+    float GetZoom()
+    {
+        return camera.Zoom;
     }
 
     int GetTextureWidth()

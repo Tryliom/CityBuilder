@@ -17,6 +17,9 @@ Vector2F mousePosition = { 0, 0 };
 Vector2F previousMousePosition = { 0, 0 };
 bool mouseMoved = false;
 
+float tempMouseWheelDelta = 0;
+float mouseWheelDelta = 0;
+
 namespace Input
 {
 	void OnInput(const sapp_event* event)
@@ -43,6 +46,10 @@ namespace Input
 			mousePosition = { event->mouse_x, event->mouse_y };
             mouseMoved = true;
 		}
+		else if (event->type == SAPP_EVENTTYPE_MOUSE_SCROLL)
+		{
+			tempMouseWheelDelta += event->scroll_y;
+		}
 	}
 
 	void Update()
@@ -51,6 +58,9 @@ namespace Input
         {
             previousMousePosition = Vector2F{mousePosition.X, mousePosition.Y};
         }
+
+		mouseWheelDelta = tempMouseWheelDelta;
+		tempMouseWheelDelta = 0;
 
         mouseMoved = false;
 		memcpy(previousKeys, keys, sizeof(keys));
@@ -98,4 +108,9 @@ namespace Input
     {
         return previousMousePosition;
     }
+
+	float GetMouseWheelDelta()
+	{
+		return mouseWheelDelta;
+	}
 }

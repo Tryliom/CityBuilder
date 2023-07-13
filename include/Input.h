@@ -50,4 +50,6 @@ namespace Input
 
 	Vector2F GetMousePosition();
     Vector2F GetPreviousMousePosition();
+
+    float GetMouseWheelDelta();
 }

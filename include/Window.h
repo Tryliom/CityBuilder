@@ -85,6 +85,10 @@ namespace Window
 	 */
     void DrawObject(DrawableObject object);
 
+    /**
+     * @brief Draw a grid with a pivot of (0.5, 0.5)
+     * @param grid
+     */
 	void DrawGrid(const Grid& grid);
 
 	/**
@@ -98,6 +102,8 @@ namespace Window
 	 * @param scale The amount to zoom the camera by
 	 */
     void Zoom(float scale);
+
+    float GetZoom();
 
     // temp
 

@@ -28,6 +28,3 @@ if(WIN32)
     target_link_libraries(${PROJECT_NAME} kernel32 user32 shell32 dxgi d3d11 ole32 gdi32 winmm opengl32)
 endif()
 
-add_compile_options(-fsanitize=address)
-add_link_options(-fsanitize=address)
-
