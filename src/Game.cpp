@@ -35,7 +35,6 @@ void InitGame()
     std::cout << Matrix2x3F::Multiply(rot, myVec).X << " " << Matrix2x3F::Multiply(rot, myVec).Y << std::endl;
     std::cout << Matrix2x3F::Multiply(sc, myVec).X << " " << Matrix2x3F::Multiply(sc, myVec).Y << std::endl;
 
-<<<<<<< HEAD
     Matrix2x3F mutlipled = Matrix2x3F::Multiply(rot, tr);
     std::cout << Matrix2x3F::Multiply(mutlipled, myVec).X << " " << Matrix2x3F::Multiply(mutlipled, myVec).Y << std::endl;
 
@@ -54,19 +53,17 @@ void InitGame()
     transformatrix = Matrix2x3F::TransformMatrix({6, -3}, -90, {39, 45});
     std::cout << "\n\n" << Matrix2x3F::Multiply(transformatrix, myVec).X << " " << Matrix2x3F::Multiply(transformatrix, myVec).Y << std::endl;
 
-    Random::SetSeed(42);
-    Random::UseSeed();
+    // Random::SetSeed(42);
+    // Random::UseSeed();
 
-    for (Tile &tile : road.Tiles)
-    {
-        tile.Texture = Texture((Land)Random::Range(0, (int)Land::Count - 1));
-    }
+    // for (Tile &tile : road.Tiles)
+    // {
+    //     tile.Texture = Texture((Land)Random::Range(0, (int)Land::Count - 1));
+    // }
 
-    Random::StopUseSeed();
-=======
-    Matrix2x3F mutlipled = Matrix2x3F::Multiply(rot,tr);
-    std::cout << Matrix2x3F::Multiply(mutlipled,myVec).X  << " " << Matrix2x3F::Multiply(mutlipled,myVec).Y << std::endl;
->>>>>>> 79f447bda3cf3d00a7fd5198fd05b306c107b283
+    // Random::StopUseSeed();
+    // Matrix2x3F mutlipled = Matrix2x3F::Multiply(rot,tr);
+    // std::cout << Matrix2x3F::Multiply(mutlipled,myVec).X  << " " << Matrix2x3F::Multiply(mutlipled,myVec).Y << std::endl;
 }
 
 void OnFrame()
@@ -74,10 +71,6 @@ void OnFrame()
     auto mousePosition = Input::GetMousePosition();
 
     UpdateCamera();
-<<<<<<< HEAD
-    UpdateGrid();
-=======
->>>>>>> 79f447bda3cf3d00a7fd5198fd05b306c107b283
 
     grid.Update();
     grid.Draw();
