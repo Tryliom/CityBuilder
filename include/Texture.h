@@ -2,32 +2,33 @@
 
 enum class TileSheet
 {
-    None = -1, Road, Buildings, Ressources, Characters, Icons
+    None = -1, Road, Buildings, Ressources, Characters, Icons, Count
 };
 
 enum class Road
 {
-    Grass, Flower1, Flower2, Flower3, SingleRoad
+    Grass, Flower1, Flower2, Flower3, SingleRoad, VerticalRoad, HorizontalRoad, TopRightCorner, BottomRightCorner, TopLeftCorner,
+    BottomLeftCorner, CrossRoad, Count
 };
 
 enum class Buildings
 {
-    MainHouse, CommonHouse,
+    MainHouse, CommonHouse, Sawmill, Quarry, Storage, BuilderHut, Count
 };
 
 enum class Ressources
 {
-    TreeSprout, TreeMiddle, TreeFull, Stone
+    TreeSprout, TreeMiddle, TreeFull, Stone, Count
 };
 
 enum class Characters
 {
-    Unemployed, Lumberjack, Digger, Builder
+    Unemployed, Lumberjack, Digger, Builder, Count
 };
 
 enum class Icons
 {
-    Wood, Stone, People
+    Wood, Stone, People, Count
 };
 
 struct Texture

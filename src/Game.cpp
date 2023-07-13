@@ -7,6 +7,7 @@
 #include "Audio.h"
 #include "Input.h"
 #include "Timer.h"
+#include "Random.h"
 
 void UpdateCamera();
 void UpdateGrid();
@@ -39,14 +40,15 @@ void InitGame()
     Matrix2x3F mutlipled = Matrix2x3F::Multiply(rot,tr);
     std::cout << Matrix2x3F::Multiply(mutlipled,myVec).X  << " " << Matrix2x3F::Multiply(mutlipled,myVec).Y << std::endl;
 
-    int i = 0;
+    Random::SetSeed(42);
+    Random::UseSeed();
 
 	for (Tile& tile : road.Tiles)
 	{
-		tile.Texture = Texture(i % 2 == 0 ? Road::Grass : Road::Flower1);
-
-        i++;
+		tile.Texture = Texture((Road) Random::Range(0, (int) Road::Flower3));
 	}
+
+    Random::StopUseSeed();
 }
 
 void OnFrame()
