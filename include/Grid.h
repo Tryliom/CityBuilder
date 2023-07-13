@@ -10,10 +10,13 @@ class Grid
 public:
 	Grid(int width, int height, int tileSize);
 
-	int Width;
-	int Height;
-	int TileSize;
+private:
+	int _width;
+	int _height;
+	int _tileSize;
 
-	std::vector<Tile> Tiles = std::vector<Tile>();
+public:
+    std::vector<Tile> Tiles = std::vector<Tile>();
 
+    void Draw();
 };

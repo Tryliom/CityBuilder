@@ -1,16 +1,41 @@
 #include "Grid.h"
+#include "Window.h"
 
 Grid::Grid(int width, int height, int tileSize)
 {
-	Width = width;
-	Height = height;
-	TileSize = tileSize;
+    _width = width;
+    _height = height;
+    _tileSize = tileSize;
 
-	for (int w = 0; w < width / tileSize; w++)
+	for (int x = 0; x < width / tileSize; x++)
 	{
-		for (int h = 0; h < height / tileSize; h++)
+		for (int y = 0; y < height / tileSize; y++)
 		{
-			Tiles.emplace_back(Vector2F { static_cast<float>(w) * tileSize, static_cast<float>(h) * tileSize}, tileSize);
+			Tiles.emplace_back(
+                    Vector2F { x * tileSize, y * tileSize} - Vector2F{ _width, _height} / 2.f,
+                    tileSize
+            );
 		}
 	}
+}
+
+void Grid::Draw()
+{
+    for (Tile tile : Tiles)
+    {
+        Window::DrawObject({
+            .Position = tile.Position,
+            .Size = Vector2F{ (float) _tileSize, (float) _tileSize},
+            .Texture = tile.Texture
+        });
+
+        if (tile.IsSelected)
+        {
+            Window::DrawRect(
+                tile.Position,
+                Vector2F{ (float) _tileSize, (float) _tileSize},
+                Color(1, 1, 1, 0.2f)
+            );
+        }
+    }
 }

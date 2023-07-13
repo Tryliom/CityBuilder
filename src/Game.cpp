@@ -59,7 +59,7 @@ void OnFrame()
     UpdateCamera();
 	UpdateGrid();
 
-	Window::DrawGrid(road);
+    road.Draw();
 }
 
 void UpdateGrid()
@@ -71,11 +71,11 @@ void UpdateGrid()
         if (tile.Position.X < mousePosition.X && tile.Position.X + tile.Size.X > mousePosition.X &&
             tile.Position.Y < mousePosition.Y && tile.Position.Y + tile.Size.Y > mousePosition.Y)
         {
-            tile.SetSelected(true);
+            tile.IsSelected = true;
         }
         else
         {
-            tile.SetSelected(false);
+            tile.IsSelected = false;
         }
     }
 }

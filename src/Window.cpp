@@ -367,22 +367,6 @@ namespace Window
         DrawRect(position, object.Size * object.Scale, object.Color, uvs);
     }
 
-	void DrawGrid(const Grid& grid)
-	{
-        int i = 0;
-		for (Tile tile : grid.Tiles)
-		{
-            DrawObject({
-				.Position = tile.Position - Vector2F{grid.Width, grid.Height} / 2,
-				.Size = Vector2F{(float) grid.TileSize, (float) grid.TileSize},
-				.Color = tile.Color,
-				.Texture = tile.Texture
-			});
-
-            i++;
-		}
-	}
-
     void MoveCamera(Vector2F position)
     {
         camera.Position += position;

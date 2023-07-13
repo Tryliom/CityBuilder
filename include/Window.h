@@ -85,12 +85,6 @@ namespace Window
 	 */
     void DrawObject(DrawableObject object);
 
-    /**
-     * @brief Draw a grid with a pivot of (0.5, 0.5)
-     * @param grid
-     */
-	void DrawGrid(const Grid& grid);
-
 	/**
 	 * @brief Move the camera by the given amount
 	 * @param position The amount to move the camera by in screen space

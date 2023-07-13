@@ -10,6 +10,5 @@ public:
 	explicit Tile(Vector2I position, int tileSize, bool isWalkable = true);
 
 	bool IsWalkable = true;
-
-	void SetSelected(bool selected);
+    bool IsSelected = false;
 };
