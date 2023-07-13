@@ -50,6 +50,7 @@ int textureHeight = 0;
 // Textures
 std::vector<Image> tileSheets =
 {
+    Image(ASSETS_PATH "land.png"),
     Image(ASSETS_PATH "road.png"),
     Image(ASSETS_PATH "buildings.png"),
     Image(ASSETS_PATH "ressources.png"),

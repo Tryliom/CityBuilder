@@ -46,7 +46,7 @@ void InitGame()
 
 	for (Tile& tile : road.Tiles)
 	{
-		tile.Texture = Texture((Road) Random::Range(0, (int) Road::Flower3));
+		tile.Texture = Texture((Land) Random::Range(0, (int) Land::Count - 1));
 	}
 
     Random::StopUseSeed();

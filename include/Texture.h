@@ -2,12 +2,17 @@
 
 enum class TileSheet
 {
-    None = -1, Road, Buildings, Ressources, Characters, Icons, Count
+    None = -1, Land, Road, Buildings, Ressources, Characters, Icons, Count
+};
+
+enum class Land
+{
+    Grass, Flower1, Flower2, Flower3, Count
 };
 
 enum class Road
 {
-    Grass, Flower1, Flower2, Flower3, SingleRoad, VerticalRoad, HorizontalRoad, TopRightCorner, BottomRightCorner, TopLeftCorner,
+    SingleRoad, VerticalRoad, HorizontalRoad, TopRightCorner, BottomRightCorner, TopLeftCorner,
     BottomLeftCorner, CrossRoad, Count
 };
 
@@ -34,6 +39,7 @@ enum class Icons
 struct Texture
 {
     Texture() = default;
+    explicit Texture(Land land) : TileSheetIndex(TileSheet::Land), TileIndex((int) land) {}
     explicit Texture(Road road) : TileSheetIndex(TileSheet::Road), TileIndex((int) road) {}
     explicit Texture(Buildings buildings) : TileSheetIndex(TileSheet::Buildings), TileIndex((int) buildings) {}
     explicit Texture(Ressources ressources) : TileSheetIndex(TileSheet::Ressources), TileIndex((int) ressources) {}
