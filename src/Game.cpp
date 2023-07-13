@@ -7,12 +7,19 @@
 #include "Audio.h"
 #include "Input.h"
 #include "Timer.h"
+#include "Unit.h"
 
 void UpdateCamera();
+void UpdateUnits();
+void DrawUnits();
 
 float speed = 500.f;
 
+float unitSpeed = 100.f;
+int unitSize = 10;
+
 Grid grid(5000, 5000, 100);
+std::vector<Unit> units = std::vector<Unit>();
 
 void InitGame()
 {
@@ -53,17 +60,14 @@ void InitGame()
     transformatrix = Matrix2x3F::TransformMatrix({6, -3}, -90, {39, 45});
     std::cout << "\n\n" << Matrix2x3F::Multiply(transformatrix, myVec).X << " " << Matrix2x3F::Multiply(transformatrix, myVec).Y << std::endl;
 
-    // Random::SetSeed(42);
-    // Random::UseSeed();
+    TilePosition sawmillPosition = grid.GetTilePosition({0, 0});
+    grid.SetTile(sawmillPosition, Tile(TileType::Sawmill));
 
-    // for (Tile &tile : road.Tiles)
-    // {
-    //     tile.Texture = Texture((Land)Random::Range(0, (int)Land::Count - 1));
-    // }
-
-    // Random::StopUseSeed();
-    // Matrix2x3F mutlipled = Matrix2x3F::Multiply(rot,tr);
-    // std::cout << Matrix2x3F::Multiply(mutlipled,myVec).X  << " " << Matrix2x3F::Multiply(mutlipled,myVec).Y << std::endl;
+    for (int i = 0; i < 3; i++)
+    {
+        units.emplace_back();
+        units.back().JobTileIndex = grid.GetTileIndex(sawmillPosition);
+    }
 }
 
 void OnFrame()
@@ -76,6 +80,103 @@ void OnFrame()
 
     grid.Update();
     grid.Draw();
+
+    UpdateUnits();
+    DrawUnits();
+}
+
+void UpdateUnits()
+{
+    for (auto& unit : units)
+    {
+        if (unit.JobTileIndex != -1)
+        {
+            Tile& tile = grid.GetTile(unit.JobTileIndex);
+
+            unit.TimeSinceLastAction += Timer::SmoothDeltaTime;
+
+            if (tile.Type == TileType::Sawmill)
+            {
+                if (unit.CurrentBehavior == UnitBehavior::Idle)
+                {
+                    // Check if there is a full tree
+                    auto treePositions = grid.GetTiles(TileType::Tree);
+
+                    for (auto& treePosition : treePositions)
+                    {
+                        auto& treeTile = grid.GetTile(treePosition);
+
+                        if (treeTile.TreeGrowth < 30.f) continue;
+
+                        bool isTreeInUse = false;
+
+                        for (auto& otherUnit : units)
+                        {
+                            if (otherUnit.CurrentBehavior == UnitBehavior::Moving || otherUnit.CurrentBehavior == UnitBehavior::Working && otherUnit.TargetTile == treePosition)
+                            {
+                                isTreeInUse = true;
+                                break;
+                            }
+                        }
+
+                        if (isTreeInUse) continue;
+
+                        unit.TargetTile = treePosition;
+                        unit.SetBehavior(UnitBehavior::Moving);
+                    }
+
+                }
+                else if (unit.CurrentBehavior == UnitBehavior::Moving)
+                {
+                    auto targetPosition = grid.ToWorldPosition(unit.TargetTile);
+
+                    // Make it move to his target position
+                    unit.Position += (targetPosition - unit.Position).Normalized() * unitSpeed * Timer::SmoothDeltaTime;
+
+                    // Check if it reached his target position
+                    if (std::abs(unit.Position.X - targetPosition.X) < 1.f && std::abs(unit.Position.Y - targetPosition.Y) < 1.f)
+                    {
+                        unit.SetBehavior(UnitBehavior::Working);
+                    }
+                }
+                else if (unit.CurrentBehavior == UnitBehavior::Working)
+                {
+                    if (unit.TimeSinceLastAction > 2.f)
+                    {
+                        Tile& tree = grid.GetTile(unit.TargetTile);
+
+                        tree.TreeGrowth = 0.f;
+
+                        unit.SetBehavior(UnitBehavior::Idle);
+                    }
+                }
+            }
+        }
+    }
+}
+
+void DrawUnits()
+{
+    for (auto& unit : units)
+    {
+        Characters character = Characters::Unemployed;
+
+        if (unit.JobTileIndex != -1)
+        {
+            Tile& jobTile = grid.GetTile(unit.JobTileIndex);
+
+            if (jobTile.Type == TileType::Sawmill)
+            {
+                character = Characters::Lumberjack;
+            }
+        }
+
+        Window::DrawObject({
+            .Position = unit.Position,
+            .Size = {unitSize, unitSize},
+            .Texture = Texture(character),
+        });
+    }
 }
 
 void UpdateCamera()
@@ -120,12 +221,10 @@ void UpdateCamera()
 
     if (Input::IsMouseButtonPressed(SAPP_MOUSEBUTTON_LEFT))
     {
-        grid.SetTile(grid.GetTilePosition(mousePosition), Tile(Texture(Ressources::TreeSprout)));
+        grid.SetTile(grid.GetTilePosition(mousePosition), Tile(TileType::Tree));
     }
     if (Input::IsMouseButtonPressed(SAPP_MOUSEBUTTON_RIGHT))
     {
         grid.RemoveTile(grid.GetTilePosition(mousePosition));
     }
-
-
 }
