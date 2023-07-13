@@ -2,7 +2,7 @@
 
 #include <random>
 
-int seed;
+int seed = 0;
 bool useSeed = false;
 
 namespace Random
@@ -33,9 +33,9 @@ namespace Random
         return dist(rng);
     }
 
-    void SetSeed(int seed)
+    void SetSeed(int newSeed)
     {
-        seed = seed;
+        seed = newSeed;
     }
 
     void UseSeed()

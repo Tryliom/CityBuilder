@@ -7,15 +7,12 @@
 #include "Audio.h"
 #include "Input.h"
 #include "Timer.h"
-#include "Random.h"
-#include "Logger.h"
 
 void UpdateCamera();
-void UpdateGrid();
 
 float speed = 500.f;
 
-Grid road(5000, 5000, 100);
+Grid grid(5000, 5000, 100);
 
 void InitGame()
 {
@@ -40,16 +37,6 @@ void InitGame()
 
     Matrix2x3F mutlipled = Matrix2x3F::Multiply(rot,tr);
     std::cout << Matrix2x3F::Multiply(mutlipled,myVec).X  << " " << Matrix2x3F::Multiply(mutlipled,myVec).Y << std::endl;
-
-    Random::SetSeed(42);
-    Random::UseSeed();
-
-	for (Tile& tile : road.Tiles)
-	{
-		tile.Texture = Texture((Land) Random::Range(0, (int) Land::Count - 1));
-	}
-
-    Random::StopUseSeed();
 }
 
 void OnFrame()
@@ -57,27 +44,8 @@ void OnFrame()
     auto mousePosition = Input::GetMousePosition();
 
     UpdateCamera();
-	UpdateGrid();
 
-    road.Draw();
-}
-
-void UpdateGrid()
-{
-    auto mousePosition = Input::GetMousePosition();
-
-    for (Tile &tile : road.Tiles)
-    {
-        if (tile.Position.X < mousePosition.X && tile.Position.X + tile.Size.X > mousePosition.X &&
-            tile.Position.Y < mousePosition.Y && tile.Position.Y + tile.Size.Y > mousePosition.Y)
-        {
-            tile.IsSelected = true;
-        }
-        else
-        {
-            tile.IsSelected = false;
-        }
-    }
+    grid.Draw();
 }
 
 void UpdateCamera()

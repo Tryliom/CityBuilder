@@ -15,8 +15,11 @@ private:
 	int _height;
 	int _tileSize;
 
-public:
-    std::vector<Tile> Tiles = std::vector<Tile>();
+    Tile* _tiles;
 
+public:
     void Draw();
+
+    void SetTile(int x, int y, Tile tile);
+    void RemoveTile(int x, int y);
 };
