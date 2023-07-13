@@ -185,6 +185,7 @@ void UpdateCamera()
     auto previousMousePosition = Input::GetPreviousMousePosition();
     auto smoothDeltaTime = Timer::SmoothDeltaTime;
     auto movementValue = speed * smoothDeltaTime;
+    auto mouseWorldPosition = Window::ScreenToWorld(mousePosition);
 
     if (Input::IsKeyHeld(SAPP_KEYCODE_A))
     {
@@ -196,11 +197,11 @@ void UpdateCamera()
     }
     if (Input::IsKeyHeld(SAPP_KEYCODE_W))
     {
-        Window::MoveCamera({0, -movementValue});
+        Window::MoveCamera({0, movementValue});
     }
     if (Input::IsKeyHeld(SAPP_KEYCODE_S))
     {
-        Window::MoveCamera({0, movementValue});
+        Window::MoveCamera({0, -movementValue});
     }
 
     if (Input::IsKeyPressed(SAPP_KEYCODE_Z))
@@ -216,15 +217,15 @@ void UpdateCamera()
 
     if (Input::IsMouseButtonHeld(SAPP_MOUSEBUTTON_MIDDLE))
     {
-        Window::MoveCamera((mousePosition - previousMousePosition) * Vector2F{1, -1} * 1.f / Window::GetZoom());
+        Window::MoveCamera((mousePosition - previousMousePosition) * 1.f / Window::GetZoom());
     }
 
     if (Input::IsMouseButtonPressed(SAPP_MOUSEBUTTON_LEFT))
     {
-        grid.SetTile(grid.GetTilePosition(mousePosition), Tile(TileType::Tree));
+        grid.SetTile(grid.GetTilePosition(mouseWorldPosition), Tile(TileType::Tree));
     }
     if (Input::IsMouseButtonPressed(SAPP_MOUSEBUTTON_RIGHT))
     {
-        grid.RemoveTile(grid.GetTilePosition(mousePosition));
+        grid.RemoveTile(grid.GetTilePosition(mouseWorldPosition));
     }
 }

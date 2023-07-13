@@ -35,7 +35,7 @@ static struct
 
 const int VertexNbAttributes = 9;
 
-const int maxVertexes = 1000000;
+const int maxVertexes = 100000;
 float vertexes[maxVertexes];
 int vertexesUsed = 0;
 
@@ -258,8 +258,8 @@ namespace Window
 
         assert(vertexIndex + VertexNbAttributes < maxVertexes && "Exceeded max vertexes");
 
-        vertexes[vertexIndex + 0] = vertex.Position.X;  // + camera.Position.X) * camera.Zoom;
-        vertexes[vertexIndex + 1] = -vertex.Position.Y; //+ camera.Position.Y) * camera.Zoom;
+        vertexes[vertexIndex + 0] = vertex.Position.X;
+        vertexes[vertexIndex + 1] = vertex.Position.Y;
         vertexes[vertexIndex + 2] = 0;
         vertexes[vertexIndex + 3] = vertex.Color.R;
         vertexes[vertexIndex + 4] = vertex.Color.G;
@@ -385,7 +385,7 @@ namespace Window
 
     void CalculTransformationMatrix()
     {
-        transformMatrix     = Matrix2x3F::TransformMatrix({camera.Zoom, camera.Zoom}, 45, camera.Position);
+        transformMatrix     = Matrix2x3F::TransformMatrix({camera.Zoom, camera.Zoom}, 0, camera.Position);
         inversedTransMatrix = Matrix2x3F::Invert(transformMatrix);
     }
 

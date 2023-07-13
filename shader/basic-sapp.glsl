@@ -13,7 +13,7 @@ out vec2 uv;
 
 void main()
 {
-    gl_Position = position / vec4(screen_size.x, screen_size.y, 1, 1);
+    gl_Position = ((position * vec4(2, 2, 1, 1)) / vec4(screen_size.x, screen_size.y, 1, 1) - vec4(1, 1, 0, 0)) * vec4(1, -1, 1, 1);
     color = color0;
     uv = uv0;
 }
