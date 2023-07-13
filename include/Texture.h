@@ -12,8 +12,7 @@ enum class Land
 
 enum class Road
 {
-    SingleRoad, VerticalRoad, HorizontalRoad, TopRightCorner, BottomRightCorner, TopLeftCorner,
-    BottomLeftCorner, CrossRoad, Count
+    SingleRoad, VerticalRoad, HorizontalRoad, TopRightCorner, BottomRightCorner, TopLeftCorner, BottomLeftCorner, CrossRoad, Count
 };
 
 enum class Buildings
