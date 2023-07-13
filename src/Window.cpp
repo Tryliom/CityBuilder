@@ -34,7 +34,7 @@ static struct {
 
 const int VertexNbAttributes = 9;
 
-const int maxVertexes = 100000;
+const int maxVertexes = 1000000;
 float vertexes[maxVertexes];
 int vertexesUsed = 0;
 

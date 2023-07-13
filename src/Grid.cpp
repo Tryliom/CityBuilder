@@ -12,14 +12,40 @@ Grid::Grid(int width, int height, int tileSize)
 
 	_tiles = (Tile*) malloc(sizeof(Tile) * width * height);
 
-    for (int x = 0; x < _width; x++)
+    for (int x = 0; x < width / tileSize; x++)
     {
-        for (int y = 0; y < _height; y++)
+        for (int y = 0; y < height / tileSize; y++)
         {
-            Tile& tile = _tiles[x + y * _width];
-
-            tile.Texture = Texture();
+            _tiles[x + y * width] = Tile();
         }
+    }
+}
+
+Texture Grid::getTexture(Tile& tile) const
+{
+    switch (tile.Type)
+    {
+        case TileType::None:
+            return {};
+        case TileType::Tree:
+            if (tile.TreeGrowth < 15.f)
+            {
+                return Texture(Ressources::TreeSprout);
+            }
+            else if (tile.TreeGrowth < 30.f)
+            {
+                return Texture(Ressources::TreeMiddle);
+            }
+            else
+            {
+                return Texture(Ressources::TreeFull);
+            }
+        case TileType::Sawmill:
+            return Texture(Buildings::Sawmill);
+        case TileType::Road:
+            return Texture(Road::SingleRoad); //TODO: Ici on peut faire un switch pour avoir les bonnes textures Constantin
+        default:
+            return {};
     }
 }
 
@@ -36,9 +62,9 @@ void Grid::Draw()
             auto position = Vector2F{ x, y } * _tileSize - Vector2F{ _width, _height} / 2.f;
             auto size = Vector2F{ (float) _tileSize, (float) _tileSize};
             auto randomLand = Texture((Land) Random::Range(0, (int) Land::Count - 1));
-            Texture background = tile.Texture.TileSheetIndex == TileSheet::None ? randomLand : Texture(Land::Grass);
+            auto background = tile.Type != TileType::None ? Texture(Land::Grass) : randomLand;
 
-            if (tile.Texture.TileSheetIndex != TileSheet::Road)
+            if (tile.Type != TileType::Road)
             {
                 Window::DrawObject({
                     .Position = position,
@@ -47,12 +73,12 @@ void Grid::Draw()
                 });
             }
 
-            if (tile.Texture.TileSheetIndex != TileSheet::None)
+            if (tile.Type != TileType::None)
             {
                 Window::DrawObject({
                     .Position = position,
                     .Size = size,
-                    .Texture = tile.Texture
+                    .Texture = getTexture(tile)
                 });
             }
 
@@ -84,42 +110,71 @@ void Grid::Update()
         {
             Tile& tile = _tiles[x + y * _width];
 
-            if (tile.Texture == Ressources::TreeSprout)
+            if (tile.Type == TileType::Tree && tile.TreeGrowth < 30.f)
             {
                 tile.TreeGrowth += smoothDeltaTime;
-
-                if (tile.TreeGrowth >= 15.f)
-                {
-                    tile.Texture = Texture(Ressources::TreeMiddle);
-                }
-            }
-            else if (tile.Texture == Ressources::TreeMiddle)
-            {
-                tile.TreeGrowth += smoothDeltaTime;
-
-                if (tile.TreeGrowth >= 30.f)
-                {
-                    tile.Texture = Texture(Ressources::TreeFull);
-                }
             }
         }
     }
 }
 
-Vector2I Grid::GetTilePosition(Vector2F position) const
+TilePosition Grid::GetTilePosition(Vector2F position) const
 {
-    return Vector2I{
+    return TilePosition{
         (int) (position.X + _width / 2.f) / _tileSize,
         (int) (position.Y + _height / 2.f) / _tileSize
     };
 }
 
-void Grid::SetTile(Vector2I position, Tile tile)
+Vector2F Grid::ToWorldPosition(TilePosition position) const
+{
+    return Vector2F{
+        (float) position.X * _tileSize - _width / 2.f,
+        (float) position.Y * _tileSize - _height / 2.f
+    };
+}
+
+Tile& Grid::GetTile(TilePosition position)
+{
+    return _tiles[position.X + position.Y * _width];
+}
+
+Tile& Grid::GetTile(int index)
+{
+    return _tiles[index];
+}
+
+int Grid::GetTileIndex(TilePosition position) const
+{
+    return position.X + position.Y * _width;
+}
+
+void Grid::SetTile(TilePosition position, Tile tile)
 {
     _tiles[position.X + position.Y * _width] = tile;
 }
 
-void Grid::RemoveTile(Vector2I position)
+void Grid::RemoveTile(TilePosition position)
 {
     _tiles[position.X + position.Y * _width] = Tile();
+}
+
+std::vector<TilePosition> Grid::GetTiles(TileType type) const
+{
+    std::vector<TilePosition> tiles;
+
+    for (int x = 0; x < _width / _tileSize; x++)
+    {
+        for (int y = 0; y < _height / _tileSize; y++)
+        {
+            Tile& tile = _tiles[x + y * _width];
+
+            if (tile.Type == type)
+            {
+                tiles.push_back(TilePosition{ x, y });
+            }
+        }
+    }
+
+    return tiles;
 }
