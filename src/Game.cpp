@@ -7,15 +7,12 @@
 #include "Audio.h"
 #include "Input.h"
 #include "Timer.h"
-#include "Random.h"
-#include "Logger.h"
 
 void UpdateCamera();
-void UpdateGrid();
 
 float speed = 500.f;
 
-Grid road(5000, 5000, 100);
+Grid grid(5000, 5000, 100);
 
 void InitGame()
 {
@@ -38,6 +35,7 @@ void InitGame()
     std::cout << Matrix2x3F::Multiply(rot, myVec).X << " " << Matrix2x3F::Multiply(rot, myVec).Y << std::endl;
     std::cout << Matrix2x3F::Multiply(sc, myVec).X << " " << Matrix2x3F::Multiply(sc, myVec).Y << std::endl;
 
+<<<<<<< HEAD
     Matrix2x3F mutlipled = Matrix2x3F::Multiply(rot, tr);
     std::cout << Matrix2x3F::Multiply(mutlipled, myVec).X << " " << Matrix2x3F::Multiply(mutlipled, myVec).Y << std::endl;
 
@@ -65,6 +63,10 @@ void InitGame()
     }
 
     Random::StopUseSeed();
+=======
+    Matrix2x3F mutlipled = Matrix2x3F::Multiply(rot,tr);
+    std::cout << Matrix2x3F::Multiply(mutlipled,myVec).X  << " " << Matrix2x3F::Multiply(mutlipled,myVec).Y << std::endl;
+>>>>>>> 79f447bda3cf3d00a7fd5198fd05b306c107b283
 }
 
 void OnFrame()
@@ -72,27 +74,13 @@ void OnFrame()
     auto mousePosition = Input::GetMousePosition();
 
     UpdateCamera();
+<<<<<<< HEAD
     UpdateGrid();
+=======
+>>>>>>> 79f447bda3cf3d00a7fd5198fd05b306c107b283
 
-    road.Draw();
-}
-
-void UpdateGrid()
-{
-    auto mousePosition = Input::GetMousePosition();
-
-    for (Tile &tile : road.Tiles)
-    {
-        if (tile.Position.X < mousePosition.X && tile.Position.X + tile.Size.X > mousePosition.X &&
-            tile.Position.Y < mousePosition.Y && tile.Position.Y + tile.Size.Y > mousePosition.Y)
-        {
-            tile.IsSelected = true;
-        }
-        else
-        {
-            tile.IsSelected = false;
-        }
-    }
+    grid.Update();
+    grid.Draw();
 }
 
 void UpdateCamera()
@@ -130,8 +118,19 @@ void UpdateCamera()
 
     Window::Zoom(Input::GetMouseWheelDelta() / 50.f);
 
-    if (Input::IsMouseButtonHeld(SAPP_MOUSEBUTTON_LEFT))
+    if (Input::IsMouseButtonHeld(SAPP_MOUSEBUTTON_MIDDLE))
     {
         Window::MoveCamera((mousePosition - previousMousePosition) * Vector2F{1, -1} * 1.f / Window::GetZoom());
     }
+
+    if (Input::IsMouseButtonPressed(SAPP_MOUSEBUTTON_LEFT))
+    {
+        grid.SetTile(grid.GetTilePosition(mousePosition), Tile(Texture(Ressources::TreeSprout)));
+    }
+    if (Input::IsMouseButtonPressed(SAPP_MOUSEBUTTON_RIGHT))
+    {
+        grid.RemoveTile(grid.GetTilePosition(mousePosition));
+    }
+
+
 }

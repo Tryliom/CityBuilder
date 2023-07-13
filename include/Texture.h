@@ -48,4 +48,11 @@ struct Texture
 
     TileSheet TileSheetIndex = TileSheet::None;
     int TileIndex = -1;
+
+    bool operator==(Land land) const { return TileSheetIndex == TileSheet::Land && TileIndex == (int) land; }
+    bool operator==(Road road) const { return TileSheetIndex == TileSheet::Road && TileIndex == (int) road; }
+    bool operator==(Buildings buildings) const { return TileSheetIndex == TileSheet::Buildings && TileIndex == (int) buildings; }
+    bool operator==(Ressources ressources) const { return TileSheetIndex == TileSheet::Ressources && TileIndex == (int) ressources; }
+    bool operator==(Characters characters) const { return TileSheetIndex == TileSheet::Characters && TileIndex == (int) characters; }
+    bool operator==(Icons icons) const { return TileSheetIndex == TileSheet::Icons && TileIndex == (int) icons; }
 };

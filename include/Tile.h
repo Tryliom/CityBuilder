@@ -1,14 +1,13 @@
 #pragma once
 
 #include "Texture.h"
-#include "Maths.h"
-#include "DrawableObject.h"
 
-class Tile : public DrawableObject
+struct Tile
 {
-public:
-	explicit Tile(Vector2I position, int tileSize, bool isWalkable = true);
+    Texture Texture;
 
-	bool IsWalkable = true;
-    bool IsSelected = false;
+    // TODO: Add more properties like harvestable, etc.
+
+    // Tree
+    float TreeGrowth = 0.f;
 };

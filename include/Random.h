@@ -7,9 +7,9 @@ namespace Random
 
     /**
      * Set a seed for the next random numbers
-     * @param seed
+     * @param newSeed
      */
-    void SetSeed(int seed);
+    void SetSeed(int newSeed);
 
     /**
      * Use a seed for the next random numbers

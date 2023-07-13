@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "Tile.h"
+#include "Maths.h"
 
 class Grid
 {
@@ -15,8 +16,13 @@ private:
 	int _height;
 	int _tileSize;
 
-public:
-    std::vector<Tile> Tiles = std::vector<Tile>();
+    Tile* _tiles;
 
+public:
     void Draw();
+    void Update();
+
+    Vector2I GetTilePosition(Vector2F position) const;
+    void SetTile(Vector2I position, Tile tile);
+    void RemoveTile(Vector2I position);
 };

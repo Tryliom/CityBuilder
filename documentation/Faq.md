@@ -16,7 +16,7 @@ Example:
 Random::SetSeed(42);
 Random::UseSeed();
 
-for (Tile& tile : road.Tiles)
+for (Tile& tile : grid.Tiles)
 {
     tile.Texture = Texture((Road) Random::Range(0, (int) Road::Flower3));
 }
