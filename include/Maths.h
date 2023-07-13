@@ -174,14 +174,14 @@ struct Matrix2x3
         return mat;
     }
 
-    static Matrix2x3<T> RotationMatrix(float angle, bool clockWise = true)
+    static Matrix2x3<T> RotationMatrix(float angle)
     {
         Matrix2x3<T> mat =
             {
                 .values =
                     {
-                        {cosf(MathUtility::DegreesToRadians(angle)), clockWise ? sinf(MathUtility::DegreesToRadians(angle)) : -sinf(MathUtility::DegreesToRadians(angle)), 0},
-                        {clockWise ? -sinf(MathUtility::DegreesToRadians(angle)) : sinf(MathUtility::DegreesToRadians(angle)), cosf(MathUtility::DegreesToRadians(angle)), 0}}};
+                        {cosf(MathUtility::DegreesToRadians(angle)), sinf(MathUtility::DegreesToRadians(angle)), 0},
+                        {-sinf(MathUtility::DegreesToRadians(angle)), cosf(MathUtility::DegreesToRadians(angle)), 0}}};
 
         return mat;
     }
@@ -224,5 +224,95 @@ struct Matrix2x3
                          matA.values[1][0] * matB.values[0][2] + matA.values[1][1] * matB.values[1][2] + matA.values[1][2] * 1}}};
 
         return result;
+    }
+    static float GetDet(Matrix2x3<T> mat)
+    {
+        float aei = mat.values[0][0] * mat.values[1][1] * 1;
+        float bfg = mat.values[0][1] * mat.values[1][2] * 0;
+        float cdh = mat.values[0][2] * mat.values[1][0] * 0;
+
+        float somme1 = aei + bfg + cdh;
+
+        float afh = mat.values[0][0] * mat.values[1][2] * 0;
+        float bdi = mat.values[0][1] * mat.values[1][0] * 1;
+        float ceg = mat.values[0][2] * mat.values[1][1] * 0;
+
+        float somme2 = afh + bdi + ceg;
+
+        return somme1 - somme2;
+    }
+    static float GetDet2x2(T n1, T n2,
+                           T n3, T n4)
+    {
+        return (n1 * n4) - (n3 * n2);
+    }
+
+    static Matrix2x3<T> Invert(Matrix2x3<T> mat)
+    {
+        float det = GetDet(mat);
+        if (det == 0)
+        {
+            return IdentityMatrix();
+        }
+        T transMat[3][3] =
+            {
+                mat.values[0][0],
+                mat.values[1][0],
+                0.f,
+                mat.values[0][1],
+                mat.values[1][1],
+                0.f,
+                mat.values[0][2],
+                mat.values[1][2],
+                1.f,
+            };
+
+        T t1 = GetDet2x2(transMat[1][1], transMat[1][2], transMat[2][1], transMat[2][2]);
+        T t2 = GetDet2x2(transMat[1][0], transMat[1][2], transMat[2][0], transMat[2][2]);
+        T t3 = GetDet2x2(transMat[1][0], transMat[1][1], transMat[2][0], transMat[2][1]);
+        T t4 = GetDet2x2(transMat[0][1], transMat[0][2], transMat[2][1], transMat[2][2]);
+        T t5 = GetDet2x2(transMat[0][0], transMat[0][2], transMat[2][0], transMat[2][2]);
+        T t6 = GetDet2x2(transMat[0][0], transMat[0][1], transMat[2][0], transMat[2][1]);
+        T t7 = GetDet2x2(transMat[0][1], transMat[0][2], transMat[1][1], transMat[1][2]);
+        T t8 = GetDet2x2(transMat[0][0], transMat[0][2], transMat[1][0], transMat[1][2]);
+        T t9 = GetDet2x2(transMat[0][0], transMat[0][1], transMat[1][0], transMat[1][1]);
+
+        T adjMat[3][3] =
+            {
+                t1,
+                t2 * -1,
+                t3,
+                t4 * -1,
+                t5,
+                t6 * -1,
+                t7,
+                t8 * -1,
+                t9};
+
+        for (int i = 0; i < 3; i++)
+        {
+            for (int j = 0; j < 3; j++)
+            {
+                adjMat[i][j] *= 1.f / det;
+            }
+        }
+
+        Matrix2x3<T> inverted =
+            {
+                .values =
+                    {
+                        adjMat[0][0], adjMat[0][1], adjMat[0][2],
+                        adjMat[1][0], adjMat[1][1], adjMat[1][2]}};
+
+        return inverted;
+    }
+
+    static Matrix2x3<T> TransformMatrix(Vector2F scaleRatio, float angle, Vector2F translation)
+    {
+        Matrix2x3<T> resultMatrix = ScaleMatrix(scaleRatio);
+        resultMatrix = Multiply(resultMatrix, RotationMatrix(angle));
+        resultMatrix = Multiply(resultMatrix, TranslationMatrix(translation));
+
+        return resultMatrix;
     }
 };
