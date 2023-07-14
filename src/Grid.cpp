@@ -23,12 +23,11 @@ Grid::Grid(int width, int height, int tileSize)
     }
 }
 
-Texture Grid::getTexture(Tile& tile) const
+Texture Grid::GetTexture(Tile& tile) const
 {
     switch (tile.Type)
     {
-        case TileType::None:
-            return {};
+        case TileType::Stone: return Texture(Ressources::Stone);
         case TileType::Tree:
             if (tile.TreeGrowth < 15.f)
             {
@@ -42,18 +41,19 @@ Texture Grid::getTexture(Tile& tile) const
             {
                 return Texture(Ressources::TreeFull);
             }
-        case TileType::Sawmill:
-            return Texture(Buildings::Sawmill);
-        case TileType::Road:
-            return Texture(Road::SingleRoad); //TODO: Ici on peut faire un switch pour avoir les bonnes textures Constantin
-        default:
-            return {};
+        case TileType::Sawmill: return Texture(Buildings::Sawmill);
+        case TileType::Road: return Texture(Road::SingleRoad); //TODO: Ici on peut faire un switch pour avoir les bonnes textures Constantin
+	    case TileType::MayorHouse: return Texture(Buildings::MayorHouse);
+		case TileType::House: return Texture(Buildings::House);
+		case TileType::BuilderHut: return Texture(Buildings::BuilderHut);
+		case TileType::Storage: return Texture(Buildings::Storage);
+		case TileType::Quarry: return Texture(Buildings::Quarry);
+        default: return {};
     }
 }
 
 void Grid::Draw()
 {
-    Random::SetSeed(42);
     Random::UseSeed();
 
     auto mousePosition = Input::GetMousePosition();
@@ -80,14 +80,21 @@ void Grid::Draw()
 
             if (tile.Type != TileType::None)
             {
+				if (!tile.IsBuilt)
+				{
+					Window::DrawRect(position, size, Color(1, 1, 0, 1.f - tile.Progress / GetMaxConstructionProgress(tile.Type)));
+				}
+				else if (tile.NeedToBeDestroyed)
+				{
+					Window::DrawRect(position, size, Color(1, 0, 0, 1.f - tile.Progress / GetMaxDestructionProgress(tile.Type)));
+				}
+
                 Window::DrawObject({
                     .Position = position,
                     .Size = size,
-                    .Texture = getTexture(tile)
+                    .Texture = GetTexture(tile)
                 });
             }
-
-            
 
             if (position.X < worldMousePosition.X && position.X + _tileSize > worldMousePosition.X &&
                 position.Y < worldMousePosition.Y && position.Y + _tileSize > worldMousePosition.Y)
@@ -108,17 +115,35 @@ void Grid::Update()
 {
     float smoothDeltaTime = Timer::SmoothDeltaTime;
 
-    // Check tree
     for (int x = 0; x < _width / _tileSize; x++)
     {
         for (int y = 0; y < _height / _tileSize; y++)
         {
             Tile& tile = _tiles[x + y * _width];
 
+	        // Check tree
             if (tile.Type == TileType::Tree && tile.TreeGrowth < 30.f)
             {
                 tile.TreeGrowth += smoothDeltaTime;
             }
+
+			// Check construction
+			if (!tile.IsBuilt && tile.Type != TileType::None)
+			{
+				tile.IsBuilt = GetMaxConstructionProgress(tile.Type) <= tile.Progress;
+			}
+
+			// Check destruction
+			if (tile.IsBuilt && tile.Type != TileType::None && tile.NeedToBeDestroyed)
+			{
+				if (GetMaxDestructionProgress(tile.Type) <= tile.Progress)
+				{
+					tile.Type = TileType::None;
+					tile.IsBuilt = false;
+					tile.NeedToBeDestroyed = false;
+					tile.Progress = 0.f;
+				}
+			}
         }
     }
 }
@@ -129,6 +154,14 @@ TilePosition Grid::GetTilePosition(Vector2F position) const
         (int) (position.X + _width / 2.f) / _tileSize,
         (int) (position.Y + _height / 2.f) / _tileSize
     };
+}
+
+[[nodiscard]] TilePosition Grid::GetTilePosition(int tileIndex) const
+{
+	return TilePosition{
+		tileIndex % _width,
+		tileIndex / _width
+	};
 }
 
 Vector2F Grid::ToWorldPosition(TilePosition position) const
@@ -156,6 +189,12 @@ int Grid::GetTileIndex(TilePosition position) const
 
 void Grid::SetTile(TilePosition position, Tile tile)
 {
+	// Set the tile as build if it's not a building
+	if (tile.Type != TileType::Storage && tile.Type != TileType::BuilderHut && tile.Type != TileType::Quarry && tile.Type != TileType::Sawmill && tile.Type != TileType::House && tile.Type != TileType::MayorHouse)
+	{
+		tile.IsBuilt = true;
+	}
+
     _tiles[position.X + position.Y * _width] = tile;
 }
 
@@ -174,7 +213,7 @@ std::vector<TilePosition> Grid::GetTiles(TileType type) const
         {
             Tile& tile = _tiles[x + y * _width];
 
-            if (tile.Type == type)
+            if (tile.Type == type && tile.IsBuilt)
             {
                 tiles.push_back(TilePosition{ x, y });
             }
@@ -183,3 +222,63 @@ std::vector<TilePosition> Grid::GetTiles(TileType type) const
 
     return tiles;
 }
+
+std::vector<TilePosition> Grid::GetTiles(TileType type, TilePosition position, int radius) const
+{
+	std::vector<TilePosition> tiles;
+
+	for (int x = position.X - radius; x < position.X + radius; x++)
+	{
+		for (int y = position.Y - radius; y < position.Y + radius; y++)
+		{
+			Tile& tile = _tiles[x + y * _width];
+
+			if (tile.Type == type && tile.IsBuilt)
+			{
+				tiles.push_back(TilePosition{ x, y });
+			}
+		}
+	}
+
+	return tiles;
+}
+
+void Grid::ForEachTile(std::function<void(Tile&, TilePosition)> callback) const
+{
+	for (int x = 0; x < _width / _tileSize; x++)
+	{
+		for (int y = 0; y < _height / _tileSize; y++)
+		{
+			Tile& tile = _tiles[x + y * _width];
+			callback(tile, TilePosition{ x, y });
+		}
+	}
+}
+
+float Grid::GetMaxConstructionProgress(TileType type)
+{
+	switch (type)
+	{
+		case TileType::Sawmill: return 10.f;
+		case TileType::Quarry: return 15.f;
+		case TileType::BuilderHut: return 10.f;
+		case TileType::Storage: return 10.f;
+		case TileType::House: return 30.f;
+	}
+}
+
+float Grid::GetMaxDestructionProgress(TileType type)
+{
+	switch (type)
+	{
+		case TileType::Sawmill: return 5.f;
+		case TileType::Quarry: return 7.5f;
+		case TileType::BuilderHut: return 5.f;
+		case TileType::Storage: return 5.f;
+		case TileType::House: return 15.f;
+		case TileType::Tree: return 5.f;
+		case TileType::Stone: return 10.f;
+	}
+}
+
+

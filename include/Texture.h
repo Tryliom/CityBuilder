@@ -17,7 +17,7 @@ enum class Road
 
 enum class Buildings
 {
-    MainHouse, CommonHouse, Sawmill, Quarry, Storage, BuilderHut, Count
+    MayorHouse, House, Sawmill, Quarry, Storage, BuilderHut, Count
 };
 
 enum class Ressources

@@ -2,6 +2,7 @@
 
 #include <utility>
 #include <vector>
+#include <functional>
 
 #include "Tile.h"
 #include "Maths.h"
@@ -15,6 +16,11 @@ struct TilePosition
     {
         return X == other.X && Y == other.Y;
     }
+
+	TilePosition operator+(const TilePosition& other) const
+	{
+		return TilePosition{ X + other.X, Y + other.Y };
+	}
 };
 
 class Grid
@@ -29,13 +35,12 @@ private:
 
     Tile* _tiles;
 
-    Texture getTexture(Tile& tile) const;
-
 public:
     void Draw();
     void Update();
 
     [[nodiscard]] TilePosition GetTilePosition(Vector2F position) const;
+	[[nodiscard]] TilePosition GetTilePosition(int tileIndex) const;
     [[nodiscard]] Vector2F ToWorldPosition(TilePosition position) const;
 
     Tile& GetTile(TilePosition position);
@@ -45,5 +50,13 @@ public:
     void SetTile(TilePosition position, Tile tile);
     void RemoveTile(TilePosition position);
 
-    std::vector<TilePosition> GetTiles(TileType type) const;
+    [[nodiscard]] std::vector<TilePosition> GetTiles(TileType type) const;
+	[[nodiscard]] std::vector<TilePosition> GetTiles(TileType type, TilePosition position, int radius) const;
+
+	void ForEachTile(std::function<void(Tile&, TilePosition)> callback) const;
+
+	Texture GetTexture(Tile& tile) const;
+
+	static float GetMaxConstructionProgress(TileType type);
+	static float GetMaxDestructionProgress(TileType type);
 };
