@@ -35,6 +35,10 @@ private:
 
     Tile* _tiles;
 
+	// Texture
+	static Texture getTreeTexture(Tile& tile);
+	Texture getRoadTexture(TilePosition position);
+
 public:
     void Draw();
     void Update();
@@ -55,7 +59,7 @@ public:
 
 	void ForEachTile(std::function<void(Tile&, TilePosition)> callback) const;
 
-	Texture GetTexture(Tile& tile) const;
+	Texture GetTexture(TilePosition position);
 
 	static float GetMaxConstructionProgress(TileType type);
 	static float GetMaxDestructionProgress(TileType type);

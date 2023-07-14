@@ -23,26 +23,16 @@ Grid::Grid(int width, int height, int tileSize)
     }
 }
 
-Texture Grid::GetTexture(Tile& tile) const
+Texture Grid::GetTexture(TilePosition position)
 {
+	Tile& tile = GetTile(position);
+
     switch (tile.Type)
     {
         case TileType::Stone: return Texture(Ressources::Stone);
-        case TileType::Tree:
-            if (tile.TreeGrowth < 15.f)
-            {
-                return Texture(Ressources::TreeSprout);
-            }
-            else if (tile.TreeGrowth < 30.f)
-            {
-                return Texture(Ressources::TreeMiddle);
-            }
-            else
-            {
-                return Texture(Ressources::TreeFull);
-            }
+        case TileType::Tree: return getTreeTexture(tile);
         case TileType::Sawmill: return Texture(Buildings::Sawmill);
-        case TileType::Road: return Texture(Road::SingleRoad); //TODO: Ici on peut faire un switch pour avoir les bonnes textures Constantin
+        case TileType::Road: return getRoadTexture(position);
 	    case TileType::MayorHouse: return Texture(Buildings::MayorHouse);
 		case TileType::House: return Texture(Buildings::House);
 		case TileType::BuilderHut: return Texture(Buildings::BuilderHut);
@@ -50,6 +40,39 @@ Texture Grid::GetTexture(Tile& tile) const
 		case TileType::Quarry: return Texture(Buildings::Quarry);
         default: return {};
     }
+}
+
+Texture Grid::getTreeTexture(Tile& tile)
+{
+	if (tile.TreeGrowth < 15.f)
+	{
+		return Texture(Ressources::TreeSprout);
+	}
+	else if (tile.TreeGrowth < 30.f)
+	{
+		return Texture(Ressources::TreeMiddle);
+	}
+	else
+	{
+		return Texture(Ressources::TreeFull);
+	}
+}
+
+Texture Grid::getRoadTexture(TilePosition position)
+{
+	bool up = GetTile(position + TilePosition{ 0, -1 }).Type == TileType::Road;
+	bool down = GetTile(position + TilePosition{ 0, 1 }).Type == TileType::Road;
+	bool left = GetTile(position + TilePosition{ -1, 0 }).Type == TileType::Road;
+	bool right = GetTile(position + TilePosition{ 1, 0 }).Type == TileType::Road;
+
+	if (up && down && left && right)
+	{
+		return Texture(Road::CrossRoad);
+	}
+
+	//TODO: Ici constantin
+
+	return Texture(Road::SingleRoad);
 }
 
 void Grid::Draw()
@@ -92,7 +115,7 @@ void Grid::Draw()
                 Window::DrawObject({
                     .Position = position,
                     .Size = size,
-                    .Texture = GetTexture(tile)
+                    .Texture = GetTexture({ x, y })
                 });
             }
 
