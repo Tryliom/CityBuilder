@@ -347,10 +347,7 @@ void HandleInput()
 		auto mouseWorldPosition = Window::ScreenToWorld(mousePosition);
 		auto tilePosition = grid.GetTilePosition(mouseWorldPosition);
 
-		if (
-			grid.GetTile(tilePosition).Type == TileType::None ||
-			selectedTileType == TileType::Quarry && grid.GetTile(tilePosition).Type == TileType::Stone
-		)
+		if (grid.CanBuild(tilePosition, selectedTileType))
 		{
 			grid.SetTile(tilePosition, Tile(selectedTileType));
 		}
@@ -366,10 +363,21 @@ void HandleInput()
 
 		if (tile.Type == TileType::None) return;
 
-		// Can be destroyed immediately
-		if (tile.Type == TileType::Road)
+		if (tile.NeedToBeDestroyed)
 		{
-			tile.Type = TileType::None;
+			// Cancel the destruction
+			tile.NeedToBeDestroyed = false;
+			tile.Progress = 0;
+			return;
+		}
+
+		// Can be destroyed immediately
+		if (tile.Type == TileType::Road || !tile.IsBuilt)
+		{
+			tile.Type = tile.Type == TileType::Quarry ? TileType::Stone : TileType::None;
+			tile.IsBuilt = true;
+			tile.NeedToBeDestroyed = false;
+			tile.Progress = 0;
 			return;
 		}
 

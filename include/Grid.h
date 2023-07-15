@@ -63,4 +63,6 @@ public:
 
 	static float GetMaxConstructionProgress(TileType type);
 	static float GetMaxDestructionProgress(TileType type);
+
+	bool CanBuild(TilePosition position, TileType type);
 };

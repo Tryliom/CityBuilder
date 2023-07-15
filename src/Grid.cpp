@@ -172,8 +172,6 @@ Texture Grid::getRoadTexture(TilePosition position)
     else if (!up && !down && left && right) // horizontal
         return Texture(Road::Horizontal);
 
-    // TODO: Ici
-
     return Texture(Road::Single);
 }
 
@@ -408,4 +406,21 @@ float Grid::GetMaxDestructionProgress(TileType type)
     case TileType::Stone:
         return 10.f;
     }
+}
+
+bool Grid::CanBuild(TilePosition position, TileType type)
+{
+	Tile& tile = GetTile(position);
+
+	if (type == TileType::Quarry)
+	{
+		return tile.Type == TileType::Stone;
+	}
+
+	if (tile.Type == TileType::None)
+	{
+		return true;
+	}
+
+	return false;
 }
