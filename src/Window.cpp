@@ -197,8 +197,8 @@ sapp_desc sokol_main(int argc, char *argv[])
         .frame_cb = frame,
         .cleanup_cb = cleanup,
         .event_cb = Input::OnInput,
-        .width = 640,
-        .height = 640,
+        .width = 1000,
+        .height = 800,
         .window_title = "City builder",
         .logger = {.func = slog_func},
         .win32_console_create = true // Use it if you want to see console output

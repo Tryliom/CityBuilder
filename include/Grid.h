@@ -63,6 +63,8 @@ public:
 
 	static float GetMaxConstructionProgress(TileType type);
 	static float GetMaxDestructionProgress(TileType type);
+	static int GetMaxLogsStored(Tile tile);
+	static int GetMaxRocksStored(Tile tile);
 
 	bool CanBuild(TilePosition position, TileType type);
 };

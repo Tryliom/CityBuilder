@@ -38,6 +38,7 @@ Texture Grid::GetTexture(TilePosition position)
 		case TileType::BuilderHut: return Texture(Buildings::BuilderHut);
 		case TileType::Storage: return Texture(Buildings::Storage);
 		case TileType::Quarry: return Texture(Buildings::Quarry);
+		case TileType::LogisticsCenter: return Texture(Buildings::LogisticsCenter);
         default: return {};
     }
 }
@@ -153,24 +154,6 @@ void Grid::Update()
             {
                 tile.TreeGrowth += smoothDeltaTime;
             }
-
-			// Check construction
-			if (!tile.IsBuilt && tile.Type != TileType::None)
-			{
-				tile.IsBuilt = GetMaxConstructionProgress(tile.Type) <= tile.Progress;
-			}
-
-			// Check destruction
-			if (tile.IsBuilt && tile.Type != TileType::None && tile.NeedToBeDestroyed)
-			{
-				if (GetMaxDestructionProgress(tile.Type) <= tile.Progress)
-				{
-					tile.Type = TileType::None;
-					tile.IsBuilt = false;
-					tile.NeedToBeDestroyed = false;
-					tile.Progress = 0.f;
-				}
-			}
         }
     }
 }
@@ -291,7 +274,10 @@ float Grid::GetMaxConstructionProgress(TileType type)
 		case TileType::BuilderHut: return 10.f;
 		case TileType::Storage: return 10.f;
 		case TileType::House: return 30.f;
+		case TileType::LogisticsCenter: return 10.f;
 	}
+
+	return 0.f;
 }
 
 float Grid::GetMaxDestructionProgress(TileType type)
@@ -306,6 +292,8 @@ float Grid::GetMaxDestructionProgress(TileType type)
 		case TileType::Tree: return 5.f;
 		case TileType::Stone: return 10.f;
 	}
+
+	return 0.f;
 }
 
 bool Grid::CanBuild(TilePosition position, TileType type)
@@ -323,6 +311,32 @@ bool Grid::CanBuild(TilePosition position, TileType type)
 	}
 
 	return false;
+}
+
+int Grid::GetMaxLogsStored(Tile tile)
+{
+	switch (tile.Type)
+	{
+		case TileType::Sawmill: return 50;
+		case TileType::Storage: return 100;
+		case TileType::MayorHouse: return 15;
+		case TileType::LogisticsCenter: return 100;
+	}
+
+	return 0;
+}
+
+int Grid::GetMaxRocksStored(Tile tile)
+{
+	switch (tile.Type)
+	{
+		case TileType::Quarry: return 50;
+		case TileType::Storage: return 100;
+		case TileType::MayorHouse: return 15;
+		case TileType::LogisticsCenter: return 100;
+	}
+
+	return 0;
 }
 
 

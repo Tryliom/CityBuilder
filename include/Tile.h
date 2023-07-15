@@ -12,6 +12,7 @@ enum class TileType
 	Storage,
 	Sawmill,
 	Quarry,
+	LogisticsCenter,
 	// Resources
     Tree,
     Stone,
@@ -22,8 +23,6 @@ enum class TileType
 struct Tile
 {
     TileType Type = TileType::None;
-
-    // TODO: Add more properties like harvestable, etc.
 
 	// Constructor
 	float Progress = 0.f;

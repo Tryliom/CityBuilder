@@ -30,7 +30,7 @@ enum class Road
 
 enum class Buildings
 {
-    MayorHouse, House, Sawmill, Quarry, Storage, BuilderHut, Count
+    MayorHouse, House, Sawmill, Quarry, Storage, BuilderHut, LogisticsCenter, Count
 };
 
 enum class Ressources
@@ -40,7 +40,7 @@ enum class Ressources
 
 enum class Characters
 {
-    Unemployed, Lumberjack, Digger, Builder, Count
+    Unemployed, Lumberjack, Digger, Builder, Logistician, Count
 };
 
 enum class Icons

@@ -23,6 +23,10 @@ struct Unit
 
     float TimeSinceLastAction = 0.f;
 
+	// Inventory
+	int Logs = 0;
+	int Rocks = 0;
+
     void SetBehavior(UnitBehavior behavior)
     {
         CurrentBehavior = behavior;
