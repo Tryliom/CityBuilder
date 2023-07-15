@@ -363,6 +363,14 @@ void HandleInput()
 
 		if (tile.Type == TileType::None) return;
 
+		if (tile.NeedToBeDestroyed)
+		{
+			// Cancel the destruction
+			tile.NeedToBeDestroyed = false;
+			tile.Progress = 0;
+			return;
+		}
+
 		// Can be destroyed immediately
 		if (tile.Type == TileType::Road || !tile.IsBuilt)
 		{
