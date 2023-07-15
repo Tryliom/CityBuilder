@@ -12,7 +12,7 @@ Grid::Grid(int width, int height, int tileSize)
     _height = height;
     _tileSize = tileSize;
 
-	_tiles = (Tile*) malloc(sizeof(Tile) * width * height);
+    _tiles = (Tile *)malloc(sizeof(Tile) * width * height);
 
     for (int x = 0; x < width / tileSize; x++)
     {
@@ -25,58 +25,156 @@ Grid::Grid(int width, int height, int tileSize)
 
 Texture Grid::GetTexture(TilePosition position)
 {
-	Tile& tile = GetTile(position);
+    Tile &tile = GetTile(position);
 
     switch (tile.Type)
     {
-        case TileType::Stone: return Texture(Ressources::Stone);
-        case TileType::Tree: return getTreeTexture(tile);
-        case TileType::Sawmill: return Texture(Buildings::Sawmill);
-        case TileType::Road: return getRoadTexture(position);
-	    case TileType::MayorHouse: return Texture(Buildings::MayorHouse);
-		case TileType::House: return Texture(Buildings::House);
-		case TileType::BuilderHut: return Texture(Buildings::BuilderHut);
-		case TileType::Storage: return Texture(Buildings::Storage);
-		case TileType::Quarry: return Texture(Buildings::Quarry);
-        default: return {};
+    case TileType::Stone:
+        return Texture(Ressources::Stone);
+    case TileType::Tree:
+        return getTreeTexture(tile);
+    case TileType::Sawmill:
+        return Texture(Buildings::Sawmill);
+    case TileType::Road:
+        return getRoadTexture(position);
+    case TileType::MayorHouse:
+        return Texture(Buildings::MayorHouse);
+    case TileType::House:
+        return Texture(Buildings::House);
+    case TileType::BuilderHut:
+        return Texture(Buildings::BuilderHut);
+    case TileType::Storage:
+        return Texture(Buildings::Storage);
+    case TileType::Quarry:
+        return Texture(Buildings::Quarry);
+    default:
+        return {};
     }
 }
 
-Texture Grid::getTreeTexture(Tile& tile)
+Texture Grid::getTreeTexture(Tile &tile)
 {
-	if (tile.TreeGrowth < 15.f)
-	{
-		return Texture(Ressources::TreeSprout);
-	}
-	else if (tile.TreeGrowth < 30.f)
-	{
-		return Texture(Ressources::TreeMiddle);
-	}
-	else
-	{
-		return Texture(Ressources::TreeFull);
-	}
+    if (tile.TreeGrowth < 15.f)
+    {
+        return Texture(Ressources::TreeSprout);
+    }
+    else if (tile.TreeGrowth < 30.f)
+    {
+        return Texture(Ressources::TreeMiddle);
+    }
+    else
+    {
+        return Texture(Ressources::TreeFull);
+    }
 }
 
 Texture Grid::getRoadTexture(TilePosition position)
 {
-	bool up = GetTile(position + TilePosition{ 0, -1 }).Type == TileType::Road;
-	bool down = GetTile(position + TilePosition{ 0, 1 }).Type == TileType::Road;
-	bool left = GetTile(position + TilePosition{ -1, 0 }).Type == TileType::Road;
-	bool right = GetTile(position + TilePosition{ 1, 0 }).Type == TileType::Road;
-	bool upLeft = GetTile(position + TilePosition{ -1, -1 }).Type == TileType::Road;
-	bool upRight = GetTile(position + TilePosition{ 1, -1 }).Type == TileType::Road;
-	bool downLeft = GetTile(position + TilePosition{ -1, 1 }).Type == TileType::Road;
-	bool downRight = GetTile(position + TilePosition{ 1, 1 }).Type == TileType::Road;
+    bool up = GetTile(position + TilePosition{0, -1}).Type == TileType::Road;
+    bool down = GetTile(position + TilePosition{0, 1}).Type == TileType::Road;
+    bool left = GetTile(position + TilePosition{-1, 0}).Type == TileType::Road;
+    bool right = GetTile(position + TilePosition{1, 0}).Type == TileType::Road;
+    bool upLeft = GetTile(position + TilePosition{-1, -1}).Type == TileType::Road;
+    bool upRight = GetTile(position + TilePosition{1, -1}).Type == TileType::Road;
+    bool downLeft = GetTile(position + TilePosition{-1, 1}).Type == TileType::Road;
+    bool downRight = GetTile(position + TilePosition{1, 1}).Type == TileType::Road;
 
-	if (up && down && left && right && !upLeft && !upRight && !downLeft && !downRight)
-	{
-		return Texture(Road::Cross);
-	}
+    if (up && down && left && right && !upLeft && !upRight && !downLeft && !downRight) // cross
+        return Texture(Road::Cross);
+    else if (up && down && left && right && upLeft && upRight && downLeft && downRight) // full
+        return Texture(Road::Empty);
+    else if (up && down && left && right && !upLeft && upRight && downLeft && !downRight) // diagonal corners empty
+        return Texture(Road::CrossBottomLeftToTopRightEmpty);
+    else if (up && down && left && right && upLeft && !upRight && !downLeft && downRight)
+        return Texture(Road::CrossBottomRightToTopLeftEmpty);
+    else if (up && down && left && right && upLeft && upRight && !downLeft && downRight) // 1 corner empty
+        return Texture(Road::CrossBottomLeft);
+    else if (up && down && left && right && upLeft && !upRight && downLeft && downRight)
+        return Texture(Road::CrossTopRight);
+    else if (up && down && left && right && !upLeft && upRight && downLeft && downRight)
+        return Texture(Road::CrossTopLeft);
+    else if (up && down && left && right && upLeft && upRight && downLeft && !downRight)
+        return Texture(Road::CrossBottomRight);
+    else if (up && down && left && right && upLeft && upRight && !downLeft && !downRight) // 2 corners empty
+        return Texture(Road::CrossTopEmpty);
+    else if (up && down && left && right && !upLeft && !upRight && downLeft && downRight)
+        return Texture(Road::CrossBottomEmpty);
+    else if (up && down && left && right && upLeft && !upRight && downLeft && !downRight)
+        return Texture(Road::CrossLeftEmpty);
+    else if (up && down && left && right && !upLeft && upRight && !downLeft && downRight)
+        return Texture(Road::CrossRightEmpty);
+    else if (up && down && left && right && upLeft && !upRight && !downLeft && !downRight) // 3 corners empty
+        return Texture(Road::CrossTopLeftEmpty);
+    else if (up && down && left && right && !upLeft && upRight && !downLeft && !downRight)
+        return Texture(Road::CrossTopRightEmpty);
+    else if (up && down && left && right && !upLeft && !upRight && !downLeft && downRight)
+        return Texture(Road::CrossBottomRightEmpty);
+    else if (up && down && left && right && !upLeft && !upRight && downLeft && !downRight)
+        return Texture(Road::CrossBottomLeftEmpty);
+    else if (up && down && !left && right && upRight && downRight) // 1 side empty
+        return Texture(Road::LeftEmpty);
+    else if (up && down && left && !right && upLeft && downLeft)
+        return Texture(Road::RightEmpty);
+    else if (!up && down && left && right && downLeft && downRight)
+        return Texture(Road::TopEmpty);
+    else if (up && !down && left && right && upLeft && upRight)
+        return Texture(Road::BottomEmpty);
+    else if (up && down && !left && right && !upRight && !downRight) // 1 side empty T
+        return Texture(Road::LeftT);
+    else if (up && down && left && !right && !upLeft && !downLeft)
+        return Texture(Road::RightT);
+    else if (!up && down && left && right && !downLeft && !downRight)
+        return Texture(Road::TopT);
+    else if (up && !down && left && right && !upLeft && !upRight)
+        return Texture(Road::BottomT);
+    else if (up && down && !left && right && upRight && !downRight) // 1 side empty top corner empty
+        return Texture(Road::LeftTTopEmpty);
+    else if (up && down && left && !right && upLeft && !downLeft)
+        return Texture(Road::RightTTopEmpty);
+    else if (up && down && !left && right && !upRight && downRight) // 1 side empty bottom corner empty
+        return Texture(Road::LeftTBottomEmpty);
+    else if (up && down && left && !right && !upLeft && downLeft)
+        return Texture(Road::RightTBottomEmpty);
+    else if (!up && down && left && right && downLeft && !downRight) // 1 side empty right corner empty
+        return Texture(Road::TopTLeftEmpty);
+    else if (!up && down && left && right && !downLeft && downRight)
+        return Texture(Road::TopTRightEmpty);
+    else if (up && !down && left && right && upLeft && !upRight) // 1 side empty left corner empty
+        return Texture(Road::BottomTLeftEmpty);
+    else if (up && !down && left && right && !upLeft && upRight)
+        return Texture(Road::BottomTRightEmpty);
+    else if (!up && down && left && !right && downLeft) // corners full
+        return Texture(Road::TopRightCornerEmpty);
+    else if (!up && down && !left && right && downRight)
+        return Texture(Road::TopLeftCornerEmpty);
+    else if (up && !down && left && !right && upLeft)
+        return Texture(Road::BottomRightCornerEmpty);
+    else if (up && !down && !left && right && upRight)
+        return Texture(Road::BottomLeftCornerEmpty);
+    else if (!up && down && left && !right && !downLeft) // corners full opposite corner empty
+        return Texture(Road::TopRightCorner);
+    else if (!up && down && !left && right && !downRight)
+        return Texture(Road::TopLeftCorner);
+    else if (up && !down && left && !right && !upLeft)
+        return Texture(Road::BottomRightCorner);
+    else if (up && !down && !left && right && !upRight)
+        return Texture(Road::BottomLeftCorner);
+    else if (!up && down && !left && !right) // ends
+        return Texture(Road::TopEnd);
+    else if (up && !down && !left && !right)
+        return Texture(Road::BottomEnd);
+    else if (!up && !down && left && !right)
+        return Texture(Road::RightEnd);
+    else if (!up && !down && !left && right)
+        return Texture(Road::LeftEnd);
+    else if (up && down && !left && !right) // vertical
+        return Texture(Road::Vertical);
+    else if (!up && !down && left && right) // horizontal
+        return Texture(Road::Horizontal);
 
-	//TODO: Ici constantin
+    // TODO: Ici
 
-	return Texture(Road::Single);
+    return Texture(Road::Single);
 }
 
 void Grid::Draw()
@@ -90,37 +188,33 @@ void Grid::Draw()
     {
         for (int y = 0; y < _height / _tileSize; y++)
         {
-            Tile& tile = _tiles[x + y * _width];
-            auto position = Vector2F{ x, y } * _tileSize - Vector2F{ _width, _height} / 2.f;
-            auto size = Vector2F{ (float) _tileSize, (float) _tileSize};
-            auto randomLand = Texture((Land) Random::Range(0, (int) Land::Count - 1));
+            Tile &tile = _tiles[x + y * _width];
+            auto position = Vector2F{x, y} * _tileSize - Vector2F{_width, _height} / 2.f;
+            auto size = Vector2F{(float)_tileSize, (float)_tileSize};
+            auto randomLand = Texture((Land)Random::Range(0, (int)Land::Count - 1));
             auto background = tile.Type != TileType::None ? Texture(Land::Grass) : randomLand;
 
             if (tile.Type != TileType::Road)
             {
-                Window::DrawObject({
-                    .Position = position,
-                    .Size = size,
-                    .Texture = background
-                });
+                Window::DrawObject({.Position = position,
+                                    .Size = size,
+                                    .Texture = background});
             }
 
             if (tile.Type != TileType::None)
             {
-				if (!tile.IsBuilt)
-				{
-					Window::DrawRect(position, size, Color(1, 1, 0, 1.f - tile.Progress / GetMaxConstructionProgress(tile.Type)));
-				}
-				else if (tile.NeedToBeDestroyed)
-				{
-					Window::DrawRect(position, size, Color(1, 0, 0, 1.f - tile.Progress / GetMaxDestructionProgress(tile.Type)));
-				}
+                if (!tile.IsBuilt)
+                {
+                    Window::DrawRect(position, size, Color(1, 1, 0, 1.f - tile.Progress / GetMaxConstructionProgress(tile.Type)));
+                }
+                else if (tile.NeedToBeDestroyed)
+                {
+                    Window::DrawRect(position, size, Color(1, 0, 0, 1.f - tile.Progress / GetMaxDestructionProgress(tile.Type)));
+                }
 
-                Window::DrawObject({
-                    .Position = position,
-                    .Size = size,
-                    .Texture = GetTexture({ x, y })
-                });
+                Window::DrawObject({.Position = position,
+                                    .Size = size,
+                                    .Texture = GetTexture({x, y})});
             }
 
             if (position.X < worldMousePosition.X && position.X + _tileSize > worldMousePosition.X &&
@@ -128,9 +222,8 @@ void Grid::Draw()
             {
                 Window::DrawRect(
                     position,
-                    Vector2F{ (float) _tileSize, (float) _tileSize},
-                    Color(1, 1, 1, 0.2f)
-                );
+                    Vector2F{(float)_tileSize, (float)_tileSize},
+                    Color(1, 1, 1, 0.2f));
             }
         }
     }
@@ -146,31 +239,31 @@ void Grid::Update()
     {
         for (int y = 0; y < _height / _tileSize; y++)
         {
-            Tile& tile = _tiles[x + y * _width];
+            Tile &tile = _tiles[x + y * _width];
 
-	        // Check tree
+            // Check tree
             if (tile.Type == TileType::Tree && tile.TreeGrowth < 30.f)
             {
                 tile.TreeGrowth += smoothDeltaTime;
             }
 
-			// Check construction
-			if (!tile.IsBuilt && tile.Type != TileType::None)
-			{
-				tile.IsBuilt = GetMaxConstructionProgress(tile.Type) <= tile.Progress;
-			}
+            // Check construction
+            if (!tile.IsBuilt && tile.Type != TileType::None)
+            {
+                tile.IsBuilt = GetMaxConstructionProgress(tile.Type) <= tile.Progress;
+            }
 
-			// Check destruction
-			if (tile.IsBuilt && tile.Type != TileType::None && tile.NeedToBeDestroyed)
-			{
-				if (GetMaxDestructionProgress(tile.Type) <= tile.Progress)
-				{
-					tile.Type = TileType::None;
-					tile.IsBuilt = false;
-					tile.NeedToBeDestroyed = false;
-					tile.Progress = 0.f;
-				}
-			}
+            // Check destruction
+            if (tile.IsBuilt && tile.Type != TileType::None && tile.NeedToBeDestroyed)
+            {
+                if (GetMaxDestructionProgress(tile.Type) <= tile.Progress)
+                {
+                    tile.Type = TileType::None;
+                    tile.IsBuilt = false;
+                    tile.NeedToBeDestroyed = false;
+                    tile.Progress = 0.f;
+                }
+            }
         }
     }
 }
@@ -178,33 +271,30 @@ void Grid::Update()
 TilePosition Grid::GetTilePosition(Vector2F position) const
 {
     return TilePosition{
-        (int) (position.X + _width / 2.f) / _tileSize,
-        (int) (position.Y + _height / 2.f) / _tileSize
-    };
+        (int)(position.X + _width / 2.f) / _tileSize,
+        (int)(position.Y + _height / 2.f) / _tileSize};
 }
 
 [[nodiscard]] TilePosition Grid::GetTilePosition(int tileIndex) const
 {
-	return TilePosition{
-		tileIndex % _width,
-		tileIndex / _width
-	};
+    return TilePosition{
+        tileIndex % _width,
+        tileIndex / _width};
 }
 
 Vector2F Grid::ToWorldPosition(TilePosition position) const
 {
     return Vector2F{
-        (float) position.X * _tileSize - _width / 2.f,
-        (float) position.Y * _tileSize - _height / 2.f
-    };
+        (float)position.X * _tileSize - _width / 2.f,
+        (float)position.Y * _tileSize - _height / 2.f};
 }
 
-Tile& Grid::GetTile(TilePosition position)
+Tile &Grid::GetTile(TilePosition position)
 {
     return _tiles[position.X + position.Y * _width];
 }
 
-Tile& Grid::GetTile(int index)
+Tile &Grid::GetTile(int index)
 {
     return _tiles[index];
 }
@@ -216,11 +306,11 @@ int Grid::GetTileIndex(TilePosition position) const
 
 void Grid::SetTile(TilePosition position, Tile tile)
 {
-	// Set the tile as build if it's not a building
-	if (tile.Type != TileType::Storage && tile.Type != TileType::BuilderHut && tile.Type != TileType::Quarry && tile.Type != TileType::Sawmill && tile.Type != TileType::House && tile.Type != TileType::MayorHouse)
-	{
-		tile.IsBuilt = true;
-	}
+    // Set the tile as build if it's not a building
+    if (tile.Type != TileType::Storage && tile.Type != TileType::BuilderHut && tile.Type != TileType::Quarry && tile.Type != TileType::Sawmill && tile.Type != TileType::House && tile.Type != TileType::MayorHouse)
+    {
+        tile.IsBuilt = true;
+    }
 
     _tiles[position.X + position.Y * _width] = tile;
 }
@@ -238,11 +328,11 @@ std::vector<TilePosition> Grid::GetTiles(TileType type) const
     {
         for (int y = 0; y < _height / _tileSize; y++)
         {
-            Tile& tile = _tiles[x + y * _width];
+            Tile &tile = _tiles[x + y * _width];
 
             if (tile.Type == type && tile.IsBuilt)
             {
-                tiles.push_back(TilePosition{ x, y });
+                tiles.push_back(TilePosition{x, y});
             }
         }
     }
@@ -252,60 +342,70 @@ std::vector<TilePosition> Grid::GetTiles(TileType type) const
 
 std::vector<TilePosition> Grid::GetTiles(TileType type, TilePosition position, int radius) const
 {
-	std::vector<TilePosition> tiles;
+    std::vector<TilePosition> tiles;
 
-	for (int x = position.X - radius; x < position.X + radius; x++)
-	{
-		for (int y = position.Y - radius; y < position.Y + radius; y++)
-		{
-			Tile& tile = _tiles[x + y * _width];
+    for (int x = position.X - radius; x < position.X + radius; x++)
+    {
+        for (int y = position.Y - radius; y < position.Y + radius; y++)
+        {
+            Tile &tile = _tiles[x + y * _width];
 
-			if (tile.Type == type && tile.IsBuilt)
-			{
-				tiles.push_back(TilePosition{ x, y });
-			}
-		}
-	}
+            if (tile.Type == type && tile.IsBuilt)
+            {
+                tiles.push_back(TilePosition{x, y});
+            }
+        }
+    }
 
-	return tiles;
+    return tiles;
 }
 
-void Grid::ForEachTile(std::function<void(Tile&, TilePosition)> callback) const
+void Grid::ForEachTile(std::function<void(Tile &, TilePosition)> callback) const
 {
-	for (int x = 0; x < _width / _tileSize; x++)
-	{
-		for (int y = 0; y < _height / _tileSize; y++)
-		{
-			Tile& tile = _tiles[x + y * _width];
-			callback(tile, TilePosition{ x, y });
-		}
-	}
+    for (int x = 0; x < _width / _tileSize; x++)
+    {
+        for (int y = 0; y < _height / _tileSize; y++)
+        {
+            Tile &tile = _tiles[x + y * _width];
+            callback(tile, TilePosition{x, y});
+        }
+    }
 }
 
 float Grid::GetMaxConstructionProgress(TileType type)
 {
-	switch (type)
-	{
-		case TileType::Sawmill: return 10.f;
-		case TileType::Quarry: return 15.f;
-		case TileType::BuilderHut: return 10.f;
-		case TileType::Storage: return 10.f;
-		case TileType::House: return 30.f;
-	}
+    switch (type)
+    {
+    case TileType::Sawmill:
+        return 10.f;
+    case TileType::Quarry:
+        return 15.f;
+    case TileType::BuilderHut:
+        return 10.f;
+    case TileType::Storage:
+        return 10.f;
+    case TileType::House:
+        return 30.f;
+    }
 }
 
 float Grid::GetMaxDestructionProgress(TileType type)
 {
-	switch (type)
-	{
-		case TileType::Sawmill: return 5.f;
-		case TileType::Quarry: return 7.5f;
-		case TileType::BuilderHut: return 5.f;
-		case TileType::Storage: return 5.f;
-		case TileType::House: return 15.f;
-		case TileType::Tree: return 5.f;
-		case TileType::Stone: return 10.f;
-	}
+    switch (type)
+    {
+    case TileType::Sawmill:
+        return 5.f;
+    case TileType::Quarry:
+        return 7.5f;
+    case TileType::BuilderHut:
+        return 5.f;
+    case TileType::Storage:
+        return 5.f;
+    case TileType::House:
+        return 15.f;
+    case TileType::Tree:
+        return 5.f;
+    case TileType::Stone:
+        return 10.f;
+    }
 }
-
-
