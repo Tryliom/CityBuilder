@@ -308,4 +308,21 @@ float Grid::GetMaxDestructionProgress(TileType type)
 	}
 }
 
+bool Grid::CanBuild(TilePosition position, TileType type)
+{
+	Tile& tile = GetTile(position);
+
+	if (type == TileType::Quarry)
+	{
+		return tile.Type == TileType::Stone;
+	}
+
+	if (tile.Type == TileType::None)
+	{
+		return true;
+	}
+
+	return false;
+}
+
 
