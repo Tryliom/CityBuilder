@@ -76,7 +76,7 @@ void Image::AddImagesAtRow(const std::vector<Image>& images)
     for (Image image : images)
     {
         int newWidth = _width;
-        int newHeight = _height + image.GetHeight();
+        int newHeight = _height + image.GetHeight() + 1;
         uint8_t* bufferImage = image.GetBuffer();
 
         if (_width < image.GetWidth())
