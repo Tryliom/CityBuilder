@@ -404,7 +404,7 @@ void DrawUi()
 			selectedTileTexture = Texture(Buildings::House);
 			break;
 		case TileType::Road:
-			selectedTileTexture = Texture(Road::SingleRoad);
+			selectedTileTexture = Texture(Road::Single);
 			break;
 	}
 

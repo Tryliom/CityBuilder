@@ -64,15 +64,19 @@ Texture Grid::getRoadTexture(TilePosition position)
 	bool down = GetTile(position + TilePosition{ 0, 1 }).Type == TileType::Road;
 	bool left = GetTile(position + TilePosition{ -1, 0 }).Type == TileType::Road;
 	bool right = GetTile(position + TilePosition{ 1, 0 }).Type == TileType::Road;
+	bool upLeft = GetTile(position + TilePosition{ -1, -1 }).Type == TileType::Road;
+	bool upRight = GetTile(position + TilePosition{ 1, -1 }).Type == TileType::Road;
+	bool downLeft = GetTile(position + TilePosition{ -1, 1 }).Type == TileType::Road;
+	bool downRight = GetTile(position + TilePosition{ 1, 1 }).Type == TileType::Road;
 
-	if (up && down && left && right)
+	if (up && down && left && right && !upLeft && !upRight && !downLeft && !downRight)
 	{
-		return Texture(Road::CrossRoad);
+		return Texture(Road::Cross);
 	}
 
 	//TODO: Ici constantin
 
-	return Texture(Road::SingleRoad);
+	return Texture(Road::Single);
 }
 
 void Grid::Draw()
