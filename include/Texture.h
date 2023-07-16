@@ -45,7 +45,12 @@ enum class Characters
 
 enum class Icons
 {
-    Wood, Stone, People, Count
+    Wood, Stone, People, Count // People need to be last
+};
+
+enum class Items
+{
+	Wood, Stone, Count
 };
 
 struct Texture
@@ -57,6 +62,7 @@ struct Texture
     explicit Texture(Ressources ressources) : TileSheetIndex(TileSheet::Ressources), TileIndex((int) ressources) {}
     explicit Texture(Characters characters) : TileSheetIndex(TileSheet::Characters), TileIndex((int) characters) {}
     explicit Texture(Icons icons) : TileSheetIndex(TileSheet::Icons), TileIndex((int) icons) {}
+	explicit Texture(Items items) : TileSheetIndex(TileSheet::Icons), TileIndex((int) items) {}
 
     TileSheet TileSheetIndex = TileSheet::None;
     int TileIndex = -1;

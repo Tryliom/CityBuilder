@@ -1,5 +1,6 @@
 #pragma once
 
+#include <map>
 #include "Texture.h"
 
 enum class TileType
@@ -33,6 +34,20 @@ struct Tile
     float TreeGrowth = 0.f;
 
     // Storage
-    int Logs = 0;
-	int Rocks = 0;
+    std::map<Items, int> Inventory =
+	{
+		{ Items::Wood, 0 },
+		{ Items::Stone, 0 }
+	};
+
+	void Reset()
+	{
+		Type = TileType::None;
+		Progress = 0.f;
+		IsBuilt = false;
+		NeedToBeDestroyed = false;
+		Inventory[Items::Wood] = 0;
+		Inventory[Items::Stone] = 0;
+		TreeGrowth = 0.f;
+	}
 };

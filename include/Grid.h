@@ -56,15 +56,21 @@ public:
 
     [[nodiscard]] std::vector<TilePosition> GetTiles(TileType type) const;
 	[[nodiscard]] std::vector<TilePosition> GetTiles(TileType type, TilePosition position, int radius) const;
+	[[nodiscard]] std::vector<TilePosition> GetTiles(TilePosition position, int radius) const;
+	[[nodiscard]] std::vector<TilePosition> GetTilesWithItems(TileType type, Items item) const;
 
-	void ForEachTile(std::function<void(Tile&, TilePosition)> callback) const;
+	void ForEachTile(const std::function<void(Tile&, TilePosition)>& callback) const;
 
 	Texture GetTexture(TilePosition position);
 
 	static float GetMaxConstructionProgress(TileType type);
 	static float GetMaxDestructionProgress(TileType type);
-	static int GetMaxLogsStored(Tile tile);
-	static int GetMaxRocksStored(Tile tile);
+
+	static int GetMaxItemsStored(const Tile& tile, Items item);
+	static int GetLeftSpaceForItems(Tile tile, Items item);
+	static int GetNeededItemsToBuild(TileType type, Items item);
+	static bool IsTileReadyToBuild(Tile& tile);
+	static bool IsAStorage(TileType type);
 
 	bool CanBuild(TilePosition position, TileType type);
 };

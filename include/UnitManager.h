@@ -4,6 +4,11 @@
 
 #include "Unit.h"
 
+enum class InventoryReason
+{
+	Full, MoreThanHalf, MoreThanOne
+};
+
 class UnitManager
 {
 public:
@@ -13,7 +18,9 @@ private:
 	Grid& _grid;
 	std::vector<Unit> _units;
 
+	// Unit tick functions
 	void OnTickUnitSawMill(Unit& unit);
+
 	void OnTickUnitBuilderHut(Unit& unit);
 	void onTickUnitLogistician(Unit& unit);
 
@@ -21,11 +28,21 @@ private:
 	bool IsTileTakenCareBy(TilePosition position, Characters character);
 	bool IsTileJobFull(int jobTileIndex);
 	int CountHowManyUnitAreWorkingOn(int jobTileIndex);
-	int GetMaxLogsFor(Unit& unit);
-	int GetMaxRocksFor(Unit& unit);
 
-	static int GetNeededLogsFor(TileType tileType);
-	static int GetNeededRocksFor(TileType tileType);
+	// Utility
+	std::vector<TilePosition> GetAllHarvestableTrees(TilePosition position, int radius);
+	bool NeedToDropItemsAtJob(Unit& unit, Items item, InventoryReason reason);
+	// Get all tiles that are around the position and have enough storage for the item
+	std::vector<TilePosition> GetStorageAroundFor(TilePosition position, int radius, Items item);
+	std::vector<TilePosition> GetAllBuildableOrDestroyableTiles();
+	// Get all tiles that need items to be built but has enough total items to be built
+	std::vector<TilePosition> GetTilesThatNeedItemsToBeBuilt();
+	std::vector<TilePosition> GetStorageThatHave(Items item);
+
+	// Inventory
+	int GetMaxItemsFor(Unit& unit, Items item);
+	static bool IsInventoryEmpty(Unit& unit);
+	std::map<Items, int> GetAllUsableItems();
 
 public:
 	void UpdateUnits();
