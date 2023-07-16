@@ -262,6 +262,10 @@ void GenerateMap()
 	logisticsCenter.IsBuilt = true;
 	grid.SetTile(grid.GetTilePosition(centerOfScreen) + TilePosition{ 0, 2 }, logisticsCenter);
 
+	auto house = Tile(TileType::House);
+	house.IsBuilt = true;
+	grid.SetTile(grid.GetTilePosition(centerOfScreen) + TilePosition{ 2, 2 }, house);
+
 	// Generate a random seed for the map
 	Random::SetSeed(Random::Range(0, 1000000));
 	Random::UseSeed();
