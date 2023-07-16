@@ -4,12 +4,13 @@
 #include "Timer.h"
 #include "Unit.h"
 #include "Grid.h"
+#include "Logger.h"
 
 float unitSpeed = 100.f;
 int unitSize = 10;
 float unitProgress;
 
-std::map<TileType, std::map<Items, int>> unitMaxInventory =
+std::map<TileType, std::map<Items, int>>* unitMaxInventory = new std::map<TileType, std::map<Items, int>>
 {
 	{TileType::Sawmill, {{Items::Wood, 30}}},
 	{TileType::BuilderHut, {{Items::Wood, 30}, {Items::Stone, 20}}},
@@ -95,9 +96,11 @@ void UnitManager::UpdateUnits()
 		}
 
 		// Remove the overflow of items
-		for (auto& item : unit.Inventory)
+		if (unit.JobTileIndex == -1) continue;
+
+		for (auto& item : *unit.Inventory)
 		{
-			int max = unitMaxInventory[_grid.GetTile(unit.JobTileIndex).Type][item.first];
+			int max = unitMaxInventory->at(_grid.GetTile(unit.JobTileIndex).Type)[item.first];
 
 			item.second = std::min(item.second, max);
 		}
@@ -161,10 +164,10 @@ void UnitManager::OnTickUnitSawMill(Unit& unit)
 		{
 			// Drop the logs in the sawmill
 			int spaceLeft = Grid::GetLeftSpaceForItems(jobTile, Items::Wood);
-			int logsToDrop = std::min(unit.Inventory.at(Items::Wood), spaceLeft);
+			int logsToDrop = std::min(unit.Inventory->at(Items::Wood), spaceLeft);
 
-			unit.Inventory.at(Items::Wood) -= logsToDrop;
-			jobTile.Inventory.at(Items::Wood) += logsToDrop;
+			unit.Inventory->at(Items::Wood) -= logsToDrop;
+			jobTile.Inventory->at(Items::Wood) += logsToDrop;
 
 			unit.SetBehavior(UnitBehavior::Idle);
 		}
@@ -173,7 +176,7 @@ void UnitManager::OnTickUnitSawMill(Unit& unit)
 		{
 			tile.TreeGrowth = 0.f;
 
-			unit.Inventory.at(Items::Wood) += 5;
+			unit.Inventory->at(Items::Wood) += 5;
 
 			unit.SetBehavior(UnitBehavior::Idle);
 		}
@@ -188,7 +191,7 @@ void UnitManager::OnTickUnitBuilderHut(Unit& unit)
 		if (!IsInventoryEmpty(unit))
 		{
 			// Search for a storage free space to drop the resources he has around his builder house
-			for (auto pair : unit.Inventory)
+			for (auto pair : *unit.Inventory)
 			{
 				if (pair.second == 0) continue;
 
@@ -219,13 +222,13 @@ void UnitManager::OnTickUnitBuilderHut(Unit& unit)
 			if (Grid::IsAStorage(tile.Type))
 			{
 				// Drop all the resources in the storage
-				for (auto pair : unit.Inventory)
+				for (auto pair : *unit.Inventory)
 				{
 					int spaceLeft = Grid::GetLeftSpaceForItems(tile, pair.first);
 					int itemsToDrop = std::min(pair.second, spaceLeft);
 
-					unit.Inventory.at(pair.first) -= itemsToDrop;
-					tile.Inventory.at(pair.first) += itemsToDrop;
+					unit.Inventory->at(pair.first) -= itemsToDrop;
+					tile.Inventory->at(pair.first) += itemsToDrop;
 				}
 			}
 
@@ -243,9 +246,9 @@ void UnitManager::OnTickUnitBuilderHut(Unit& unit)
 			tile.Progress = 0.f;
 
 			// Remove all the resources from the inventory of the tile that was used to build the tile
-			for (auto pair : tile.Inventory)
+			for (auto pair : *tile.Inventory)
 			{
-				tile.Inventory.at(pair.first) -= Grid::GetNeededItemsToBuild(tile.Type, pair.first);
+				tile.Inventory->at(pair.first) -= Grid::GetNeededItemsToBuild(tile.Type, pair.first);
 			}
 
 			unit.SetBehavior(UnitBehavior::Idle);
@@ -255,11 +258,11 @@ void UnitManager::OnTickUnitBuilderHut(Unit& unit)
 		{
 			if (tile.Type == TileType::Tree)
 			{
-				unit.Inventory.at(Items::Wood) += 5;
+				unit.Inventory->at(Items::Wood) += 5;
 			}
 			else if (tile.Type == TileType::Stone)
 			{
-				unit.Inventory.at(Items::Stone) += 20;
+				unit.Inventory->at(Items::Stone) += 20;
 			}
 
 			tile.Reset();
@@ -280,7 +283,7 @@ void UnitManager::onTickUnitLogistician(Unit& unit)
 			auto tilePosition = buildsThatNeedResources[0];
 
 			// Check if the unit has the resources to build it or need to go to a storage to get them
-			for (auto pair : _grid.GetTile(tilePosition).Inventory)
+			for (auto pair : *_grid.GetTile(tilePosition).Inventory)
 			{
 				int neededItems = Grid::GetNeededItemsToBuild(_grid.GetTile(tilePosition).Type, pair.first);
 
@@ -289,7 +292,7 @@ void UnitManager::onTickUnitLogistician(Unit& unit)
 				int itemsToGet = neededItems - pair.second;
 
 				// Check if the unit has the resources in his inventory or has his inventory full of this item
-				if (unit.Inventory.at(pair.first) >= itemsToGet || unit.Inventory.at(pair.first) == GetMaxItemsFor(unit, pair.first)) continue;
+				if (unit.Inventory->at(pair.first) >= itemsToGet || unit.Inventory->at(pair.first) == GetMaxItemsFor(unit, pair.first)) continue;
 
 				// Search for a storage that has the resources
 				auto storagePositions = GetStorageThatHave(pair.first);
@@ -309,7 +312,7 @@ void UnitManager::onTickUnitLogistician(Unit& unit)
 		if (!IsInventoryEmpty(unit))
 		{
 			// Search for a storage free space to drop the resources he has
-			for (auto pair : unit.Inventory)
+			for (auto pair : *unit.Inventory)
 			{
 				if (pair.second == 0) continue;
 
@@ -348,17 +351,17 @@ void UnitManager::onTickUnitLogistician(Unit& unit)
 		// If it's a building that is not built, add the needed resources to it
 		if (!tile.IsBuilt)
 		{
-			for (auto pair : tile.Inventory)
+			for (auto pair : *tile.Inventory)
 			{
 				int neededItems = Grid::GetNeededItemsToBuild(tile.Type, pair.first);
 
 				if (pair.second >= neededItems) continue;
 
 				int itemsToGet = neededItems - pair.second;
-				int itemToDrop = std::min(unit.Inventory.at(pair.first), itemsToGet);
+				int itemToDrop = std::min(unit.Inventory->at(pair.first), itemsToGet);
 
-				unit.Inventory.at(pair.first) -= itemToDrop;
-				tile.Inventory.at(pair.first) += itemToDrop;
+				unit.Inventory->at(pair.first) -= itemToDrop;
+				tile.Inventory->at(pair.first) += itemToDrop;
 			}
 		}
 		// If it's a storage, first check if there is something to build that need resources
@@ -371,7 +374,7 @@ void UnitManager::onTickUnitLogistician(Unit& unit)
 				auto tilePosition = buildsThatNeedResources[0];
 
 				// Check if the unit has the resources to build it or need to go to a storage to get them
-				for (auto pair : _grid.GetTile(tilePosition).Inventory)
+				for (auto pair : *_grid.GetTile(tilePosition).Inventory)
 				{
 					int neededItems = Grid::GetNeededItemsToBuild(_grid.GetTile(tilePosition).Type, pair.first);
 
@@ -380,7 +383,7 @@ void UnitManager::onTickUnitLogistician(Unit& unit)
 					int itemsToGet = neededItems - pair.second;
 
 					// Check if the unit has the resources in his inventory or has his inventory full of this item
-					if (unit.Inventory.at(pair.first) >= itemsToGet || unit.Inventory.at(pair.first) == GetMaxItemsFor(unit, pair.first)) continue;
+					if (unit.Inventory->at(pair.first) >= itemsToGet || unit.Inventory->at(pair.first) == GetMaxItemsFor(unit, pair.first)) continue;
 
 					// Search for a storage that has the resources
 					auto storagePositions = GetStorageThatHave(pair.first);
@@ -388,14 +391,14 @@ void UnitManager::onTickUnitLogistician(Unit& unit)
 					if (storagePositions.empty()) continue;
 
 					// Take the items
-					_grid.GetTile(storagePositions[0]).Inventory.at(pair.first) -= itemsToGet;
-					unit.Inventory.at(pair.first) += itemsToGet;
+					_grid.GetTile(storagePositions[0]).Inventory->at(pair.first) -= itemsToGet;
+					unit.Inventory->at(pair.first) += itemsToGet;
 				}
 			}
 			// Check if there is resources to move to the storage from the unit
 			else
 			{
-				for (auto pair : unit.Inventory)
+				for (auto pair : *unit.Inventory)
 				{
 					if (pair.second == 0) continue;
 
@@ -404,25 +407,25 @@ void UnitManager::onTickUnitLogistician(Unit& unit)
 					int itemsToDropInStorage = std::min(itemsToDrop, spaceLeft);
 
 					// Drop the items
-					unit.Inventory.at(pair.first) -= itemsToDropInStorage;
-					tile.Inventory.at(pair.first) += itemsToDropInStorage;
+					unit.Inventory->at(pair.first) -= itemsToDropInStorage;
+					tile.Inventory->at(pair.first) += itemsToDropInStorage;
 				}
 			}
 		}
 		// If it's a sawmill or a quarry, check if there is resources to get from it
 		else if (tile.Type == TileType::Sawmill || tile.Type == TileType::Quarry)
 		{
-			for (auto pair : tile.Inventory)
+			for (auto pair : *tile.Inventory)
 			{
 				if (pair.second == 0) continue;
 
 				int itemsToDrop = pair.second;
-				int spaceLeftInUnit = GetMaxItemsFor(unit, pair.first) - unit.Inventory.at(pair.first);
+				int spaceLeftInUnit = GetMaxItemsFor(unit, pair.first) - unit.Inventory->at(pair.first);
 				int itemsToDropInUnit = std::min(itemsToDrop, spaceLeftInUnit);
 
 				// Drop the items
-				unit.Inventory.at(pair.first) += itemsToDropInUnit;
-				tile.Inventory.at(pair.first) -= itemsToDropInUnit;
+				unit.Inventory->at(pair.first) += itemsToDropInUnit;
+				tile.Inventory->at(pair.first) -= itemsToDropInUnit;
 			}
 		}
 
@@ -537,10 +540,10 @@ bool UnitManager::NeedToDropItemsAtJob(Unit& unit, Items item, InventoryReason r
 	Tile& jobTile = _grid.GetTile(unit.JobTileIndex);
 	int maxItems = GetMaxItemsFor(unit, item);
 
-	if (jobTile.Inventory.at(item) == Grid::GetMaxItemsStored(jobTile, item)) return false;
-	if (reason == InventoryReason::Full && unit.Inventory.at(item) < maxItems) return false;
-	if (reason == InventoryReason::MoreThanHalf && unit.Inventory.at(item) < maxItems / 2) return false;
-	if (reason == InventoryReason::MoreThanOne && unit.Inventory.at(item) == 0) return false;
+	if (jobTile.Inventory->at(item) == Grid::GetMaxItemsStored(jobTile, item)) return false;
+	if (reason == InventoryReason::Full && unit.Inventory->at(item) < maxItems) return false;
+	if (reason == InventoryReason::MoreThanHalf && unit.Inventory->at(item) < maxItems / 2) return false;
+	if (reason == InventoryReason::MoreThanOne && unit.Inventory->at(item) == 0) return false;
 
 	return true;
 }
@@ -555,7 +558,7 @@ std::vector<TilePosition> UnitManager::GetStorageAroundFor(TilePosition position
 		auto& storageTile = _grid.GetTile(storagePosition);
 
 		if (!Grid::IsAStorage(storageTile.Type)) continue;
-		if (storageTile.Inventory.at(item) == Grid::GetMaxItemsStored(storageTile, item)) continue;
+		if (storageTile.Inventory->at(item) == Grid::GetMaxItemsStored(storageTile, item)) continue;
 
 		storages.push_back(storagePosition);
 	}
@@ -595,7 +598,7 @@ std::vector<TilePosition> UnitManager::GetTilesThatNeedItemsToBeBuilt()
 
 		for (auto& item : items)
 		{
-			if (tile.Inventory.at(item.first) < item.second)
+			if (tile.Inventory->at(item.first) < item.second)
 			{
 				canBuild = false;
 				break;
@@ -617,7 +620,7 @@ std::vector<TilePosition> UnitManager::GetStorageThatHave(Items item)
 	_grid.ForEachTile([&](Tile& tile, TilePosition position)
 	{
 		if (!Grid::IsAStorage(tile.Type)) return;
-		if (tile.Inventory.at(item) == 0) return;
+		if (tile.Inventory->at(item) == 0) return;
 
 		storages.push_back(position);
 	});
@@ -633,17 +636,17 @@ int UnitManager::GetMaxItemsFor(Unit& unit, Items item)
 
 	if (!tile.IsBuilt) return 0;
 
-	if (!unitMaxInventory.contains(tile.Type) || !unitMaxInventory.at(tile.Type).contains(item))
+	if (!unitMaxInventory->contains(tile.Type) || !unitMaxInventory->at(tile.Type).contains(item))
 	{
 		return 0;
 	}
 
-	return unitMaxInventory.at(tile.Type).at(item);
+	return unitMaxInventory->at(tile.Type).at(item);
 }
 
 bool UnitManager::IsInventoryEmpty(Unit& unit)
 {
-	for (auto& item : unit.Inventory)
+	for (auto& item : *unit.Inventory)
 	{
 		if (item.second > 0) return false;
 	}
@@ -669,7 +672,7 @@ std::map<Items, int> UnitManager::GetAllUsableItems()
 
 		if (tile.Type != TileType::LogisticsCenter) continue;
 
-		for (auto& item : unit.Inventory)
+		for (auto& item : *unit.Inventory)
 		{
 			items.at(item.first) += item.second;
 		}
@@ -680,7 +683,7 @@ std::map<Items, int> UnitManager::GetAllUsableItems()
 	{
 		if (!Grid::IsAStorage(tile.Type)) return;
 
-		for (auto& item : tile.Inventory)
+		for (auto& item : *tile.Inventory)
 		{
 			items.at(item.first) += item.second;
 		}

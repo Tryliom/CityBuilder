@@ -4,7 +4,7 @@
 #include "Input.h"
 #include "Timer.h"
 
-std::map<TileType, std::map<Items, int>> tileMaxInventory =
+std::map<TileType, std::map<Items, int>>* tileMaxInventory = new std::map<TileType, std::map<Items, int>>
 {
 	{TileType::Sawmill, {{Items::Wood, 50}}},
 	{TileType::Storage, {{Items::Wood, 100}, {Items::Stone, 100}}},
@@ -14,7 +14,7 @@ std::map<TileType, std::map<Items, int>> tileMaxInventory =
 };
 
 // Items needed to build a tile
-std::map<TileType, std::map<Items, int>> tileNeededItems =
+std::map<TileType, std::map<Items, int>> tileNeededItems = std::map<TileType, std::map<Items, int>>
 {
 	{TileType::Sawmill, {{Items::Wood, 10}}},
 	{TileType::Storage, {{Items::Wood, 20}}},
@@ -397,7 +397,7 @@ std::vector<TilePosition> Grid::GetTilesWithItems(TileType type, Items item) con
 		{
 			Tile &tile = _tiles[x + y * _width];
 
-			if (tile.Type == type && tile.IsBuilt && tile.Inventory[item] > 0)
+			if (tile.Type == type && tile.IsBuilt && tile.Inventory->at(item) > 0)
 			{
 				tiles.push_back(TilePosition{x, y});
 			}
@@ -469,19 +469,19 @@ bool Grid::CanBuild(TilePosition position, TileType type)
 
 int Grid::GetMaxItemsStored(const Tile& tile, Items item)
 {
-	if (!tile.IsBuilt || !tileMaxInventory.contains(tile.Type) || !tileMaxInventory[tile.Type].contains(item))
+	if (!tile.IsBuilt || !tileMaxInventory->contains(tile.Type) || !tileMaxInventory->at(tile.Type).contains(item))
 	{
 		return 0;
 	}
 
-	return tileMaxInventory[tile.Type][item];
+	return tileMaxInventory->at(tile.Type)[item];
 }
 
 int Grid::GetLeftSpaceForItems(Tile tile, Items item)
 {
 	int max = GetMaxItemsStored(tile, item);
 
-	return max - tile.Inventory[item];
+	return max - tile.Inventory->at(item);
 }
 
 bool Grid::IsTileReadyToBuild(Tile& tile)
@@ -492,7 +492,7 @@ bool Grid::IsTileReadyToBuild(Tile& tile)
 
 	for (auto& item : tileNeededItems[tile.Type])
 	{
-		if (tile.Inventory[item.first] < item.second)
+		if (tile.Inventory->at(item.first) < item.second)
 		{
 			return false;
 		}

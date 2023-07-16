@@ -79,8 +79,11 @@ void OnFrame()
     grid.Update();
     grid.Draw();
 
+	LOG("UNIT");
     unitManager.UpdateUnits();
+	LOG("UNIT2");
 	unitManager.DrawUnits();
+	LOG("UNIT3");
 
 	DrawUi();
 }

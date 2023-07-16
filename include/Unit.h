@@ -31,7 +31,7 @@ struct Unit
     float TimeSinceLastAction = 0.f;
 
 	// Inventory
-	std::map<Items, int> Inventory =
+	std::map<Items, int>* Inventory = new std::map<Items, int>
 	{
 		{ Items::Wood, 0 },
 		{ Items::Stone, 0 }

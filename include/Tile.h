@@ -35,7 +35,7 @@ struct Tile
     float TreeGrowth = 0.f;
 
     // Storage
-    std::map<Items, int> Inventory =
+    std::map<Items, int>* Inventory = new std::map<Items, int>
 	{
 		{ Items::Wood, 0 },
 		{ Items::Stone, 0 }
@@ -47,8 +47,8 @@ struct Tile
 		Progress = 0.f;
 		IsBuilt = false;
 		NeedToBeDestroyed = false;
-		Inventory[Items::Wood] = 0;
-		Inventory[Items::Stone] = 0;
+		Inventory->at(Items::Wood) = 0;
+		Inventory->at(Items::Stone) = 0;
 		TreeGrowth = 0.f;
 	}
 };
