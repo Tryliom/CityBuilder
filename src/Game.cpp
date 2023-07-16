@@ -199,8 +199,7 @@ void HandleInput()
 		}
 
 		// Can be destroyed by a builder
-		if (tile.Type == TileType::Stone || tile.Type == TileType::Tree || tile.Type == TileType::Storage || tile.Type == TileType::House || tile.Type == TileType::BuilderHut
-			|| tile.Type == TileType::Sawmill || tile.Type == TileType::Quarry || tile.Type == TileType::LogisticsCenter)
+		if (tile.Type != TileType::None && tile.Type != TileType::MayorHouse)
 		{
 			tile.Progress = 0;
 			tile.NeedToBeDestroyed = true;

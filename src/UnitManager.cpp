@@ -185,6 +185,17 @@ void UnitManager::OnTickUnitSawMill(Unit& unit)
 
 void UnitManager::OnTickUnitBuilderHut(Unit& unit)
 {
+	if (unit.CurrentBehavior == UnitBehavior::Moving)
+	{
+		Tile& tile = _grid.GetTile(unit.TargetTile);
+
+		// Check that the tile is still valid
+		if (!Grid::IsAStorage(tile.Type) && (tile.IsBuilt && !tile.NeedToBeDestroyed) || tile.Type == TileType::None)
+		{
+			unit.SetBehavior(UnitBehavior::Idle);
+		}
+	}
+
 	if (unit.CurrentBehavior == UnitBehavior::Idle)
 	{
 		// Check if he has something in his inventory
