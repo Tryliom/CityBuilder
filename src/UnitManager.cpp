@@ -1,6 +1,9 @@
 #include "UnitManager.h"
+
 #include "Window.h"
 #include "Timer.h"
+#include "Unit.h"
+#include "Grid.h"
 
 float unitSpeed = 100.f;
 int unitSize = 10;
@@ -15,7 +18,7 @@ std::map<TileType, std::map<Items, int>> unitMaxInventory =
 
 UnitManager::UnitManager(Grid& grid) : _grid(grid) {}
 
-void UnitManager::AddUnit(Unit unit)
+void UnitManager::AddUnit(const Unit& unit)
 {
 	_units.push_back(unit);
 }

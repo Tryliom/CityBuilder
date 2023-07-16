@@ -1,8 +1,13 @@
 #pragma once
 
 #include <vector>
+#include <map>
 
-#include "Unit.h"
+#include "Texture.h"
+
+class Grid;
+struct TilePosition;
+struct Unit;
 
 enum class InventoryReason
 {
@@ -48,5 +53,5 @@ public:
 	void UpdateUnits();
 	void DrawUnits();
 
-	void AddUnit(Unit unit);
+	void AddUnit(const Unit& unit);
 };

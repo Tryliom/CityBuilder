@@ -1,10 +1,11 @@
 #pragma once
 
 #include <map>
+
 #include "Texture.h"
-#include "Tile.h"
 #include "Maths.h"
-#include "Grid.h"
+
+struct TilePosition;
 
 enum class UnitBehavior
 {
