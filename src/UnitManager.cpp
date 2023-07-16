@@ -284,6 +284,17 @@ void UnitManager::OnTickUnitBuilderHut(Unit& unit)
 
 void UnitManager::onTickUnitLogistician(Unit& unit)
 {
+	if (unit.CurrentBehavior == UnitBehavior::Moving)
+	{
+		Tile& tile = _grid.GetTile(unit.TargetTile);
+
+		// Check that the tile is still valid
+		if (tile.Type == TileType::None)
+		{
+			unit.SetBehavior(UnitBehavior::Idle);
+		}
+	}
+
 	if (unit.CurrentBehavior == UnitBehavior::Idle)
 	{
 		// Check if there is a construction to build that need resources
