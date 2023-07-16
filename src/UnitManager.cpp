@@ -285,17 +285,20 @@ void UnitManager::onTickUnitLogistician(Unit& unit)
 			// Check if the unit has the resources to build it or need to go to a storage to get them
 			for (auto pair : *_grid.GetTile(tilePosition).Inventory)
 			{
-				int neededItems = Grid::GetNeededItemsToBuild(_grid.GetTile(tilePosition).Type, pair.first);
+				Items item = pair.first;
+				int quantity = pair.second;
 
-				if (pair.second >= neededItems) continue;
+				int neededItems = Grid::GetNeededItemsToBuild(_grid.GetTile(tilePosition).Type, item);
 
-				int itemsToGet = neededItems - pair.second;
+				if (quantity >= neededItems) continue;
+
+				int itemsToGet = neededItems - quantity;
 
 				// Check if the unit has the resources in his inventory or has his inventory full of this item
-				if (unit.Inventory->at(pair.first) >= itemsToGet || unit.Inventory->at(pair.first) == GetMaxItemsFor(unit, pair.first)) continue;
+				if (unit.Inventory->at(item) >= itemsToGet || unit.Inventory->at(item) == GetMaxItemsFor(unit, item)) continue;
 
 				// Search for a storage that has the resources
-				auto storagePositions = GetStorageThatHave(pair.first);
+				auto storagePositions = GetStorageThatHave(item);
 
 				if (storagePositions.empty()) continue;
 
@@ -304,9 +307,12 @@ void UnitManager::onTickUnitLogistician(Unit& unit)
 				return;
 			}
 
-			unit.TargetTile = tilePosition;
-			unit.SetBehavior(UnitBehavior::Moving);
-			return;
+			if (!IsInventoryEmpty(unit))
+			{
+				unit.TargetTile = tilePosition;
+				unit.SetBehavior(UnitBehavior::Moving);
+				return;
+			}
 		}
 
 		if (!IsInventoryEmpty(unit))
@@ -572,9 +578,9 @@ std::vector<TilePosition> UnitManager::GetAllBuildableOrDestroyableTiles()
 
 	_grid.ForEachTile([&](Tile& tile, TilePosition position)
 	{
-		if (IsTileTakenCareBy(position, Characters::Builder)) return;
+		if (IsTileTakenCareBy(position, Characters::Builder) || tile.Type == TileType::None) return;
 
-		if (!tile.IsBuilt && Grid::IsTileReadyToBuild(tile) || tile.IsBuilt && tile.NeedToBeDestroyed)
+		if ((!tile.IsBuilt && Grid::IsTileReadyToBuild(tile)) || (tile.IsBuilt && tile.NeedToBeDestroyed))
 		{
 			tiles.push_back(position);
 		}
@@ -590,7 +596,7 @@ std::vector<TilePosition> UnitManager::GetTilesThatNeedItemsToBeBuilt()
 
 	_grid.ForEachTile([&](Tile& tile, TilePosition position)
 	{
-		if (IsTileTakenCareBy(position, Characters::Logistician)) return;
+		if (IsTileTakenCareBy(position, Characters::Logistician) || tile.Type == TileType::None) return;
 		if (Grid::IsTileReadyToBuild(tile) || tile.IsBuilt) return;
 
 		// Check if we have the items to build the tile
@@ -598,7 +604,7 @@ std::vector<TilePosition> UnitManager::GetTilesThatNeedItemsToBeBuilt()
 
 		for (auto& item : items)
 		{
-			if (tile.Inventory->at(item.first) < item.second)
+			if (Grid::GetNeededItemsToBuild(tile.Type, item.first) - tile.Inventory->at(item.first) > item.second)
 			{
 				canBuild = false;
 				break;
