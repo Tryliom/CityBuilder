@@ -4,6 +4,26 @@
 #include "Input.h"
 #include "Timer.h"
 
+std::map<TileType, std::map<Items, int>>* tileMaxInventory = new std::map<TileType, std::map<Items, int>>
+{
+	{TileType::Sawmill, {{Items::Wood, 50}}},
+	{TileType::Storage, {{Items::Wood, 100}, {Items::Stone, 100}}},
+	{TileType::LogisticsCenter, {{Items::Wood, 100}, {Items::Stone, 100}}},
+	{TileType::Quarry, {{Items::Stone, 50}}},
+	{TileType::MayorHouse, {{Items::Wood, 15}, {Items::Stone, 15}}},
+};
+
+// Items needed to build a tile
+std::map<TileType, std::map<Items, int>> tileNeededItems = std::map<TileType, std::map<Items, int>>
+{
+	{TileType::Sawmill, {{Items::Wood, 10}}},
+	{TileType::Storage, {{Items::Wood, 20}}},
+	{TileType::LogisticsCenter, {{Items::Wood, 20}, {Items::Stone, 10}}},
+	{TileType::Quarry, {{Items::Wood, 20}}},
+	{TileType::House, {{Items::Wood, 30}, {Items::Stone, 15}}},
+	{TileType::BuilderHut, {{Items::Wood, 20}, {Items::Stone, 10}}},
+};
+
 Grid::Grid(int width, int height, int tileSize)
 {
     _width = width;
@@ -347,7 +367,47 @@ std::vector<TilePosition> Grid::GetTiles(TileType type, TilePosition position, i
     return tiles;
 }
 
-void Grid::ForEachTile(std::function<void(Tile &, TilePosition)> callback) const
+std::vector<TilePosition> Grid::GetTiles(TilePosition position, int radius) const
+{
+	std::vector<TilePosition> tiles;
+
+	for (int x = position.X - radius; x < position.X + radius; x++)
+	{
+		for (int y = position.Y - radius; y < position.Y + radius; y++)
+		{
+			Tile &tile = _tiles[x + y * _width];
+
+			if (tile.Type != TileType::None && tile.IsBuilt)
+			{
+				tiles.push_back(TilePosition{x, y});
+			}
+		}
+	}
+
+	return tiles;
+}
+
+std::vector<TilePosition> Grid::GetTilesWithItems(TileType type, Items item) const
+{
+	std::vector<TilePosition> tiles;
+
+	for (int x = 0; x < _width / _tileSize; x++)
+	{
+		for (int y = 0; y < _height / _tileSize; y++)
+		{
+			Tile &tile = _tiles[x + y * _width];
+
+			if (tile.Type == type && tile.IsBuilt && tile.Inventory->at(item) > 0)
+			{
+				tiles.push_back(TilePosition{x, y});
+			}
+		}
+	}
+
+	return tiles;
+}
+
+void Grid::ForEachTile(const std::function<void(Tile &, TilePosition)>& callback) const
 {
     for (int x = 0; x < _width / _tileSize; x++)
     {
@@ -407,28 +467,53 @@ bool Grid::CanBuild(TilePosition position, TileType type)
 	return false;
 }
 
-int Grid::GetMaxLogsStored(Tile tile)
+int Grid::GetMaxItemsStored(const Tile& tile, Items item)
 {
-	switch (tile.Type)
+	if (!tile.IsBuilt || !tileMaxInventory->contains(tile.Type) || !tileMaxInventory->at(tile.Type).contains(item))
 	{
-		case TileType::Sawmill: return 50;
-		case TileType::Storage: return 100;
-		case TileType::MayorHouse: return 15;
-		case TileType::LogisticsCenter: return 100;
+		return 0;
 	}
 
-	return 0;
+	return tileMaxInventory->at(tile.Type)[item];
 }
 
-int Grid::GetMaxRocksStored(Tile tile)
+int Grid::GetLeftSpaceForItems(Tile tile, Items item)
 {
-	switch (tile.Type)
+	int max = GetMaxItemsStored(tile, item);
+
+	return max - tile.Inventory->at(item);
+}
+
+bool Grid::IsTileReadyToBuild(Tile& tile)
+{
+	// Check if the tile has the items to be built
+	if (!tileNeededItems.contains(tile.Type)) return true;
+	if (tileNeededItems[tile.Type].empty()) return true;
+
+	for (auto& item : tileNeededItems[tile.Type])
 	{
-		case TileType::Quarry: return 50;
-		case TileType::Storage: return 100;
-		case TileType::MayorHouse: return 15;
-		case TileType::LogisticsCenter: return 100;
+		if (tile.Inventory->at(item.first) < item.second)
+		{
+			return false;
+		}
 	}
 
-	return 0;
+	return true;
 }
+
+bool Grid::IsAStorage(TileType type)
+{
+	return type == TileType::Storage || type == TileType::LogisticsCenter || type == TileType::MayorHouse;
+}
+
+int Grid::GetNeededItemsToBuild(TileType type, Items item)
+{
+	if (!tileNeededItems.contains(type) || !tileNeededItems[type].contains(item))
+	{
+		return 0;
+	}
+
+	return tileNeededItems[type][item];
+}
+
+

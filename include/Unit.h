@@ -1,9 +1,11 @@
 #pragma once
 
+#include <map>
+
 #include "Texture.h"
-#include "Tile.h"
 #include "Maths.h"
-#include "Grid.h"
+
+struct TilePosition;
 
 enum class UnitBehavior
 {
@@ -15,6 +17,11 @@ enum class UnitBehavior
 
 struct Unit
 {
+	explicit Unit(Vector2F position)
+	{
+		Position = position;
+	}
+
     UnitBehavior CurrentBehavior = UnitBehavior::Idle;
 
     int JobTileIndex = -1;
@@ -24,8 +31,11 @@ struct Unit
     float TimeSinceLastAction = 0.f;
 
 	// Inventory
-	int Logs = 0;
-	int Rocks = 0;
+	std::map<Items, int>* Inventory = new std::map<Items, int>
+	{
+		{ Items::Wood, 0 },
+		{ Items::Stone, 0 }
+	};
 
     void SetBehavior(UnitBehavior behavior)
     {

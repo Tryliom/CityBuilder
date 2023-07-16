@@ -301,6 +301,6 @@ void GenerateMap()
 
 	for (int i = 0; i < 3; i++)
 	{
-		unitManager.AddUnit(Unit{.Position = grid.ToWorldPosition(grid.GetTiles(TileType::MayorHouse)[0]) + Vector2F{ Random::Range(0, 25), Random::Range(0, 25) }});
+		unitManager.AddUnit(Unit(grid.ToWorldPosition(grid.GetTiles(TileType::MayorHouse)[0]) + Vector2F{ Random::Range(0, 25), Random::Range(0, 25) }));
 	}
 }
