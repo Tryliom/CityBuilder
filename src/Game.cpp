@@ -3,7 +3,6 @@
 
 #include "sokol_app.h"
 
-#include "Window.h"
 #include "Audio.h"
 #include "Input.h"
 #include "Timer.h"
@@ -11,6 +10,8 @@
 #include "Random.h"
 #include "Logger.h"
 #include "UnitManager.h"
+
+#include "Graphics.h"
 
 void GenerateMap();
 
@@ -74,7 +75,7 @@ void OnFrame()
     UpdateCamera();
 	HandleInput();
 
-    Window::CalculTransformationMatrix();
+    Graphics::CalculTransformationMatrix();
 
     grid.Update();
     grid.Draw();
@@ -91,39 +92,39 @@ void UpdateCamera()
     auto previousMousePosition = Input::GetPreviousMousePosition();
     auto smoothDeltaTime = Timer::SmoothDeltaTime;
     auto movementValue = speed * smoothDeltaTime;
-    auto mouseWorldPosition = Window::ScreenToWorld(mousePosition);
+    auto mouseWorldPosition = Graphics::ScreenToWorld(mousePosition);
 
     if (Input::IsKeyHeld(SAPP_KEYCODE_A))
     {
-        Window::MoveCamera({movementValue, 0});
+        Graphics::MoveCamera({movementValue, 0});
     }
     if (Input::IsKeyHeld(SAPP_KEYCODE_D))
     {
-        Window::MoveCamera({-movementValue, 0});
+        Graphics::MoveCamera({-movementValue, 0});
     }
     if (Input::IsKeyHeld(SAPP_KEYCODE_W))
     {
-        Window::MoveCamera({0, movementValue});
+        Graphics::MoveCamera({0, movementValue});
     }
     if (Input::IsKeyHeld(SAPP_KEYCODE_S))
     {
-        Window::MoveCamera({0, -movementValue});
+        Graphics::MoveCamera({0, -movementValue});
     }
 
     if (Input::IsKeyPressed(SAPP_KEYCODE_Z))
     {
-        Window::Zoom(0.1f);
+        Graphics::Zoom(0.1f);
     }
     if (Input::IsKeyPressed(SAPP_KEYCODE_X))
     {
-        Window::Zoom(-0.1f);
+        Graphics::Zoom(-0.1f);
     }
 
-    Window::Zoom(Input::GetMouseWheelDelta() / 50.f);
+    Graphics::Zoom(Input::GetMouseWheelDelta() / 50.f);
 
     if (Input::IsMouseButtonHeld(SAPP_MOUSEBUTTON_MIDDLE))
 	{
-		Window::MoveCamera((mousePosition - previousMousePosition) * 1.f / Window::GetZoom());
+		Graphics::MoveCamera((mousePosition - previousMousePosition) * 1.f / Graphics::GetZoom());
 	}
 }
 
@@ -161,7 +162,7 @@ void HandleInput()
 	if (Input::IsMouseButtonHeld(SAPP_MOUSEBUTTON_LEFT))
 	{
 		auto mousePosition = Input::GetMousePosition();
-		auto mouseWorldPosition = Window::ScreenToWorld(mousePosition);
+		auto mouseWorldPosition = Graphics::ScreenToWorld(mousePosition);
 		auto tilePosition = grid.GetTilePosition(mouseWorldPosition);
 
 		if (grid.CanBuild(tilePosition, selectedTileType))
@@ -174,7 +175,7 @@ void HandleInput()
 	{
 		// Remove some tiles with permissions and other are set to be destroyed by a builder
 		auto mousePosition = Input::GetMousePosition();
-		auto mouseWorldPosition = Window::ScreenToWorld(mousePosition);
+		auto mouseWorldPosition = Graphics::ScreenToWorld(mousePosition);
 		auto tilePosition = grid.GetTilePosition(mouseWorldPosition);
 		auto& tile = grid.GetTile(tilePosition);
 
@@ -238,9 +239,9 @@ void DrawUi()
 	}
 
 	// Draw the select tile type at the top left
-	Window::DrawRect(Window::ScreenToWorld({5, 5}), {110, 110}, {0.2f, 0.2f, 0.2f, 0.5f});
-	Window::DrawObject({
-		.Position = Window::ScreenToWorld({10, 10}),
+	Graphics::DrawRect(Graphics::ScreenToWorld({5, 5}), {110, 110}, {0.2f, 0.2f, 0.2f, 0.5f});
+	Graphics::DrawObject({
+		.Position = Graphics::ScreenToWorld({10, 10}),
 		.Size = {100, 100},
 		.Texture = selectedTileTexture,
 	});
