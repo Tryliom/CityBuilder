@@ -5,7 +5,7 @@
 #include "Unit.h"
 #include "Grid.h"
 
-float unitSpeed = 60.f;
+float unitSpeed = 100.f;
 int unitSize = 16;
 float unitProgress;
 

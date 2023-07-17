@@ -454,10 +454,9 @@ float Grid::GetSpeedFactor(TileType type)
 {
 	switch (type)
 	{
-		case TileType::Sawmill: return 1.f;
-		case TileType::Quarry: return 0.5f;
-		case TileType::BuilderHut: return 1.25f;
-		case TileType::LogisticsCenter: return 1.5f;
+		case TileType::Quarry: return -0.5f;
+		case TileType::BuilderHut: return 0.25f;
+		case TileType::LogisticsCenter: return 0.5f;
 	}
 
 	return 0.f;
@@ -536,10 +535,10 @@ std::vector<TilePosition> Grid::GetPath(TilePosition start, TilePosition end)
 
 	for (int i = 0; i < (int) TileType::Count; i++)
 	{
-		pointsPerTile.push_back(2);
+		pointsPerTile.push_back(5);
 	}
 
-	pointsPerTile[(int) TileType::None] = 1;
+	pointsPerTile[(int) TileType::None] = 3;
 	pointsPerTile[(int) TileType::Road] = 0;
 
 	// Search the full path between the start and the end tile by taking in account the pointsPerTile
