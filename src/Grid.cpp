@@ -199,15 +199,13 @@ void Grid::Draw()
         {
             Tile &tile = _tiles[x + y * _width];
             auto position = Vector2F{x, y} * _tileSize - Vector2F{_width, _height} / 2.f;
-            auto size = Vector2F{(float)_tileSize, (float)_tileSize};
-            auto randomLand = Texture((Land)Random::Range(0, (int)Land::Count - 1));
+            auto size = Vector2F{ (float) _tileSize, (float) _tileSize };
+            auto randomLand = Texture((Land)Random::Range(1, (int)Land::Count - 1));
             auto background = tile.Type != TileType::None ? Texture(Land::Grass) : randomLand;
 
             if (tile.Type != TileType::Road)
             {
-                Window::DrawObject({.Position = position,
-                                    .Size = size,
-                                    .Texture = background});
+                Window::DrawObject({.Position = position, .Size = size, .Texture = background});
             }
 
             if (tile.Type != TileType::None)

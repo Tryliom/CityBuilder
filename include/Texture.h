@@ -7,7 +7,7 @@ enum class TileSheet
 
 enum class Land
 {
-    Grass, Flower1, Flower2, Flower3, Count
+    Grass, Flower1, Flower2, Flower3, Flower4, Flower5, Flower6, Flower7, Count
 };
 
 enum class Road
