@@ -45,15 +45,42 @@ void UnitManager::UpdateUnits()
 				}
 				else
 				{
-					//TODO: Implement A* pathfinding when choosing the target to get the shortest path
-
-					// Make it move to his target position
-					unit.Position += (targetPosition - unit.Position).Normalized() * unitSpeed * Timer::SmoothDeltaTime;
-
-					// Check if it reached his target position
-					if (std::abs(unit.Position.X - targetPosition.X) < 1.f && std::abs(unit.Position.Y - targetPosition.Y) < 1.f)
+					if (unit.PathToTargetTile.empty())
 					{
-						unit.SetBehavior(UnitBehavior::Working);
+						unit.PathToTargetTile = _grid.GetPath(_grid.GetTilePosition(unit.Position), unit.TargetTile);
+
+						// Check if it's already on the target tile
+						if (unit.PathToTargetTile.empty())
+						{
+							unit.SetBehavior(UnitBehavior::Working);
+						}
+					}
+					else
+					{
+						TilePosition nextTilePosition = unit.PathToTargetTile.front();
+						Vector2F nextTileWorldPosition = _grid.ToWorldPosition(nextTilePosition) + Vector2F(0.5f, 0.5f) * (float) _grid.GetTileSize();
+						float speedFactor = 1.f;
+
+						// Check if the next tile is a road
+						if (_grid.GetTile(nextTilePosition).Type == TileType::Road)
+						{
+							speedFactor = 2.f;
+						}
+
+						// Move it to the center of the next tile
+						unit.Position += (nextTileWorldPosition - unit.Position).Normalized() * unitSpeed * speedFactor * Timer::SmoothDeltaTime;
+
+						// Check if it reached the center of the next tile
+						if (std::abs(unit.Position.GetDistance(nextTileWorldPosition)) < 3.f)
+						{
+							unit.PathToTargetTile.erase(unit.PathToTargetTile.begin());
+						}
+
+						// Check if it reached his target position
+						if (unit.PathToTargetTile.empty())
+						{
+							unit.SetBehavior(UnitBehavior::Working);
+						}
 					}
 				}
 			}

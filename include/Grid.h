@@ -43,7 +43,9 @@ public:
     void Draw();
     void Update();
 
-    [[nodiscard]] TilePosition GetTilePosition(Vector2F position) const;
+	[[nodiscard]] int GetTileSize() const { return _tileSize; }
+
+	[[nodiscard]] TilePosition GetTilePosition(Vector2F position) const;
 	[[nodiscard]] TilePosition GetTilePosition(int tileIndex) const;
     [[nodiscard]] Vector2F ToWorldPosition(TilePosition position) const;
 
@@ -73,4 +75,8 @@ public:
 	static bool IsAStorage(TileType type);
 
 	bool CanBuild(TilePosition position, TileType type);
+
+	// Pathfinding
+	std::vector<TilePosition> GetPath(TilePosition start, TilePosition end);
+	std::vector<TilePosition> GetNeighbors(TilePosition position) const;
 };

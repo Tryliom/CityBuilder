@@ -27,6 +27,7 @@ struct Unit
     int JobTileIndex = -1;
     Vector2F Position {};
     TilePosition TargetTile {};
+	std::vector<TilePosition> PathToTargetTile {};
 
     float TimeSinceLastAction = 0.f;
 
@@ -41,5 +42,6 @@ struct Unit
     {
         CurrentBehavior = behavior;
         TimeSinceLastAction = 0.f;
+		PathToTargetTile.clear();
     }
 };

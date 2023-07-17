@@ -1,3 +1,5 @@
+#include "map"
+
 #include "Grid.h"
 #include "Window.h"
 #include "Random.h"
@@ -514,6 +516,139 @@ int Grid::GetNeededItemsToBuild(TileType type, Items item)
 	}
 
 	return tileNeededItems[type][item];
+}
+
+std::vector<TilePosition> Grid::GetPath(TilePosition start, TilePosition end)
+{
+	// Points per tile, the higher the value, the less the path will use this tile
+	std::vector<int> pointsPerTile = std::vector<int>();
+
+	for (int i = 0; i < (int) TileType::Count; i++)
+	{
+		pointsPerTile.push_back(2);
+	}
+
+	pointsPerTile[(int) TileType::None] = 1;
+	pointsPerTile[(int) TileType::Road] = 0;
+
+	// Search the full path between the start and the end tile by taking in account the pointsPerTile
+	std::vector<TilePosition> path = std::vector<TilePosition>();
+
+	std::vector<TilePosition> openList = std::vector<TilePosition>();
+	std::vector<TilePosition> closedList = std::vector<TilePosition>();
+
+	openList.push_back(start);
+
+	// Use tile index
+	auto cameFrom = std::vector<TilePosition>();
+
+	auto gScore = std::vector<int>();
+	auto fScore = std::vector<int>();
+
+	for (int x = 0; x < _width / _tileSize; x++)
+	{
+		for (int y = 0; y < _height / _tileSize; y++)
+		{
+			cameFrom.push_back(TilePosition{-1, -1});
+			gScore.push_back(0);
+			fScore.push_back(0);
+		}
+	}
+
+	gScore[start.X + start.Y * _width / _tileSize] = 0;
+	fScore[start.X + start.Y * _width / _tileSize] = start.X - end.X + start.Y - end.Y;
+
+	while (!openList.empty())
+	{
+		// Get the tile with the lowest fScore
+		int lowestScore = INT_MAX;
+		int lowestScoreIndex = -1;
+
+		for (int i = 0; i < openList.size(); i++)
+		{
+			int index = openList[i].X + openList[i].Y * _width / _tileSize;
+
+			if (fScore[index] < lowestScore)
+			{
+				lowestScore = fScore[index];
+				lowestScoreIndex = i;
+			}
+		}
+
+		TilePosition current = openList[lowestScoreIndex];
+
+		if (current == end)
+		{
+			// Reconstruct the path
+			TilePosition tmpCurrent = end;
+
+			while (tmpCurrent != start)
+			{
+				path.push_back(tmpCurrent);
+				tmpCurrent = cameFrom[tmpCurrent.X + tmpCurrent.Y * _width / _tileSize];
+			}
+
+			std::reverse(path.begin(), path.end());
+
+			return path;
+		}
+
+		openList.erase(openList.begin() + lowestScoreIndex);
+		closedList.push_back(current);
+
+		for (auto& neighbour : GetNeighbors(current))
+		{
+			if (std::find(closedList.begin(), closedList.end(), neighbour) != closedList.end())
+			{
+				continue;
+			}
+
+			// The distance from start to a neighbor through current, the "distance between two adjacent tiles" is always 1
+			int tentativeGScore = gScore[current.X + current.Y * _width / _tileSize] + pointsPerTile[(int) GetTile(neighbour).Type];
+
+			if (std::find(openList.begin(), openList.end(), neighbour) == openList.end())
+			{
+				openList.push_back(neighbour);
+			}
+			else if (tentativeGScore >= gScore[neighbour.X + neighbour.Y * _width / _tileSize])
+			{
+				continue;
+			}
+
+			cameFrom[neighbour.X + neighbour.Y * _width / _tileSize] = current;
+			gScore[neighbour.X + neighbour.Y * _width / _tileSize] = tentativeGScore;
+			fScore[neighbour.X + neighbour.Y * _width / _tileSize] = gScore[neighbour.X + neighbour.Y * _width / _tileSize] + neighbour.X - end.X + neighbour.Y - end.Y;
+		}
+	}
+
+	return path;
+}
+
+std::vector<TilePosition> Grid::GetNeighbors(TilePosition position) const
+{
+	std::vector<TilePosition> neighbours = std::vector<TilePosition>();
+
+	if (position.X > 0)
+	{
+		neighbours.push_back(TilePosition{position.X - 1, position.Y});
+	}
+
+	if (position.X < _width / _tileSize - 1)
+	{
+		neighbours.push_back(TilePosition{position.X + 1, position.Y});
+	}
+
+	if (position.Y > 0)
+	{
+		neighbours.push_back(TilePosition{position.X, position.Y - 1});
+	}
+
+	if (position.Y < _height / _tileSize - 1)
+	{
+		neighbours.push_back(TilePosition{position.X, position.Y + 1});
+	}
+
+	return neighbours;
 }
 
 

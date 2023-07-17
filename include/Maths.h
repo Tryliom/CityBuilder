@@ -62,7 +62,7 @@ struct Vector2
         return sqrt(X * X + Y * Y);
     }
 
-    Vector2<T> Normalized() const
+    [[nodiscard]] Vector2<T> Normalized() const
     {
         Vector2<T> normalized;
 
@@ -70,6 +70,69 @@ struct Vector2
 
         return normalized;
     }
+
+	float GetDistance(Vector2<T> other)
+	{
+		return sqrt(pow(other.X - X, 2) + pow(other.Y - Y, 2));
+	}
+
+	[[nodiscard]] float Dot(Vector2<T> other) const
+	{
+		return X * other.X + Y * other.Y;
+	}
+
+	[[nodiscard]] float Angle(Vector2<T> other) const
+	{
+		return acos(this->Dot(other) / (this->Length() * other.Length()));
+	}
+
+	[[nodiscard]] Vector2<T> Rotate(float angle) const
+	{
+		float rad = MathUtility::DegreesToRadians(angle);
+		float cos = std::cos(rad);
+		float sin = std::sin(rad);
+
+		return Vector2<T>(X * cos - Y * sin, X * sin + Y * cos);
+	}
+
+	[[nodiscard]] Vector2<T> RotateAround(Vector2<T> point, float angle) const
+	{
+		Vector2<T> rotated = (*this) - point;
+		rotated = rotated.Rotate(angle);
+		rotated += point;
+
+		return rotated;
+	}
+
+	[[nodiscard]] Vector2<T> Lerp(Vector2<T> other, float t) const
+	{
+		return Vector2<T>(X + (other.X - X) * t, Y + (other.Y - Y) * t);
+	}
+
+	[[nodiscard]] Vector2<T> Project(Vector2<T> other) const
+	{
+		return other * (this->Dot(other) / other.Dot(other));
+	}
+
+	[[nodiscard]] Vector2<T> Reflect(Vector2<T> normal) const
+	{
+		return (*this) - normal * 2 * this->Dot(normal);
+	}
+
+	[[nodiscard]] Vector2<T> Abs() const
+	{
+		return Vector2<T>(abs(X), abs(Y));
+	}
+
+	[[nodiscard]] Vector2<T> Clamp(Vector2<T> min, Vector2<T> max) const
+	{
+		return Vector2<T>(MIN(MAX(X, min.X), max.X), MIN(MAX(Y, min.Y), max.Y));
+	}
+
+	[[nodiscard]] Vector2<T> Clamp(T min, T max) const
+	{
+		return Vector2<T>(MIN(MAX(X, min), max), MIN(MAX(Y, min), max));
+	}
 
 #pragma region Operator Overloads
 
