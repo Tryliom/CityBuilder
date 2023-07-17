@@ -74,9 +74,12 @@ public:
 	static bool IsTileReadyToBuild(Tile& tile);
 	static bool IsAStorage(TileType type);
 
+	// Stats for units
+	static float GetSpeedFactor(TileType type);
+
 	bool CanBuild(TilePosition position, TileType type);
 
 	// Pathfinding
 	std::vector<TilePosition> GetPath(TilePosition start, TilePosition end);
-	std::vector<TilePosition> GetNeighbors(TilePosition position) const;
+	[[nodiscard]] std::vector<TilePosition> GetNeighbors(TilePosition position) const;
 };

@@ -4,10 +4,9 @@
 #include "Timer.h"
 #include "Unit.h"
 #include "Grid.h"
-#include "Logger.h"
 
-float unitSpeed = 100.f;
-int unitSize = 10;
+float unitSpeed = 60.f;
+int unitSize = 16;
 float unitProgress;
 
 std::map<TileType, std::map<Items, int>>* unitMaxInventory = new std::map<TileType, std::map<Items, int>>
@@ -58,14 +57,16 @@ void UnitManager::UpdateUnits()
 					else
 					{
 						TilePosition nextTilePosition = unit.PathToTargetTile.front();
-						Vector2F nextTileWorldPosition = _grid.ToWorldPosition(nextTilePosition) + Vector2F(0.5f, 0.5f) * (float) _grid.GetTileSize();
+						Vector2F nextTileWorldPosition = _grid.ToWorldPosition(nextTilePosition) + Vector2F(0.5f, 0.5f) * ((float) _grid.GetTileSize() - unitSize / 2.f);
 						float speedFactor = 1.f;
 
 						// Check if the next tile is a road
 						if (_grid.GetTile(nextTilePosition).Type == TileType::Road)
 						{
-							speedFactor = 2.f;
+							speedFactor = 1.5f;
 						}
+
+						speedFactor += Grid::GetSpeedFactor(tile.Type);
 
 						// Move it to the center of the next tile
 						unit.Position += (nextTileWorldPosition - unit.Position).Normalized() * unitSpeed * speedFactor * Timer::SmoothDeltaTime;

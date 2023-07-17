@@ -452,6 +452,19 @@ float Grid::GetMaxDestructionProgress(TileType type)
 	return 0.f;
 }
 
+float Grid::GetSpeedFactor(TileType type)
+{
+	switch (type)
+	{
+		case TileType::Sawmill: return 1.f;
+		case TileType::Quarry: return 0.5f;
+		case TileType::BuilderHut: return 1.25f;
+		case TileType::LogisticsCenter: return 1.5f;
+	}
+
+	return 0.f;
+}
+
 bool Grid::CanBuild(TilePosition position, TileType type)
 {
 	Tile& tile = GetTile(position);
