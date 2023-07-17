@@ -33,18 +33,107 @@ static struct
 
 #pragma region Attributes
 
-// ===== Sokol =====
+// ====== Hot Reload =========
 
+#include <assert.h>
+#include <malloc.h>
+#include <Windows.h> 
+#include <stdint.h>
+#include <stdio.h>
+#include <Shlwapi.h> // Include this header for PathCombine function
 
+#pragma comment(lib, "Shlwapi.lib") // Link to the Shlwapi library
 
-// ===== Window =====
+bool RdxFileExists(const char* path) 
+{
+	return GetFileAttributesA(path) != INVALID_FILE_ATTRIBUTES;
+}
 
+int64_t RdxLastModified(const char* path) 
+{
+	if (!RdxFileExists(path)) 
+    {
+		return -1;
+	}
 
+	FILETIME ftLastWriteTime;
 
+    // Open the file, specifying the desired access rights, sharing mode, and other parameters.
+	HANDLE hFile = CreateFileA(path, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 
+	if (hFile != INVALID_HANDLE_VALUE && GetFileTime(hFile, NULL, NULL, &ftLastWriteTime)) 
+    {
+		ULARGE_INTEGER uli;
+		uli.LowPart  = ftLastWriteTime.dwLowDateTime;
+		uli.HighPart = ftLastWriteTime.dwHighDateTime;
+		CloseHandle(hFile);
 
-constexpr float MinZoom = 1.f;
-constexpr float MaxZoom = 2.f;
+		return static_cast<int64_t>(uli.QuadPart / 10000000ULL - 11644473600ULL);
+	}
+
+	return -1;
+}
+
+#define GAME_STATE_MAX_BYTE_SIZE 4096
+
+void (*DLL_InitGame)() = nullptr;
+void (*DLL_OnFrame)() = nullptr;
+void (*DLL_SetGraphicBufferValues)(float*, int&, uint32_t*, int&) = nullptr;
+
+void* gameStateMemory = nullptr;
+
+HMODULE libHandle = NULL; // Handle to a loaded module (DLL).
+
+uint64_t lastMod = 0;
+
+void LoadDLL()
+{
+    uint64_t newLastMod = RdxLastModified("bin/Game.dll");
+
+    std::cout <<" new " << newLastMod << " last " << lastMod << std::endl;
+
+    if (newLastMod != -1 && newLastMod != lastMod) 
+    {
+        lastMod = newLastMod;
+
+        if (libHandle != NULL) 
+        {
+            FreeLibrary(libHandle);
+        }
+
+        // Copy Game.dll to a random filename in the same directory before loading
+        char exePath[MAX_PATH];
+        GetModuleFileNameA(NULL, exePath, MAX_PATH);
+
+        char dllPath[MAX_PATH];
+        strcpy_s(dllPath, sizeof(dllPath), exePath);
+        PathRemoveFileSpecA(dllPath); // Remove the executable filename from the path
+        PathAppendA(dllPath, "Game.dll");
+
+        char newDllPath[MAX_PATH];
+        strcpy_s(newDllPath, sizeof(newDllPath), exePath);
+        PathRemoveFileSpecA(newDllPath); // Remove the executable filename from the path
+        PathAppendA(newDllPath, "newGame.dll");
+
+        CopyFileA(dllPath, newDllPath, FALSE);
+
+        // Load new version of the lib (NOTE(seb): could ask the game to deserialize itself just after loading).
+        libHandle = LoadLibraryA(newDllPath);
+
+        assert(libHandle != NULL && "Couldn't load Game.dll");
+
+        DLL_InitGame = (void (*)())GetProcAddress(libHandle, "DLL_InitGame"); 
+        assert(DLL_InitGame != NULL && "Couldn't find function DLL_InitGame in Game.dll");
+
+        DLL_OnFrame = (void (*)())GetProcAddress(libHandle, "DLL_OnFrame"); 
+        assert(DLL_OnFrame != NULL && "Couldn't find function DLL_OnFrame in Game.dll");
+
+        DLL_SetGraphicBufferValues = (void (*)(float*, int&, uint32_t*, int&))GetProcAddress(libHandle, "DLL_SetGraphicBufferValues"); 
+        assert(DLL_SetGraphicBufferValues != NULL && "Couldn't find function DLL_SetGraphicBufferValues in Game.dll");
+    }
+}
+
+// =========================================
 
 #pragma endregion
 
@@ -62,7 +151,12 @@ void Clear()
 
 static void init()
 {
-    InitGame();
+    #ifdef HOT_RELOAD
+    LoadDLL();
+    #endif
+
+    if (DLL_InitGame) DLL_InitGame();
+    else InitGame();
 
     sg_desc desc = (sg_desc){
         .logger = {.func = slog_func},
@@ -72,13 +166,13 @@ static void init()
     state.vs_window = {sapp_widthf(), sapp_heightf()};
 
     state.bind.vertex_buffers[0] = sg_make_buffer((sg_buffer_desc){
-        .size = sizeof(vertexes),
+        .size = Graphics::GetVertexBufferSize(),
         .usage = SG_USAGE_DYNAMIC,
         .label = "triangle-vertices",
     });
 
     state.bind.index_buffer = sg_make_buffer((sg_buffer_desc){
-        .size = sizeof(indices),
+        .size = Graphics::GetIndexBufferSize(),
         .type = SG_BUFFERTYPE_INDEXBUFFER,
         .usage = SG_USAGE_DYNAMIC,
         .label = "triangle-indices",
@@ -92,8 +186,8 @@ static void init()
     Graphics::textureHeight = tileMap.GetHeight();
 
     state.bind.fs_images[SLOT_tex] = sg_make_image((sg_image_desc){
-        .width = textureWidth,
-        .height = textureHeight,
+        .width  = Graphics::textureWidth,
+        .height = Graphics::textureHeight,
         .data = {.subimage = {{{.ptr = tileMap.GetBuffer(), .size = tileMap.GetBufferSize()}}}},
         .label = "tilemap-image"});
 
@@ -135,6 +229,10 @@ static void init()
 
 void frame()
 {
+    #ifdef HOT_RELOAD
+    LoadDLL();
+    #endif
+
     sg_begin_default_pass(&state.pass_action, sapp_width(), sapp_height());
     sg_apply_pipeline(state.pip);
     sg_apply_bindings(&state.bind);
@@ -151,10 +249,20 @@ void frame()
     Timer::Update();
 
     Graphics::frameCount++;
-    OnFrame();
 
-    sg_update_buffer(state.bind.vertex_buffers[0], (sg_range){.ptr = vertexes, .size = vertexesUsed * VertexNbAttributes * sizeof(*vertexes)});
-    sg_update_buffer(state.bind.index_buffer, (sg_range){.ptr = indices, .size = indicesUsed * sizeof(*indices)});
+    if (DLL_OnFrame) DLL_OnFrame();
+    else OnFrame();
+
+    if (DLL_SetGraphicBufferValues)
+    {
+        DLL_SetGraphicBufferValues(Graphics::vertexes, Graphics::vertexesUsed, Graphics::indices, Graphics::indicesUsed);
+    } 
+
+    std::cout << "Used " << Graphics::vertexesUsed << std::endl;
+
+    sg_update_buffer(state.bind.vertex_buffers[0], (sg_range){.ptr = Graphics::vertexes, 
+                     .size = Graphics::vertexesUsed * Graphics::VertexNbAttributes * sizeof(*Graphics::vertexes)});
+    sg_update_buffer(state.bind.index_buffer, (sg_range){.ptr = Graphics::indices, .size = Graphics::indicesUsed * sizeof(*Graphics::indices)});
 
     sg_draw(0, Graphics::vertexesUsed * Graphics::VertexNbAttributes, 1);
     sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, (sg_range){.ptr = &state.vs_window, .size = sizeof(state.vs_window)});

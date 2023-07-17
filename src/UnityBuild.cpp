@@ -1,0 +1,13 @@
+#include "../src/Window.cpp"
+#include "../src/Game.cpp"
+#include "../src/Audio.cpp"
+#include "../src/Color.cpp"
+#include "../src/Graphics.cpp"
+#include "../src/Grid.cpp"
+#include "../src/Image.cpp"
+#include "../src/Input.cpp"
+#include "../src/Random.cpp"
+#include "../src/Tile.cpp"
+#include "../src/Timer.cpp"
+#include "../src/UnitManager.cpp"
+

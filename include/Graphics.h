@@ -2,6 +2,7 @@
 
 #include "Maths.h"
 #include "Color.h"
+#include "Image.h"
 #include "Texture.h"
 #include "DrawableObject.h"
 #include <vector>
@@ -31,6 +32,9 @@ namespace Graphics
     extern int indicesUsed;
 
     extern Camera camera;
+
+    extern float MinZoom;
+    extern float MaxZoom;
 
     extern Matrix2x3F transformMatrix;
     extern Matrix2x3F inversedTransMatrix;
@@ -125,5 +129,7 @@ namespace Graphics
 
     int GetTextureWidth();
     int GetTextureHeight();
-}
 
+    size_t GetVertexBufferSize();
+    size_t GetIndexBufferSize();
+}

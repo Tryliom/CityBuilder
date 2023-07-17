@@ -1,5 +1,4 @@
 #include "Graphics.h"
-#include "Image.h"
 #include "Constants.h"
 
 #include <assert.h>
@@ -16,6 +15,9 @@ namespace Graphics
     int indicesUsed = 0;
 
     Camera camera;
+
+    float MinZoom = 1.f;
+    float MaxZoom = 2.f;
 
     Matrix2x3F transformMatrix;
     Matrix2x3F inversedTransMatrix;
@@ -228,5 +230,15 @@ namespace Graphics
     int GetTextureHeight()
     {
         return textureHeight;
+    }
+
+    size_t GetVertexBufferSize()
+    {
+        return sizeof(vertexes);
+    }
+
+    size_t GetIndexBufferSize()
+    {
+        return sizeof(indices);
     }
 }

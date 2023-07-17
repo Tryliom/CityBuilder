@@ -13,6 +13,8 @@
 
 #include "Graphics.h"
 
+#include <assert.h>
+
 void GenerateMap();
 
 void UpdateCamera();
@@ -70,20 +72,21 @@ void InitGame()
 
 void OnFrame()
 {
-    auto mousePosition = Input::GetMousePosition();
+	auto mousePosition = Input::GetMousePosition();
 
-    UpdateCamera();
+	UpdateCamera();
 	HandleInput();
 
-    Graphics::CalculTransformationMatrix();
+	Graphics::CalculTransformationMatrix();
 
-    grid.Update();
-    grid.Draw();
+	grid.Update();
+	grid.Draw();
 
-    unitManager.UpdateUnits();
+	unitManager.UpdateUnits();
 	unitManager.DrawUnits();
 
 	DrawUi();
+	Graphics::DrawCircle(Vector2F(100, 100), 100, Color::Red, 50);
 }
 
 void UpdateCamera()
@@ -301,3 +304,112 @@ void GenerateMap()
 		unitManager.AddUnit(Unit{.Position = grid.ToWorldPosition(grid.GetTiles(TileType::MayorHouse)[0]) + Vector2F{ Random::Range(0, 25), Random::Range(0, 25) }});
 	}
 }
+
+struct GameState
+{
+	float vertexBuffer[1000000];
+	int vertexBufferUsed;
+
+	uint32_t indexBuffer[1000000];
+	int indexBufferUsed;
+};
+
+GameState* gameState = 0;
+
+// void CopyGraphicBuffers()
+// {
+// 	// memccpy(gameState->vertexBuffer, Graphics::vertexes, Graphics::vertexesUsed, Graphics::vertexesUsed * sizeof(Graphics::vertexes[0]));
+// 	// gameState->vertexBufferUsed = Graphics::vertexesUsed;
+
+// 	// memccpy(gameState->vertexBuffer, Graphics::indices,  Graphics::indicesUsed,  Graphics::indicesUsed  * sizeof(Graphics::indices[0]));
+// 	// gameState->indexBufferUsed = Graphics::indicesUsed;
+// }
+
+#ifdef __cplusplus // If used by C++ code, 
+extern "C"         // we need to export the C interface
+{          
+    #if _WIN32
+    #define EXPORT __declspec(dllexport)
+    #else
+    #define EXPORT
+    #endif
+
+	EXPORT void DLL_InitGame()
+	{
+		std::cout << "Start Function" << std::endl;
+
+		/*Audio::SetupSound();
+
+		SoundClip testTheme = Audio::loadSoundClip(ASSETS_PATH "testTheme.wav");*/
+
+		// Audio::PlaySoundClip(testTheme, 1.f, 440, 0, 0, true);
+
+		Vector2F myVec(3, 4);
+		Matrix2x3F id = Matrix2x3F::IdentityMatrix();
+		Matrix2x3F tr = Matrix2x3F::TranslationMatrix({15, 10});
+		Matrix2x3F rot = Matrix2x3F::RotationMatrix(90);
+		Matrix2x3F sc = Matrix2x3F::ScaleMatrix({2, 2});
+
+		std::cout << Matrix2x3F::Multiply(id, myVec).X << " " << Matrix2x3F::Multiply(id, myVec).Y << std::endl;
+		std::cout << Matrix2x3F::Multiply(tr, myVec).X << " " << Matrix2x3F::Multiply(tr, myVec).Y << std::endl;
+		std::cout << Matrix2x3F::Multiply(rot, myVec).X << " " << Matrix2x3F::Multiply(rot, myVec).Y << std::endl;
+		std::cout << Matrix2x3F::Multiply(sc, myVec).X << " " << Matrix2x3F::Multiply(sc, myVec).Y << std::endl;
+
+		Matrix2x3F mutlipled = Matrix2x3F::Multiply(rot, tr);
+		std::cout << Matrix2x3F::Multiply(mutlipled, myVec).X << " " << Matrix2x3F::Multiply(mutlipled, myVec).Y << std::endl;
+
+		Matrix2x3F test =
+			{
+				.values =
+					{
+						14.f, 42.f, 73.f,
+						44.f, 5.f, -16.f}};
+
+		Matrix2x3F oui = Matrix2x3F::Invert(test);
+		Matrix2x3F transformatrix = Matrix2x3F::TransformMatrix({2, 2}, 90, {15, 10});
+
+		std::cout << "\n\n" << Matrix2x3F::Multiply(transformatrix, myVec).X << " " << Matrix2x3F::Multiply(transformatrix, myVec).Y << std::endl;
+
+		transformatrix = Matrix2x3F::TransformMatrix({6, -3}, -90, {39, 45});
+		std::cout << "\n\n" << Matrix2x3F::Multiply(transformatrix, myVec).X << " " << Matrix2x3F::Multiply(transformatrix, myVec).Y << std::endl;
+
+		GenerateMap();
+	}
+
+    EXPORT void DLL_OnFrame()
+	{
+		//gameState = (GameState*)GameMemory;
+
+		auto mousePosition = Input::GetMousePosition();
+
+		UpdateCamera();
+		HandleInput();
+
+		Graphics::CalculTransformationMatrix();
+
+		grid.Update();
+		grid.Draw();
+
+		unitManager.UpdateUnits();
+		unitManager.DrawUnits();
+
+		DrawUi();
+
+		Graphics::DrawCircle(Vector2F::Zero, 100, Color::Red, 50);
+
+		//CopyGraphicBuffers();
+	}
+
+	EXPORT void DLL_SetGraphicBufferValues(float* vertices, int& verticesUsed, uint32_t* indices, int& indicesUsed)
+	{
+		memccpy(vertices, Graphics::vertexes, Graphics::vertexesUsed, Graphics::vertexesUsed * sizeof(Graphics::vertexes[0]));
+		verticesUsed = Graphics::vertexesUsed;
+		Graphics::vertexesUsed = 0; // reset the value because Clear() cannot be call inside the dll,
+
+		memccpy(indices, Graphics::indices,  Graphics::indicesUsed,  Graphics::indicesUsed  * sizeof(Graphics::indices[0]));
+		indicesUsed = Graphics::indicesUsed;
+		Graphics::indicesUsed = 0;
+	}
+}
+#endif
+

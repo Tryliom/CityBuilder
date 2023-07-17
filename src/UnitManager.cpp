@@ -1,5 +1,5 @@
 #include "UnitManager.h"
-#include "Window.h"
+#include "Graphics.h"
 #include "Timer.h"
 
 float unitSpeed = 100.f;
@@ -541,7 +541,7 @@ void UnitManager::DrawUnits()
 	{
 		Characters character = GetCharacter(unit.JobTileIndex);
 
-		Window::DrawObject({
+		Graphics::DrawObject({
             .Position = unit.Position,
             .Size = {unitSize, unitSize},
             .Texture = Texture(character),
