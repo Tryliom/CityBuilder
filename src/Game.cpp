@@ -158,6 +158,12 @@ void HandleInput()
 		selectedTileType = TileType::LogisticsCenter;
 	}
 
+	if (Input::IsKeyPressed(SAPP_KEYCODE_F))
+	{
+		// Spawn a unit
+		unitManager.AddUnit(Unit(grid.ToWorldPosition(grid.GetTiles(TileType::MayorHouse)[0]) + Vector2F{ Random::Range(0, 25), Random::Range(0, 25) }));
+	}
+
 	if (Input::IsMouseButtonHeld(SAPP_MOUSEBUTTON_LEFT))
 	{
 		auto mousePosition = Input::GetMousePosition();

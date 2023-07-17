@@ -344,7 +344,7 @@ void UnitManager::onTickUnitLogistician(Unit& unit)
 			{
 				if (pair.second == 0) continue;
 
-				auto storagePositions = GetStorageAroundFor(_grid.GetTilePosition(unit.JobTileIndex), 7, pair.first);
+				auto storagePositions = GetStorageAroundFor(_grid.GetTilePosition(unit.JobTileIndex), 20, pair.first);
 
 				unit.TargetTile = storagePositions[0];
 				unit.SetBehavior(UnitBehavior::Moving);
@@ -404,17 +404,20 @@ void UnitManager::onTickUnitLogistician(Unit& unit)
 				// Check if the unit has the resources to build it or need to go to a storage to get them
 				for (auto pair : *_grid.GetTile(tilePosition).Inventory)
 				{
-					int neededItems = Grid::GetNeededItemsToBuild(_grid.GetTile(tilePosition).Type, pair.first);
+					Items item = pair.first;
+					int quantity = pair.second;
 
-					if (pair.second >= neededItems) continue;
+					int neededItems = Grid::GetNeededItemsToBuild(_grid.GetTile(tilePosition).Type, item);
 
-					int itemsToGet = neededItems - pair.second;
+					if (quantity >= neededItems) continue;
+
+					int itemsToGet = neededItems - quantity;
 
 					// Check if the unit has the resources in his inventory or has his inventory full of this item
-					if (unit.Inventory->at(pair.first) >= itemsToGet || unit.Inventory->at(pair.first) == GetMaxItemsFor(unit, pair.first)) continue;
+					if (unit.Inventory->at(item) >= itemsToGet || unit.Inventory->at(item) == GetMaxItemsFor(unit, item)) continue;
 
 					// Search for a storage that has the resources
-					auto storagePositions = GetStorageThatHave(pair.first);
+					auto storagePositions = GetStorageThatHave(item);
 
 					if (storagePositions.empty()) continue;
 
@@ -507,7 +510,7 @@ bool UnitManager::IsTileTakenCareBy(TilePosition position, Characters character)
 	{
 		if (unit.JobTileIndex == -1) continue;
 
-		if (unit.CurrentBehavior == UnitBehavior::Moving || unit.CurrentBehavior == UnitBehavior::Working && unit.TargetTile == position && GetCharacter(unit.JobTileIndex) == character)
+		if ((unit.CurrentBehavior == UnitBehavior::Moving || unit.CurrentBehavior == UnitBehavior::Working) && unit.TargetTile == position && GetCharacter(unit.JobTileIndex) == character)
 		{
 			return true;
 		}
@@ -719,5 +722,3 @@ std::map<Items, int> UnitManager::GetAllUsableItems()
 
 	return items;
 }
-
-
