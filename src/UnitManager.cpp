@@ -555,7 +555,7 @@ bool UnitManager::IsTileJobFull(int jobTileIndex)
 
 	switch (tile.Type)
 	{
-		case TileType::Sawmill: return CountHowManyUnitAreWorkingOn(jobTileIndex) >= 3;
+		case TileType::Sawmill: return CountHowManyUnitAreWorkingOn(jobTileIndex) >= 2;
 		case TileType::BuilderHut: return CountHowManyUnitAreWorkingOn(jobTileIndex) >= 1;
 		case TileType::Quarry: return CountHowManyUnitAreWorkingOn(jobTileIndex) >= 2;
 		case TileType::LogisticsCenter: return CountHowManyUnitAreWorkingOn(jobTileIndex) >= 1;
