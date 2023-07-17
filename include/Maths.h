@@ -288,21 +288,21 @@ struct Matrix2x3
 
         return result;
     }
-    static float GetDet(Matrix2x3<T> mat)
+    static float GetDet2x3(Matrix2x3<T> mat)
     {
         float aei = mat.values[0][0] * mat.values[1][1] * 1;
         float bfg = mat.values[0][1] * mat.values[1][2] * 0;
         float cdh = mat.values[0][2] * mat.values[1][0] * 0;
 
-        float somme1 = aei + bfg + cdh;
+        float sum1 = aei + bfg + cdh;
 
         float afh = mat.values[0][0] * mat.values[1][2] * 0;
         float bdi = mat.values[0][1] * mat.values[1][0] * 1;
         float ceg = mat.values[0][2] * mat.values[1][1] * 0;
 
-        float somme2 = afh + bdi + ceg;
+        float sum2 = afh + bdi + ceg;
 
-        return somme1 - somme2;
+        return sum1 - sum2;
     }
     static float GetDet2x2(T n1, T n2,
                            T n3, T n4)
@@ -312,7 +312,7 @@ struct Matrix2x3
 
     static Matrix2x3<T> Invert(Matrix2x3<T> mat)
     {
-        float det = GetDet(mat);
+        float det = GetDet2x3(mat);
         if (det == 0)
         {
             return IdentityMatrix();
