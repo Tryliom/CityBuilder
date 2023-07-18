@@ -5,6 +5,7 @@
 #include "Timer.h"
 #include "Unit.h"
 #include "Grid.h"
+#include "Random.h"
 #include "Logger.h"
 
 float unitSpeed = 100.f;
@@ -15,7 +16,7 @@ std::map<TileType, std::map<Items, int>>* unitMaxInventory = new std::map<TileTy
 {
 	{TileType::Sawmill, {{Items::Wood, 30}}},
 	{TileType::BuilderHut, {{Items::Wood, 30}, {Items::Stone, 20}}},
-	{TileType::LogisticsCenter, {{Items::Wood, 50}, {Items::Stone, 50}}}
+	{TileType::LogisticsCenter, {{Items::Wood, 50}, {Items::Stone, 50}, {Items::Coal, 25}, {Items::IronOre, 25}, {Items::IronIngot, 10}}},
 };
 
 UnitManager::UnitManager(Grid& grid) : _grid(grid) {}
@@ -531,12 +532,27 @@ void UnitManager::OnTickUnitQuarry(Unit& unit)
 
 		Tile& tile = _grid.GetTile(unit.TargetTile);
 
+		int stoneLeftSpace = Grid::GetLeftSpaceForItems(tile, Items::Stone);
+		int coalLeftSpace = Grid::GetLeftSpaceForItems(tile, Items::Coal);
+		int ironOreLeftSpace = Grid::GetLeftSpaceForItems(tile, Items::IronOre);
+
 		// Check if the quarry is full
-		if (Grid::GetLeftSpaceForItems(tile, Items::Stone) > 0)
+		if (stoneLeftSpace != 0 || coalLeftSpace != 0 || ironOreLeftSpace != 0)
 		{
-			// Add stone to the quarry
-			tile.Inventory->at(Items::Stone) += 1;
-			//TODO: Add more resources with a chance
+			auto rand = Random::Range(0, 100);
+
+			if (rand < 5 && ironOreLeftSpace != 0)
+			{
+				tile.Inventory->at(Items::IronOre) += Random::Range(1, 5);
+			}
+			else if (rand < 10 && coalLeftSpace != 0)
+			{
+				tile.Inventory->at(Items::Coal) += Random::Range(1, 3);
+			}
+			else if (stoneLeftSpace != 0)
+			{
+				tile.Inventory->at(Items::Stone) += 1;
+			}
 		}
 
 		unit.SetBehavior(UnitBehavior::Idle);

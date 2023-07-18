@@ -35,7 +35,10 @@ struct Unit
 	std::map<Items, int>* Inventory = new std::map<Items, int>
 	{
 		{ Items::Wood, 0 },
-		{ Items::Stone, 0 }
+		{ Items::Stone, 0 },
+		{ Items::Coal, 0 },
+		{ Items::IronOre, 0 },
+		{ Items::IronIngot, 0 }
 	};
 
     void SetBehavior(UnitBehavior behavior)

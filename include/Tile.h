@@ -40,7 +40,10 @@ struct Tile
     std::map<Items, int>* Inventory = new std::map<Items, int>
 	{
 		{ Items::Wood, 0 },
-		{ Items::Stone, 0 }
+		{ Items::Stone, 0 },
+		{ Items::Coal, 0 },
+		{ Items::IronOre, 0 },
+		{ Items::IronIngot, 0 }
 	};
 
 	void Reset()
@@ -49,8 +52,12 @@ struct Tile
 		Progress = 0.f;
 		IsBuilt = false;
 		NeedToBeDestroyed = false;
-		Inventory->at(Items::Wood) = 0;
-		Inventory->at(Items::Stone) = 0;
 		TreeGrowth = 0.f;
+		TreeSpawnTimer = 0.f;
+
+		for (auto& item : *Inventory)
+		{
+			item.second = 0;
+		}
 	}
 };

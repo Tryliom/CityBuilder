@@ -9,9 +9,9 @@
 std::map<TileType, std::map<Items, int>>* tileMaxInventory = new std::map<TileType, std::map<Items, int>>
 {
 	{TileType::Sawmill, {{Items::Wood, 50}}},
-	{TileType::Storage, {{Items::Wood, 100}, {Items::Stone, 100}}},
-	{TileType::LogisticsCenter, {{Items::Wood, 100}, {Items::Stone, 100}}},
-	{TileType::Quarry, {{Items::Stone, 50}}},
+	{TileType::Storage, {{Items::Wood, 100}, {Items::Stone, 100}, {Items::Coal, 50}, {Items::IronOre, 100}, {Items::IronIngot, 20}}},
+	{TileType::LogisticsCenter, {{Items::Wood, 50}, {Items::Stone, 50}, {Items::Coal, 25}, {Items::IronOre, 50}, {Items::IronIngot, 10}}},
+	{TileType::Quarry, {{Items::Stone, 50}, {Items::Coal, 25}, {Items::IronOre, 50}}},
 	{TileType::MayorHouse, {{Items::Wood, 15}, {Items::Stone, 15}}},
 };
 
