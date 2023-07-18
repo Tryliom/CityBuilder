@@ -32,6 +32,13 @@ void UnitManager::UpdateUnits()
 		{
 			Tile& tile = _grid.GetTile(unit.JobTileIndex);
 
+			if (tile.Type == TileType::None)
+			{
+				unit.JobTileIndex = -1;
+				unit.SetBehavior(UnitBehavior::Idle);
+				return;
+			}
+
 			unit.TimeSinceLastAction += Timer::SmoothDeltaTime;
 
 			// Always the same for all units

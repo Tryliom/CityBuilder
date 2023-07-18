@@ -191,25 +191,37 @@ void HandleInput()
 			// Cancel the destruction
 			tile.NeedToBeDestroyed = false;
 			tile.Progress = 0;
-			return;
 		}
-
 		// Can be destroyed immediately
-		if (tile.Type == TileType::Road || !tile.IsBuilt)
+		else if (tile.Type == TileType::Road || !tile.IsBuilt)
 		{
 			tile.Type = tile.Type == TileType::Quarry ? TileType::Stone : TileType::None;
 			tile.IsBuilt = true;
 			tile.NeedToBeDestroyed = false;
 			tile.Progress = 0;
-			return;
 		}
-
 		// Can be destroyed by a builder
-		if (tile.Type != TileType::None && tile.Type != TileType::MayorHouse)
+		else if (grid.CanBeDestroyed(tilePosition))
 		{
 			tile.Progress = 0;
 			tile.NeedToBeDestroyed = true;
 		}
+	}
+
+	if (Input::IsMouseButtonHeld(SAPP_MOUSEBUTTON_RIGHT))
+	{
+		// Remove some tiles with permissions and other are set to be destroyed by a builder
+		auto mousePosition = Input::GetMousePosition();
+		auto mouseWorldPosition = Window::ScreenToWorld(mousePosition);
+		auto tilePosition = grid.GetTilePosition(mouseWorldPosition);
+		auto& tile = grid.GetTile(tilePosition);
+
+		if (tile.Type != TileType::Road) return;
+
+		tile.Type = TileType::None;
+		tile.IsBuilt = true;
+		tile.NeedToBeDestroyed = false;
+		tile.Progress = 0;
 	}
 }
 

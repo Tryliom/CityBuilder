@@ -78,6 +78,7 @@ public:
 	static float GetSpeedFactor(TileType type);
 
 	bool CanBuild(TilePosition position, TileType type);
+	bool CanBeDestroyed(TilePosition position);
 
 	// Pathfinding
 	std::vector<TilePosition> GetPath(TilePosition start, TilePosition end);

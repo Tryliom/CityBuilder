@@ -479,6 +479,19 @@ bool Grid::CanBuild(TilePosition position, TileType type)
 	return false;
 }
 
+bool Grid::CanBeDestroyed(TilePosition position)
+{
+	Tile& tile = GetTile(position);
+
+	if (tile.Type == TileType::None) return false;
+	if (tile.Type == TileType::LogisticsCenter && GetTiles(TileType::LogisticsCenter).size() == 1) return false;
+	if (tile.Type == TileType::BuilderHut && GetTiles(TileType::BuilderHut).size() == 1) return false;
+	if (tile.Type == TileType::MayorHouse) return false;
+	if (!tile.IsBuilt) return false;
+
+	return true;
+}
+
 int Grid::GetMaxItemsStored(const Tile& tile, Items item)
 {
 	if (!tile.IsBuilt || !tileMaxInventory->contains(tile.Type) || !tileMaxInventory->at(tile.Type).contains(item))
