@@ -82,5 +82,5 @@ public:
 
 	// Pathfinding
 	std::vector<TilePosition> GetPath(TilePosition start, TilePosition end);
-	[[nodiscard]] std::vector<TilePosition> GetNeighbors(TilePosition position) const;
+	[[nodiscard]] std::vector<TilePosition> GetNeighbours(TilePosition position) const;
 };

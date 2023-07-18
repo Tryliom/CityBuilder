@@ -33,6 +33,8 @@ struct Tile
 
     // Tree
     float TreeGrowth = 0.f;
+	// When it met 30.f, it has a chance to spawn a new tree around it
+	float TreeSpawnTimer = 0.f;
 
     // Storage
     std::map<Items, int>* Inventory = new std::map<Items, int>

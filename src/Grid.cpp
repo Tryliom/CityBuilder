@@ -254,6 +254,31 @@ void Grid::Update()
                 tile.TreeGrowth += smoothDeltaTime;
             }
 
+			// Check tree spawn, have a 3% chance to spawn a tree on a neighbour tile every 30sec
+			if (tile.Type == TileType::Tree)
+			{
+				tile.TreeSpawnTimer += smoothDeltaTime;
+
+				if (tile.TreeSpawnTimer >= 30.f)
+				{
+					tile.TreeSpawnTimer = 0.f;
+
+					auto neighbours = GetNeighbours({x, y});
+
+					for (auto neighbour : neighbours)
+					{
+						Tile& tileNeighbour = GetTile(neighbour);
+
+						if (tileNeighbour.Type == TileType::None && Random::Range(0, 100) < 1)
+						{
+							tileNeighbour.Type = TileType::Tree;
+							tileNeighbour.TreeGrowth = 0.f;
+							tileNeighbour.TreeSpawnTimer = 0.f;
+						}
+					}
+				}
+			}
+
             // Check construction
             if (!tile.IsBuilt && tile.Type != TileType::None)
             {
@@ -619,7 +644,7 @@ std::vector<TilePosition> Grid::GetPath(TilePosition start, TilePosition end)
 		openList.erase(openList.begin() + lowestScoreIndex);
 		closedList.push_back(current);
 
-		for (auto& neighbour : GetNeighbors(current))
+		for (auto& neighbour : GetNeighbours(current))
 		{
 			if (std::find(closedList.begin(), closedList.end(), neighbour) != closedList.end())
 			{
@@ -647,7 +672,7 @@ std::vector<TilePosition> Grid::GetPath(TilePosition start, TilePosition end)
 	return path;
 }
 
-std::vector<TilePosition> Grid::GetNeighbors(TilePosition position) const
+std::vector<TilePosition> Grid::GetNeighbours(TilePosition position) const
 {
 	std::vector<TilePosition> neighbours = std::vector<TilePosition>();
 
