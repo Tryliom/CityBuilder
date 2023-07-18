@@ -46,11 +46,6 @@ void InitGame()
     // Audio::PlaySoundClip(testTheme, 1.f, 440, 0, 0, true);
 
 	GenerateMap();
-
-	// tilemap->AddImagesAtRow(Graphics::tileSheets);
-
-	// Graphics::textureWidth  = tilemap->GetWidth();
-	// Graphics::textureHeight = tilemap->GetHeight();
 }
 
 void OnFrame()
@@ -108,8 +103,10 @@ extern "C"         // we need to export the C interface
 
     EXPORT void DLL_OnFrame(void* gameMemory, FrameData* frameData, TimerData* timerData)
 	{
+		// Update the gameState. When a new DLL is created, it will automatically set his gameState to the old one.
 		gameState = (GameState*)gameMemory;
 
+		// Set the camera and textures data in the new DLL (not clean but it works).
 		if (Graphics::textureWidth == 0)
 		{
 			Graphics::camera = gameState->Camera;
@@ -124,15 +121,16 @@ extern "C"         // we need to export the C interface
 
 		OnFrame();
 
-		Graphics::DrawRect(Vector2F(100, 100), Vector2F(200, 200), Color::Red);
-
+		// Update the current camera state.
 		gameState->Camera = Graphics::camera;
 
+		// Send the frame data to the engine.
 		frameData->vertexBufferPtr  = Graphics::vertexes;
 		frameData->vertexBufferUsed = Graphics::vertexesUsed;
 		frameData->indexBufferPtr   = Graphics::indices;
 		frameData->indexBufferUsed  = Graphics::indicesUsed;
 
+		// Get the timer data from the engine.
 		Timer::Time = timerData->Time;
 		Timer::DeltaTime = timerData->DeltaTime;
 		Timer::SmoothDeltaTime = timerData->SmoothDeltaTime;

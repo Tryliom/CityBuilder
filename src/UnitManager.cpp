@@ -1,7 +1,6 @@
 #include "UnitManager.h"
 #include "Graphics.h"
 #include "Timer.h"
-#include "Logger.h"
 
 float unitSpeed = 100.f;
 int unitSize = 10;

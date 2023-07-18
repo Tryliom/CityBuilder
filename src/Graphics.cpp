@@ -1,6 +1,5 @@
 #include "Graphics.h"
 #include "Constants.h"
-#include "Logger.h"
 
 #include <assert.h>
 #include <iostream>
