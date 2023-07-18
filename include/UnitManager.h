@@ -32,6 +32,7 @@ private:
 	Characters GetCharacter(int jobTileIndex);
 	bool IsTileTakenCareBy(TilePosition position, Characters character);
 	bool IsTileJobFull(int jobTileIndex);
+	int GetMaxUnitOnJob(int jobTileIndex);
 	int CountHowManyUnitAreWorkingOn(int jobTileIndex);
 
 	// Utility
@@ -43,6 +44,7 @@ private:
 	// Get all tiles that need items to be built but has enough total items to be built
 	std::vector<TilePosition> GetTilesThatNeedItemsToBeBuilt();
 	std::vector<TilePosition> GetStorageThatHave(Items item);
+	std::vector<int> GetAvailableJobs();
 
 	// Inventory
 	int GetMaxItemsFor(Unit& unit, Items item);

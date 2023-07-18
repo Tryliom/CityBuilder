@@ -1,3 +1,4 @@
+#include <algorithm>
 #include "UnitManager.h"
 
 #include "Window.h"
@@ -93,34 +94,20 @@ void UnitManager::UpdateUnits()
 		}
 		else
 		{
-			auto tryToGetJobFor = [&](TileType type)
+			// Try to get a job, priority to the tile with the lowest amount of workers or 0
+			auto jobs = GetAvailableJobs();
+
+			if (jobs.empty()) continue;
+
+			std::sort(jobs.begin(), jobs.end(), [&](int a, int b)
 			{
-				auto jobTiles = _grid.GetTiles(type);
+				int aWorkers = CountHowManyUnitAreWorkingOn(a);
+				int bWorkers = CountHowManyUnitAreWorkingOn(b);
 
-				for (auto& jobTile : jobTiles)
-				{
-					int jobTileIndex = _grid.GetTileIndex(jobTile);
+				return aWorkers < bWorkers;
+			});
 
-					if (IsTileJobFull(jobTileIndex)) continue;
-
-					unit.JobTileIndex = jobTileIndex;
-				}
-			};
-
-			auto jobs =
-				{
-					TileType::Sawmill,
-					TileType::BuilderHut,
-					TileType::Quarry,
-					TileType::LogisticsCenter
-				};
-
-			for (auto& job : jobs)
-			{
-				tryToGetJobFor(job);
-
-				if (unit.JobTileIndex != -1) break;
-			}
+			unit.JobTileIndex = jobs[0];
 		}
 
 		// Remove the overflow of items
@@ -553,14 +540,23 @@ bool UnitManager::IsTileJobFull(int jobTileIndex)
 
 	if (!tile.IsBuilt) return true;
 
+	return CountHowManyUnitAreWorkingOn(jobTileIndex) >= GetMaxUnitOnJob(jobTileIndex);
+}
+
+int UnitManager::GetMaxUnitOnJob(int jobTileIndex)
+{
+	Tile& tile = _grid.GetTile(jobTileIndex);
+
+	if (!tile.IsBuilt) return true;
+
 	switch (tile.Type)
 	{
-		case TileType::Sawmill: return CountHowManyUnitAreWorkingOn(jobTileIndex) >= 2;
-		case TileType::BuilderHut: return CountHowManyUnitAreWorkingOn(jobTileIndex) >= 1;
-		case TileType::Quarry: return CountHowManyUnitAreWorkingOn(jobTileIndex) >= 2;
-		case TileType::LogisticsCenter: return CountHowManyUnitAreWorkingOn(jobTileIndex) >= 1;
+		case TileType::Sawmill: return 2;
+		case TileType::BuilderHut: return 1;
+		case TileType::Quarry: return 2;
+		case TileType::LogisticsCenter: return 1;
 
-		default: return true;
+		default: return 0;
 	}
 }
 
@@ -685,6 +681,23 @@ std::vector<TilePosition> UnitManager::GetStorageThatHave(Items item)
 	});
 
 	return storages;
+}
+
+std::vector<int> UnitManager::GetAvailableJobs()
+{
+	std::vector<int> jobs = std::vector<int>();
+
+	_grid.ForEachTile([&](Tile& tile, TilePosition position)
+	{
+		int index = _grid.GetTileIndex(position);
+
+		if (tile.Type == TileType::None) return;
+		if (IsTileJobFull(index)) return;
+
+		jobs.push_back(index);
+	});
+
+	return jobs;
 }
 
 int UnitManager::GetMaxItemsFor(Unit& unit, Items item)
