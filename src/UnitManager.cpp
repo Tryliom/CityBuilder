@@ -58,7 +58,7 @@ void UnitManager::UpdateUnits()
 					else
 					{
 						TilePosition nextTilePosition = unit.PathToTargetTile.front();
-						Vector2F nextTileWorldPosition = _grid.ToWorldPosition(nextTilePosition) + Vector2F(0.5f, 0.5f) * ((float) _grid.GetTileSize() - unitSize / 2.f);
+						Vector2F nextTileWorldPosition = _grid.ToWorldPosition(nextTilePosition) + Vector2F(0.5f, 0.5f) * ((float) _grid.GetTileSize() - unitSize);
 						float speedFactor = 1.f;
 
 						// Check if the next tile is a road
@@ -68,6 +68,12 @@ void UnitManager::UpdateUnits()
 						}
 
 						speedFactor += Grid::GetSpeedFactor(tile.Type);
+
+						// Check if it's the last tile to set the target position to the center-bottom of the tile
+						if (unit.PathToTargetTile.size() == 1)
+						{
+							nextTileWorldPosition += Vector2F(0.f, 1.f) * ((float) _grid.GetTileSize()) / 2.f;
+						}
 
 						// Move it to the center of the next tile
 						unit.Position += (nextTileWorldPosition - unit.Position).Normalized() * unitSpeed * speedFactor * Timer::SmoothDeltaTime;
