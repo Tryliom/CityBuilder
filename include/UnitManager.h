@@ -7,10 +7,10 @@
 class UnitManager
 {
 public:
-	explicit UnitManager(Grid& grid);
+	UnitManager() = default;
 
 private:
-	Grid& _grid;
+	Grid* _grid;
 	std::vector<Unit> _units;
 
 	void OnTickUnitSawMill(Unit& unit);
@@ -32,4 +32,6 @@ public:
 	void DrawUnits();
 
 	void AddUnit(Unit unit);
+
+	void SetGrid(Grid* grid);
 };

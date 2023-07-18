@@ -23,12 +23,21 @@ void DrawUi();
 
 float speed = 500.f;
 
-Grid grid(5000, 5000, 100);
-UnitManager unitManager(grid);
+struct GameState
+{
+	Camera Camera;
 
-TileType selectedTileType = TileType::Sawmill;
+	Grid Grid;
+	UnitManager UnitManager;
 
-void InitGame(Image* tilemap)
+	TileType SelectedTileType;
+};
+
+GameState* gameState = nullptr;
+
+bool newDLL = false;
+
+void InitGame()
 {
     /*Audio::SetupSound();
 
@@ -38,10 +47,10 @@ void InitGame(Image* tilemap)
 
 	GenerateMap();
 
-	tilemap->AddImagesAtRow(Graphics::tileSheets);
+	// tilemap->AddImagesAtRow(Graphics::tileSheets);
 
-	Graphics::textureWidth  = tilemap->GetWidth();
-	Graphics::textureHeight = tilemap->GetHeight();
+	// Graphics::textureWidth  = tilemap->GetWidth();
+	// Graphics::textureHeight = tilemap->GetHeight();
 }
 
 void OnFrame()
@@ -56,11 +65,11 @@ void OnFrame()
 
 	Graphics::CalculTransformationMatrix();
 
-	grid.Update();
-	grid.Draw();
+	gameState->Grid.Update();
+	gameState->Grid.Draw();
 
-	unitManager.UpdateUnits();
-	unitManager.DrawUnits();
+	gameState->UnitManager.UpdateUnits();
+	gameState->UnitManager.DrawUnits();
 
 	DrawUi();
 }
@@ -79,9 +88,17 @@ extern "C"         // we need to export the C interface
 		Input::OnInput(event);
 	}
 
-	EXPORT void DLL_InitGame(Image* tilemap)
+	EXPORT void DLL_InitGame(void* gameMemory, Image* tilemap)
 	{
-		InitGame(tilemap);
+		gameState = (GameState*)gameMemory;
+
+		gameState->Camera = Graphics::camera;
+
+		gameState->Grid = Grid(5000, 5000, 100);
+		gameState->UnitManager.SetGrid(&gameState->Grid);
+		gameState->SelectedTileType = TileType::Sawmill;
+	
+		InitGame();
 
 		tilemap->AddImagesAtRow(Graphics::tileSheets);
 
@@ -89,11 +106,13 @@ extern "C"         // we need to export the C interface
 		Graphics::textureHeight = tilemap->GetHeight();
 	}
 
-    EXPORT void DLL_OnFrame(FrameData* frameData, TimerData* timerData)
+    EXPORT void DLL_OnFrame(void* gameMemory, FrameData* frameData, TimerData* timerData)
 	{
+		gameState = (GameState*)gameMemory;
+
 		if (Graphics::textureWidth == 0)
 		{
-			GenerateMap();
+			Graphics::camera = gameState->Camera;
 
 			Image tilemap;
 
@@ -105,16 +124,14 @@ extern "C"         // we need to export the C interface
 
 		OnFrame();
 
-		Graphics::DrawRect(Vector2F(100, 0), Vector2F(200, 200), Color::Red);
-		Graphics::DrawRect(Vector2F(300, 0), Vector2F(200, 200), Color::Blue);
+		Graphics::DrawRect(Vector2F(100, 100), Vector2F(200, 200), Color::Red);
+
+		gameState->Camera = Graphics::camera;
 
 		frameData->vertexBufferPtr  = Graphics::vertexes;
 		frameData->vertexBufferUsed = Graphics::vertexesUsed;
 		frameData->indexBufferPtr   = Graphics::indices;
 		frameData->indexBufferUsed  = Graphics::indicesUsed;
-
-		// LOG("fd v used " << frameData->vertexBufferUsed << " G v used " << Graphics::vertexesUsed);
-		// LOG("fd I used " << frameData->indexBufferUsed << " G I used " << Graphics::indicesUsed);
 
 		Timer::Time = timerData->Time;
 		Timer::DeltaTime = timerData->DeltaTime;
@@ -169,42 +186,42 @@ void HandleInput()
 {
 	if (Input::IsKeyPressed(SAPP_KEYCODE_1))
 	{
-		selectedTileType = TileType::Sawmill;
+		gameState->SelectedTileType = TileType::Sawmill;
 	}
 	if (Input::IsKeyPressed(SAPP_KEYCODE_2))
 	{
-		selectedTileType = TileType::BuilderHut;
+		gameState->SelectedTileType = TileType::BuilderHut;
 	}
 	if (Input::IsKeyPressed(SAPP_KEYCODE_3))
 	{
-		selectedTileType = TileType::Quarry;
+		gameState->SelectedTileType = TileType::Quarry;
 	}
 	if (Input::IsKeyPressed(SAPP_KEYCODE_4))
 	{
-		selectedTileType = TileType::Storage;
+		gameState->SelectedTileType = TileType::Storage;
 	}
 	if (Input::IsKeyPressed(SAPP_KEYCODE_5))
 	{
-		selectedTileType = TileType::House;
+		gameState->SelectedTileType = TileType::House;
 	}
 	if (Input::IsKeyPressed(SAPP_KEYCODE_6))
 	{
-		selectedTileType = TileType::Road;
+		gameState->SelectedTileType = TileType::Road;
 	}
 	if (Input::IsKeyPressed(SAPP_KEYCODE_7))
 	{
-		selectedTileType = TileType::LogisticsCenter;
+		gameState->SelectedTileType = TileType::LogisticsCenter;
 	}
 
 	if (Input::IsMouseButtonHeld(SAPP_MOUSEBUTTON_LEFT))
 	{
 		auto mousePosition = Input::GetMousePosition();
 		auto mouseWorldPosition = Graphics::ScreenToWorld(mousePosition);
-		auto tilePosition = grid.GetTilePosition(mouseWorldPosition);
+		auto tilePosition = gameState->Grid.GetTilePosition(mouseWorldPosition);
 
-		if (grid.CanBuild(tilePosition, selectedTileType))
+		if (gameState->Grid.CanBuild(tilePosition, gameState->SelectedTileType))
 		{
-			grid.SetTile(tilePosition, Tile(selectedTileType));
+			gameState->Grid.SetTile(tilePosition, Tile(gameState->SelectedTileType));
 		}
 	}
 
@@ -213,8 +230,8 @@ void HandleInput()
 		// Remove some tiles with permissions and other are set to be destroyed by a builder
 		auto mousePosition = Input::GetMousePosition();
 		auto mouseWorldPosition = Graphics::ScreenToWorld(mousePosition);
-		auto tilePosition = grid.GetTilePosition(mouseWorldPosition);
-		auto& tile = grid.GetTile(tilePosition);
+		auto tilePosition = gameState->Grid.GetTilePosition(mouseWorldPosition);
+		auto& tile = gameState->Grid.GetTile(tilePosition);
 
 		if (tile.Type == TileType::None) return;
 
@@ -250,7 +267,7 @@ void DrawUi()
 {
 	Texture selectedTileTexture;
 
-	switch (selectedTileType)
+	switch (gameState->SelectedTileType)
 	{
 		case TileType::Sawmill:
 			selectedTileTexture = Texture(Buildings::Sawmill);
@@ -290,22 +307,22 @@ void GenerateMap()
 
 	auto mayorHouse = Tile(TileType::MayorHouse);
 	mayorHouse.IsBuilt = true;
-	grid.SetTile(grid.GetTilePosition(centerOfScreen), mayorHouse);
+	gameState->Grid.SetTile(gameState->Grid.GetTilePosition(centerOfScreen), mayorHouse);
 
 	auto builderHouse = Tile(TileType::BuilderHut);
 	builderHouse.IsBuilt = true;
-	grid.SetTile(grid.GetTilePosition(centerOfScreen) + TilePosition{ 2, 0}, builderHouse);
+	gameState->Grid.SetTile(gameState->Grid.GetTilePosition(centerOfScreen) + TilePosition{ 2, 0}, builderHouse);
 
 	auto logisticsCenter = Tile(TileType::LogisticsCenter);
 	logisticsCenter.IsBuilt = true;
-	grid.SetTile(grid.GetTilePosition(centerOfScreen) + TilePosition{ 0, 2 }, logisticsCenter);
+	gameState->Grid.SetTile(gameState->Grid.GetTilePosition(centerOfScreen) + TilePosition{ 0, 2 }, logisticsCenter);
 
 	// Generate a random seed for the map
 	Random::SetSeed(Random::Range(0, 1000000));
 	Random::UseSeed();
 
 	// Place random trees
-	grid.ForEachTile([&](Tile& tile, TilePosition position)
+	gameState->Grid.ForEachTile([&](Tile& tile, TilePosition position)
 	{
 		if (tile.Type == TileType::None)
 		{
@@ -319,7 +336,7 @@ void GenerateMap()
 	});
 
 	// Place random rocks
-	grid.ForEachTile([&](Tile& tile, TilePosition position)
+	gameState->Grid.ForEachTile([&](Tile& tile, TilePosition position)
 	{
 		if (tile.Type == TileType::None)
 		{
@@ -335,6 +352,7 @@ void GenerateMap()
 
 	for (int i = 0; i < 3; i++)
 	{
-		unitManager.AddUnit(Unit{.Position = grid.ToWorldPosition(grid.GetTiles(TileType::MayorHouse)[0]) + Vector2F{ Random::Range(0, 25), Random::Range(0, 25) }});
+		gameState->UnitManager.AddUnit(Unit{.Position = gameState->Grid.ToWorldPosition(
+			gameState->Grid.GetTiles(TileType::MayorHouse)[0]) + Vector2F{ Random::Range(0, 25), Random::Range(0, 25) }});
 	}
 }

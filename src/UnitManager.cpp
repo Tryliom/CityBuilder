@@ -1,12 +1,11 @@
 #include "UnitManager.h"
 #include "Graphics.h"
 #include "Timer.h"
+#include "Logger.h"
 
 float unitSpeed = 100.f;
 int unitSize = 10;
 float unitProgress;
-
-UnitManager::UnitManager(Grid& grid) : _grid(grid) {}
 
 void UnitManager::AddUnit(Unit unit)
 {
@@ -19,14 +18,14 @@ void UnitManager::UpdateUnits()
 	{
 		if (unit.JobTileIndex != -1)
 		{
-			Tile& tile = _grid.GetTile(unit.JobTileIndex);
+			Tile& tile = _grid->GetTile(unit.JobTileIndex);
 
 			unit.TimeSinceLastAction += Timer::SmoothDeltaTime;
 
 			// Always the same for all units
 			if (unit.CurrentBehavior == UnitBehavior::Moving)
 			{
-				auto targetPosition = _grid.ToWorldPosition(unit.TargetTile);
+				auto targetPosition = _grid->ToWorldPosition(unit.TargetTile);
 
 				if (targetPosition == unit.Position)
 				{
@@ -56,11 +55,11 @@ void UnitManager::UpdateUnits()
 		{
 			auto tryToGetJobFor = [&](TileType type)
 			{
-				auto jobTiles = _grid.GetTiles(type);
+				auto jobTiles = _grid->GetTiles(type);
 
 				for (auto& jobTile : jobTiles)
 				{
-					int jobTileIndex = _grid.GetTileIndex(jobTile);
+					int jobTileIndex = _grid->GetTileIndex(jobTile);
 
 					if (IsTileJobFull(jobTileIndex)) continue;
 
@@ -96,7 +95,7 @@ void UnitManager::UpdateUnits()
 	}
 
 	// Check if there is enough place for a new unit
-	int housesCount = _grid.GetTiles(TileType::House).size();
+	int housesCount = _grid->GetTiles(TileType::House).size();
 
 	if (_units.size() < housesCount * 3)
 	{
@@ -106,30 +105,30 @@ void UnitManager::UpdateUnits()
 		{
 			unitProgress = 0.f;
 
-			_units.push_back(Unit{.Position = _grid.ToWorldPosition(_grid.GetTiles(TileType::MayorHouse)[0])});
+			_units.push_back(Unit{.Position = _grid->ToWorldPosition(_grid->GetTiles(TileType::MayorHouse)[0])});
 		}
 	}
 }
 
 void UnitManager::OnTickUnitSawMill(Unit& unit)
 {
-	Tile& jobTile = _grid.GetTile(unit.JobTileIndex);
+	Tile& jobTile = _grid->GetTile(unit.JobTileIndex);
 
 	if (unit.CurrentBehavior == UnitBehavior::Idle)
 	{
 		if (unit.Logs >= GetMaxLogsFor(unit) / 2 && jobTile.Logs < Grid::GetMaxLogsStored(jobTile))
 		{
 			// Go back to the sawmill to drop the logs
-			unit.TargetTile = _grid.GetTilePosition(unit.JobTileIndex);
+			unit.TargetTile = _grid->GetTilePosition(unit.JobTileIndex);
 			unit.SetBehavior(UnitBehavior::Moving);
 		}
 
 		// Check if there is a full tree
-		auto treePositions = _grid.GetTiles(TileType::Tree, _grid.GetTilePosition(unit.JobTileIndex), 3);
+		auto treePositions = _grid->GetTiles(TileType::Tree, _grid->GetTilePosition(unit.JobTileIndex), 3);
 
 		for (auto& treePosition : treePositions)
 		{
-			auto& treeTile = _grid.GetTile(treePosition);
+			auto& treeTile = _grid->GetTile(treePosition);
 
 			if (treeTile.TreeGrowth < 30.f || IsTileTakenCareBy(treePosition, Characters::Lumberjack)) continue;
 
@@ -142,14 +141,14 @@ void UnitManager::OnTickUnitSawMill(Unit& unit)
 			if (unit.Logs > 0 && jobTile.Logs < Grid::GetMaxLogsStored(jobTile))
 			{
 				// Go back to the sawmill to drop the logs
-				unit.TargetTile = _grid.GetTilePosition(unit.JobTileIndex);
+				unit.TargetTile = _grid->GetTilePosition(unit.JobTileIndex);
 				unit.SetBehavior(UnitBehavior::Moving);
 			}
 		}
 	}
 	else if (unit.CurrentBehavior == UnitBehavior::Working)
 	{
-		Tile& tile = _grid.GetTile(unit.TargetTile);
+		Tile& tile = _grid->GetTile(unit.TargetTile);
 
 		if (tile.Type == TileType::Sawmill)
 		{
@@ -181,21 +180,21 @@ void UnitManager::OnTickUnitBuilderHut(Unit& unit)
 		if (unit.Logs > 0 || unit.Rocks > 0)
 		{
 			// Search for a storage free space to drop the resources, first search to drop the logs, then the rocks
-			auto storagePositions = _grid.GetTiles(TileType::Storage, _grid.GetTilePosition(unit.JobTileIndex), 5);
-			Tile& mayorHouseTile = _grid.GetTile(_grid.GetTiles(TileType::MayorHouse)[0]);
+			auto storagePositions = _grid->GetTiles(TileType::Storage, _grid->GetTilePosition(unit.JobTileIndex), 5);
+			Tile& mayorHouseTile = _grid->GetTile(_grid->GetTiles(TileType::MayorHouse)[0]);
 
 			if (unit.Logs > 0)
 			{
 				if (mayorHouseTile.Logs < Grid::GetMaxLogsStored(mayorHouseTile))
 				{
-					unit.TargetTile = _grid.GetTiles(TileType::MayorHouse)[0];
+					unit.TargetTile = _grid->GetTiles(TileType::MayorHouse)[0];
 					unit.SetBehavior(UnitBehavior::Moving);
 				}
 				else
 				{
 					for (auto& storagePosition: storagePositions)
 					{
-						auto& storageTile = _grid.GetTile(storagePosition);
+						auto& storageTile = _grid->GetTile(storagePosition);
 
 						if (storageTile.Logs < Grid::GetMaxLogsStored(storageTile))
 						{
@@ -211,14 +210,14 @@ void UnitManager::OnTickUnitBuilderHut(Unit& unit)
 			{
 				if (mayorHouseTile.Rocks < Grid::GetMaxRocksStored(mayorHouseTile))
 				{
-					unit.TargetTile = _grid.GetTiles(TileType::MayorHouse)[0];
+					unit.TargetTile = _grid->GetTiles(TileType::MayorHouse)[0];
 					unit.SetBehavior(UnitBehavior::Moving);
 				}
 				else
 				{
 					for (auto& storagePosition: storagePositions)
 					{
-						auto& storageTile = _grid.GetTile(storagePosition);
+						auto& storageTile = _grid->GetTile(storagePosition);
 
 						if (storageTile.Rocks < Grid::GetMaxRocksStored(storageTile))
 						{
@@ -237,7 +236,7 @@ void UnitManager::OnTickUnitBuilderHut(Unit& unit)
 		TilePosition constructionPosition {-1, -1};
 		bool hasFound = false;
 
-		_grid.ForEachTile([&](Tile& tile, TilePosition position)
+		_grid->ForEachTile([&](Tile& tile, TilePosition position)
 	     {
 	         if (tile.Type != TileType::None && !IsTileTakenCareBy(position, Characters::Builder)
 	             && (!tile.IsBuilt && GetNeededLogsFor(tile.Type) == tile.Logs && GetNeededRocksFor(tile.Type) == tile.Rocks)
@@ -260,7 +259,7 @@ void UnitManager::OnTickUnitBuilderHut(Unit& unit)
 	}
 	else if (unit.CurrentBehavior == UnitBehavior::Working)
 	{
-		Tile& tile = _grid.GetTile(unit.TargetTile);
+		Tile& tile = _grid->GetTile(unit.TargetTile);
 
 		if (!tile.NeedToBeDestroyed && tile.IsBuilt)
 		{
@@ -328,7 +327,7 @@ void UnitManager::onTickUnitLogistician(Unit& unit)
 		TilePosition constructionPosition {};
 		bool hasFoundConstruction = false;
 
-		_grid.ForEachTile([&](Tile& tile, TilePosition position)
+		_grid->ForEachTile([&](Tile& tile, TilePosition position)
          {
              if (tile.Type != TileType::None && !tile.IsBuilt && !IsTileTakenCareBy(position, Characters::Logistician)
                  && (GetNeededLogsFor(tile.Type) > tile.Logs || GetNeededRocksFor(tile.Type) > tile.Rocks))
@@ -341,7 +340,7 @@ void UnitManager::onTickUnitLogistician(Unit& unit)
              return false;
          });
 
-		Tile& construction = _grid.GetTile(constructionPosition);
+		Tile& construction = _grid->GetTile(constructionPosition);
 
 		// If there is a construction to build that need resources, check if the unit has the resources to build it or is full
 		if (hasFoundConstruction)
@@ -358,7 +357,7 @@ void UnitManager::onTickUnitLogistician(Unit& unit)
 				// Then check where it can pull resources to build it
 			else
 			{
-				_grid.ForEachTile([&](Tile& tile, TilePosition position)
+				_grid->ForEachTile([&](Tile& tile, TilePosition position)
                  {
 	                 if ((tile.Type == TileType::Storage || tile.Type == TileType::MayorHouse || tile.Type == TileType::LogisticsCenter) && logsNeeded > 0 ? tile.Logs > 0 : tile.Rocks > 0)
 	                 {
@@ -377,7 +376,7 @@ void UnitManager::onTickUnitLogistician(Unit& unit)
 		// Check if the unit has resources on him and if there is space in storages to drop them
 		if (unit.Logs > 0 || unit.Rocks > 0)
 		{
-			_grid.ForEachTile([&](Tile& tile, TilePosition position)
+			_grid->ForEachTile([&](Tile& tile, TilePosition position)
              {
                  if ((tile.Type == TileType::Storage || tile.Type == TileType::LogisticsCenter || tile.Type == TileType::MayorHouse)
 				    && unit.Logs > 0 ? tile.Logs < Grid::GetMaxLogsStored(tile) : tile.Rocks < Grid::GetMaxRocksStored(tile))
@@ -395,11 +394,11 @@ void UnitManager::onTickUnitLogistician(Unit& unit)
 		if (unit.CurrentBehavior != UnitBehavior::Idle) return;
 
 		// Check if there is logs in the sawmill or rocks in the quarry to move to the storage
-		auto sawmillPositions = _grid.GetTiles(TileType::Sawmill);
+		auto sawmillPositions = _grid->GetTiles(TileType::Sawmill);
 
 		for (auto& sawmillPosition : sawmillPositions)
 		{
-			auto& sawmillTile = _grid.GetTile(sawmillPosition);
+			auto& sawmillTile = _grid->GetTile(sawmillPosition);
 
 			if (sawmillTile.Logs > 0)
 			{
@@ -411,11 +410,11 @@ void UnitManager::onTickUnitLogistician(Unit& unit)
 
 		if (unit.CurrentBehavior != UnitBehavior::Idle) return;
 
-		auto quarryPositions = _grid.GetTiles(TileType::Quarry);
+		auto quarryPositions = _grid->GetTiles(TileType::Quarry);
 
 		for (auto& quarryPosition : quarryPositions)
 		{
-			auto& quarryTile = _grid.GetTile(quarryPosition);
+			auto& quarryTile = _grid->GetTile(quarryPosition);
 
 			if (quarryTile.Rocks > 0)
 			{
@@ -431,7 +430,7 @@ void UnitManager::onTickUnitLogistician(Unit& unit)
 
 		if (unit.TimeSinceLastAction < 1.f) return;
 
-		Tile& tile = _grid.GetTile(unit.TargetTile);
+		Tile& tile = _grid->GetTile(unit.TargetTile);
 
 		// If it's a building that is not built, add the needed resources to it
 		if (!tile.IsBuilt)
@@ -460,7 +459,7 @@ void UnitManager::onTickUnitLogistician(Unit& unit)
 			TilePosition constructionPosition {};
 			bool hasFoundConstruction = false;
 
-			_grid.ForEachTile([&](Tile& tile, TilePosition position)
+			_grid->ForEachTile([&](Tile& tile, TilePosition position)
 	         {
 	             if (tile.Type != TileType::None && !tile.IsBuilt && !IsTileTakenCareBy(position, Characters::Logistician)
 	                 && (GetNeededLogsFor(tile.Type) > tile.Logs || GetNeededRocksFor(tile.Type) > tile.Rocks))
@@ -473,7 +472,7 @@ void UnitManager::onTickUnitLogistician(Unit& unit)
 	             return false;
 	         });
 
-			Tile& construction = _grid.GetTile(constructionPosition);
+			Tile& construction = _grid->GetTile(constructionPosition);
 
 			// If there is a construction to build that need resources, check if the unit has the resources to build it or is full
 			if (hasFoundConstruction)
@@ -553,7 +552,7 @@ Characters UnitManager::GetCharacter(int jobTileIndex)
 {
 	if (jobTileIndex == -1) return Characters::Unemployed;
 
-	Tile& jobTile = _grid.GetTile(jobTileIndex);
+	Tile& jobTile = _grid->GetTile(jobTileIndex);
 
 	if (jobTile.Type == TileType::Sawmill)
 	{
@@ -592,7 +591,7 @@ bool UnitManager::IsTileTakenCareBy(TilePosition position, Characters character)
 
 bool UnitManager::IsTileJobFull(int jobTileIndex)
 {
-	Tile& tile = _grid.GetTile(jobTileIndex);
+	Tile& tile = _grid->GetTile(jobTileIndex);
 
 	if (!tile.IsBuilt) return true;
 
@@ -623,7 +622,7 @@ int UnitManager::GetMaxLogsFor(Unit& unit)
 {
 	if (unit.JobTileIndex == -1) return 0;
 
-	Tile& tile = _grid.GetTile(unit.JobTileIndex);
+	Tile& tile = _grid->GetTile(unit.JobTileIndex);
 
 	if (!tile.IsBuilt) return 0;
 
@@ -642,7 +641,7 @@ int UnitManager::GetMaxRocksFor(Unit& unit)
 {
 	if (unit.JobTileIndex == -1) return 0;
 
-	Tile& tile = _grid.GetTile(unit.JobTileIndex);
+	Tile& tile = _grid->GetTile(unit.JobTileIndex);
 
 	if (!tile.IsBuilt) return 0;
 
@@ -684,4 +683,9 @@ int UnitManager::GetNeededRocksFor(TileType tileType)
 
 		default: return 0;
 	}
+}
+
+void UnitManager::SetGrid(Grid *grid)
+{
+	_grid = grid;
 }

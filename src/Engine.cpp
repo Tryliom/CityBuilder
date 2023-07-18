@@ -71,11 +71,11 @@ int64_t RdxLastModified(const char* path)
 	return -1;
 }
 
-#define GAME_STATE_MAX_BYTE_SIZE 4096
+#define GAME_STATE_MAX_BYTE_SIZE 1000000
 
 void(*DLL_OnInput) (const sapp_event*)  = nullptr;
-void(*DLL_InitGame)(Image*) = nullptr;
-void(*DLL_OnFrame) (FrameData*, TimerData*) = nullptr;
+void(*DLL_InitGame)(void*, Image*) = nullptr;
+void(*DLL_OnFrame) (void*, FrameData*, TimerData*) = nullptr;
 
 void* gameStateMemory = nullptr;
 
@@ -127,10 +127,10 @@ void LoadDLL()
         DLL_OnInput = (void (*)(const sapp_event*))GetProcAddress(libHandle, "DLL_OnInput"); 
         assert(DLL_OnInput != NULL && "Couldn't find function DLL_OnInput in Game.dll");
 
-        DLL_InitGame = (void (*)(Image*))GetProcAddress(libHandle, "DLL_InitGame"); 
+        DLL_InitGame = (void (*)(void*, Image*))GetProcAddress(libHandle, "DLL_InitGame"); 
         assert(DLL_InitGame != NULL && "Couldn't find function DLL_InitGame in Game.dll");
 
-        DLL_OnFrame = (void (*)(FrameData*, TimerData*))GetProcAddress(libHandle, "DLL_OnFrame"); 
+        DLL_OnFrame = (void (*)(void*, FrameData*, TimerData*))GetProcAddress(libHandle, "DLL_OnFrame"); 
         assert(DLL_OnFrame != NULL && "Couldn't find function DLL_OnFrame in Game.dll");
     }
 }
@@ -141,7 +141,7 @@ void LoadDLL()
 
 #pragma region SokolFunctions
 
-void InitGame(Image* tilemap);
+void InitGame();
 
 void OnFrame();
 
@@ -152,16 +152,19 @@ void RunnerOnEvent(const sapp_event* event)
 
 static void init()
 { 
+    gameStateMemory = malloc(GAME_STATE_MAX_BYTE_SIZE);
+    memset(gameStateMemory, 0, GAME_STATE_MAX_BYTE_SIZE);
+
     Image tilemap;
 
-    InitGame(&tilemap);
+    //InitGame(&tilemap);
 
-    // LoadDLL();
+    LoadDLL();
 
-    // if(DLL_InitGame)
-    // {
-    //     DLL_InitGame(&tilemap);
-    // }
+    if(DLL_InitGame)
+    {
+        DLL_InitGame(gameStateMemory, &tilemap);
+    }
 
     sg_desc desc = (sg_desc){
         .logger = {.func = slog_func},
@@ -246,7 +249,7 @@ void frame()
     timerData.DeltaTime = Timer::DeltaTime;
     timerData.SmoothDeltaTime = Timer::SmoothDeltaTime;
 
-    if (DLL_OnFrame) DLL_OnFrame(&frameData, &timerData);
+    if (DLL_OnFrame) DLL_OnFrame(gameStateMemory, &frameData, &timerData);
 
     sg_update_buffer(state.bind.vertex_buffers[0], (sg_range){.ptr = frameData.vertexBufferPtr, 
                      .size = frameData.vertexBufferUsed * Graphics::VertexNbAttributes * sizeof(frameData.vertexBufferPtr[0])});
@@ -260,6 +263,7 @@ void frame()
 
 void cleanup()
 {
+    //free(gameStateMemory);
     sg_shutdown();
 }
 
