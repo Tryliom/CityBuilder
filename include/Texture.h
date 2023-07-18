@@ -45,12 +45,12 @@ enum class Characters
 
 enum class Icons
 {
-    Wood, Stone, People, Count // People need to be last
+    Wood, Stone, Coal, IronOre, IronIngot, People, Count // People need to be last
 };
 
 enum class Items
 {
-	Wood, Stone, Count
+	Wood, Stone, Coal, IronOre, IronIngot, Count
 };
 
 struct Texture
