@@ -130,7 +130,7 @@ void UnitManager::UpdateUnits()
 	// Check if there is enough place for a new unit
 	int housesCount = _grid.GetTiles(TileType::House).size();
 
-	if (_units.size() < housesCount * 3)
+	if (_units.size() < housesCount * 5)
 	{
 		unitProgress += Timer::SmoothDeltaTime;
 
