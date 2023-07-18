@@ -1,5 +1,3 @@
-#include "Window.h"
-
 #define SOKOL_IMPL
 #define SOKOL_GLCORE33
 #include "sokol_app.h"
@@ -9,7 +7,6 @@
 #include "basic-sapp.glsl.h"
 
 #include "Constants.h"
-#include "Input.h"
 #include "Image.h"
 #include "Logger.h"
 #include "Timer.h"
@@ -76,9 +73,9 @@ int64_t RdxLastModified(const char* path)
 
 #define GAME_STATE_MAX_BYTE_SIZE 4096
 
-void (*DLL_InitGame)() = nullptr;
-void (*DLL_OnFrame)() = nullptr;
-void (*DLL_SetGraphicBufferValues)(float*, int&, uint32_t*, int&) = nullptr;
+void(*DLL_OnInput) (const sapp_event*)  = nullptr;
+void(*DLL_InitGame)(Image*) = nullptr;
+void(*DLL_OnFrame) (FrameData*, TimerData*) = nullptr;
 
 void* gameStateMemory = nullptr;
 
@@ -86,19 +83,24 @@ HMODULE libHandle = NULL; // Handle to a loaded module (DLL).
 
 uint64_t lastMod = 0;
 
+FrameData   frameData   = {};
+TextureData textureData = {};
+TimerData   timerData   = {};
+
 void LoadDLL()
 {
     uint64_t newLastMod = RdxLastModified("bin/Game.dll");
-
-    std::cout <<" new " << newLastMod << " last " << lastMod << std::endl;
 
     if (newLastMod != -1 && newLastMod != lastMod) 
     {
         lastMod = newLastMod;
 
-        if (libHandle != NULL) 
+        // Unload the previous DLL if it was loaded
+        if (libHandle != NULL)
         {
+            LOG("NEW DLL LOAD");
             FreeLibrary(libHandle);
+            libHandle = NULL; // Reset the handle to indicate that the DLL is no longer loaded
         }
 
         // Copy Game.dll to a random filename in the same directory before loading
@@ -117,19 +119,19 @@ void LoadDLL()
 
         CopyFileA(dllPath, newDllPath, FALSE);
 
-        // Load new version of the lib (NOTE(seb): could ask the game to deserialize itself just after loading).
+        // Load new version of the lib : could ask the game to deserialize itself just after loading).
         libHandle = LoadLibraryA(newDllPath);
 
         assert(libHandle != NULL && "Couldn't load Game.dll");
 
-        DLL_InitGame = (void (*)())GetProcAddress(libHandle, "DLL_InitGame"); 
+        DLL_OnInput = (void (*)(const sapp_event*))GetProcAddress(libHandle, "DLL_OnInput"); 
+        assert(DLL_OnInput != NULL && "Couldn't find function DLL_OnInput in Game.dll");
+
+        DLL_InitGame = (void (*)(Image*))GetProcAddress(libHandle, "DLL_InitGame"); 
         assert(DLL_InitGame != NULL && "Couldn't find function DLL_InitGame in Game.dll");
 
-        DLL_OnFrame = (void (*)())GetProcAddress(libHandle, "DLL_OnFrame"); 
+        DLL_OnFrame = (void (*)(FrameData*, TimerData*))GetProcAddress(libHandle, "DLL_OnFrame"); 
         assert(DLL_OnFrame != NULL && "Couldn't find function DLL_OnFrame in Game.dll");
-
-        DLL_SetGraphicBufferValues = (void (*)(float*, int&, uint32_t*, int&))GetProcAddress(libHandle, "DLL_SetGraphicBufferValues"); 
-        assert(DLL_SetGraphicBufferValues != NULL && "Couldn't find function DLL_SetGraphicBufferValues in Game.dll");
     }
 }
 
@@ -139,24 +141,27 @@ void LoadDLL()
 
 #pragma region SokolFunctions
 
-void InitGame();
+void InitGame(Image* tilemap);
 
 void OnFrame();
 
-void Clear()
+void RunnerOnEvent(const sapp_event* event)
 {
-    Graphics::vertexesUsed = 0;
-    Graphics::indicesUsed = 0;
+    if (DLL_OnInput) DLL_OnInput(event);
 }
 
 static void init()
-{
-    #ifdef HOT_RELOAD
-    LoadDLL();
-    #endif
+{ 
+    Image tilemap;
 
-    if (DLL_InitGame) DLL_InitGame();
-    else InitGame();
+    InitGame(&tilemap);
+
+    // LoadDLL();
+
+    // if(DLL_InitGame)
+    // {
+    //     DLL_InitGame(&tilemap);
+    // }
 
     sg_desc desc = (sg_desc){
         .logger = {.func = slog_func},
@@ -166,29 +171,22 @@ static void init()
     state.vs_window = {sapp_widthf(), sapp_heightf()};
 
     state.bind.vertex_buffers[0] = sg_make_buffer((sg_buffer_desc){
-        .size = Graphics::GetVertexBufferSize(),
+        .size = Graphics::maxVertexes * sizeof(frameData.vertexBufferPtr[0]),
         .usage = SG_USAGE_DYNAMIC,
         .label = "triangle-vertices",
     });
 
     state.bind.index_buffer = sg_make_buffer((sg_buffer_desc){
-        .size = Graphics::GetIndexBufferSize(),
+        .size = Graphics::maxVertexes * sizeof(frameData.indexBufferPtr[0]),
         .type = SG_BUFFERTYPE_INDEXBUFFER,
         .usage = SG_USAGE_DYNAMIC,
         .label = "triangle-indices",
     });
 
-    Image tileMap;
-
-    tileMap.AddImagesAtRow(Graphics::tileSheets);
-
-    Graphics::textureWidth = tileMap.GetWidth();
-    Graphics::textureHeight = tileMap.GetHeight();
-
     state.bind.fs_images[SLOT_tex] = sg_make_image((sg_image_desc){
-        .width  = Graphics::textureWidth,
-        .height = Graphics::textureHeight,
-        .data = {.subimage = {{{.ptr = tileMap.GetBuffer(), .size = tileMap.GetBufferSize()}}}},
+        .width  = tilemap.GetWidth(),
+        .height = tilemap.GetHeight(),
+        .data = {.subimage = {{{.ptr = tilemap.GetBuffer(), .size = tilemap.GetBufferSize()}}}},
         .label = "tilemap-image"});
 
     // Create shader from code-generated sg_shader_desc
@@ -242,29 +240,19 @@ void frame()
 
     state.vs_window = {(float)width, (float)height};
 
-    // Clear buffers
-    Clear();
-
-    Input::Update();
     Timer::Update();
 
-    Graphics::frameCount++;
+    timerData.Time = Timer::Time;
+    timerData.DeltaTime = Timer::DeltaTime;
+    timerData.SmoothDeltaTime = Timer::SmoothDeltaTime;
 
-    if (DLL_OnFrame) DLL_OnFrame();
-    else OnFrame();
+    if (DLL_OnFrame) DLL_OnFrame(&frameData, &timerData);
 
-    if (DLL_SetGraphicBufferValues)
-    {
-        DLL_SetGraphicBufferValues(Graphics::vertexes, Graphics::vertexesUsed, Graphics::indices, Graphics::indicesUsed);
-    } 
+    sg_update_buffer(state.bind.vertex_buffers[0], (sg_range){.ptr = frameData.vertexBufferPtr, 
+                     .size = frameData.vertexBufferUsed * Graphics::VertexNbAttributes * sizeof(frameData.vertexBufferPtr[0])});
+    sg_update_buffer(state.bind.index_buffer, (sg_range){.ptr = frameData.indexBufferPtr, .size = frameData.indexBufferUsed * sizeof(frameData.indexBufferPtr[0])});
 
-    std::cout << "Used " << Graphics::vertexesUsed << std::endl;
-
-    sg_update_buffer(state.bind.vertex_buffers[0], (sg_range){.ptr = Graphics::vertexes, 
-                     .size = Graphics::vertexesUsed * Graphics::VertexNbAttributes * sizeof(*Graphics::vertexes)});
-    sg_update_buffer(state.bind.index_buffer, (sg_range){.ptr = Graphics::indices, .size = Graphics::indicesUsed * sizeof(*Graphics::indices)});
-
-    sg_draw(0, Graphics::vertexesUsed * Graphics::VertexNbAttributes, 1);
+    sg_draw(0, frameData.vertexBufferUsed * Graphics::VertexNbAttributes, 1);
     sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, (sg_range){.ptr = &state.vs_window, .size = sizeof(state.vs_window)});
     sg_end_pass();
     sg_commit();
@@ -284,7 +272,7 @@ sapp_desc sokol_main(int argc, char *argv[])
         .init_cb = init,
         .frame_cb = frame,
         .cleanup_cb = cleanup,
-        .event_cb = Input::OnInput,
+        .event_cb = RunnerOnEvent,
         .width = 1000,
         .height = 800,
         .window_title = "City builder",

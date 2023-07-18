@@ -1,41 +1,13 @@
 #include "Graphics.h"
 #include "Constants.h"
+#include "Logger.h"
 
 #include <assert.h>
+#include <iostream>
 
 namespace Graphics
 {
-    const int VertexNbAttributes = 9;
-
-    const int maxVertexes = 1000000;
-    float vertexes[maxVertexes];
-    int vertexesUsed = 0;
-
-    uint32_t indices[maxVertexes];
-    int indicesUsed = 0;
-
-    Camera camera;
-
-    float MinZoom = 1.f;
-    float MaxZoom = 2.f;
-
-    Matrix2x3F transformMatrix;
-    Matrix2x3F inversedTransMatrix;
-
-    // Textures
-    std::vector<Image> tileSheets =
-    {
-        Image(ASSETS_PATH "land.png"),
-        Image(ASSETS_PATH "road.png"),
-        Image(ASSETS_PATH "buildings.png"),
-        Image(ASSETS_PATH "ressources.png"),
-        Image(ASSETS_PATH "characters.png"),
-        Image(ASSETS_PATH "icons.png")
-    };
-
-    int frameCount = 0;
-    int textureWidth = 0;
-    int textureHeight = 0;
+    
 
     int GetFrameCount()
     {
@@ -240,5 +212,11 @@ namespace Graphics
     size_t GetIndexBufferSize()
     {
         return sizeof(indices);
+    }
+
+    void ClearFrameBuffers()
+    {
+        vertexesUsed = 0;
+        indicesUsed = 0;
     }
 }

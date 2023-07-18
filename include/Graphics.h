@@ -5,6 +5,7 @@
 #include "Image.h"
 #include "Texture.h"
 #include "DrawableObject.h"
+#include "Constants.h"
 #include <vector>
 
 struct Vertex
@@ -20,30 +21,56 @@ struct Camera
     float Zoom = 1.f;
 };
 
+struct FrameData
+{
+	float* vertexBufferPtr;
+	int vertexBufferUsed;
+	uint32_t* indexBufferPtr;
+	int indexBufferUsed;
+};
+
+struct TextureData
+{
+	std::vector<Image> tileSheets;
+
+    int frameCount;
+    int textureWidth;
+    int textureHeight;
+};
+
 namespace Graphics
 {
-    extern const int VertexNbAttributes;
+    inline const int VertexNbAttributes = 9;
 
-    extern const int maxVertexes;
-    extern float vertexes[];
-    extern int vertexesUsed;
+    inline const int maxVertexes = 1000000;
+    inline float vertexes[maxVertexes];
+    inline int vertexesUsed = 0;
 
-    extern uint32_t indices[];
-    extern int indicesUsed;
+    inline uint32_t indices[maxVertexes];
+    inline int indicesUsed = 0;
 
-    extern Camera camera;
+    inline Camera camera;
 
-    extern float MinZoom;
-    extern float MaxZoom;
+    inline float MinZoom = 1.f;
+    inline float MaxZoom = 2.f;
 
-    extern Matrix2x3F transformMatrix;
-    extern Matrix2x3F inversedTransMatrix;
+    inline Matrix2x3F transformMatrix;
+    inline Matrix2x3F inversedTransMatrix;
 
-    extern std::vector<Image> tileSheets;
+    // Textures
+    inline std::vector<Image> tileSheets =
+    {
+        Image(ASSETS_PATH "land.png"),
+        Image(ASSETS_PATH "road.png"),
+        Image(ASSETS_PATH "buildings.png"),
+        Image(ASSETS_PATH "ressources.png"),
+        Image(ASSETS_PATH "characters.png"),
+        Image(ASSETS_PATH "icons.png")
+    };
 
-    extern int frameCount;
-    extern int textureWidth;
-    extern int textureHeight;
+    inline int frameCount = 0;
+    inline int textureWidth = 0;
+    inline int textureHeight = 0;
 
     int GetFrameCount();
 
@@ -132,4 +159,6 @@ namespace Graphics
 
     size_t GetVertexBufferSize();
     size_t GetIndexBufferSize();
+
+	void ClearFrameBuffers();
 }

@@ -1,14 +1,13 @@
 #include "Timer.h"
 
 #include "sokol_app.h"
+#include "Logger.h"
 
 int frames = 0;
 float timeStack[200];
 
 namespace Timer
 {
-    float Time, DeltaTime, SmoothDeltaTime;
-
     void Update()
     {
         if (frames == 200)

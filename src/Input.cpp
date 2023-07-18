@@ -3,7 +3,7 @@
 #include <cstring>
 #include "sokol_app.h"
 
-#include "Window.h"
+#include "Logger.h"
 
 bool tempKeys[SAPP_MAX_KEYCODES + 1];
 bool keys[SAPP_MAX_KEYCODES + 1];
