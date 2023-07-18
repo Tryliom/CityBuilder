@@ -381,20 +381,32 @@ void UnitManager::onTickUnitLogistician(Unit& unit)
 			}
 		}
 
-		auto tilesToGetItemsFrom =
-		{
-			_grid.GetTilesWithItems(TileType::Sawmill, Items::Wood),
-			_grid.GetTilesWithItems(TileType::Quarry, Items::Stone)
-		};
+		std::vector<TilePosition> tilesToGetItemsFrom = {};
+		auto sawmills = _grid.GetTilesWithItems(TileType::Sawmill, Items::Wood);
+		auto quarries = _grid.GetTilesWithItems(TileType::Quarry, Items::Stone);
 
-		for (auto tiles : tilesToGetItemsFrom)
+		tilesToGetItemsFrom.reserve(sawmills.size());
+
+		for (auto tile : sawmills)
 		{
-			if (!tiles.empty())
-			{
-				unit.TargetTile = tiles[0];
-				unit.SetBehavior(UnitBehavior::Moving);
-				return;
-			}
+			tilesToGetItemsFrom.push_back(tile);
+		}
+
+		for (auto tile : quarries)
+		{
+			tilesToGetItemsFrom.push_back(tile);
+		}
+
+		std::sort(tilesToGetItemsFrom.begin(), tilesToGetItemsFrom.end(), [&](TilePosition a, TilePosition b)
+		{
+			return _grid.GetTile(a).Inventory->at(Items::Wood) + _grid.GetTile(a).Inventory->at(Items::Stone) > _grid.GetTile(b).Inventory->at(Items::Wood) + _grid.GetTile(b).Inventory->at(Items::Stone);
+		});
+
+		if (!tilesToGetItemsFrom.empty())
+		{
+			unit.TargetTile = tilesToGetItemsFrom[0];
+			unit.SetBehavior(UnitBehavior::Moving);
+			return;
 		}
 	}
 	else if (unit.CurrentBehavior == UnitBehavior::Working)
@@ -451,8 +463,8 @@ void UnitManager::onTickUnitLogistician(Unit& unit)
 					if (storagePositions.empty()) continue;
 
 					// Take the items
-					_grid.GetTile(storagePositions[0]).Inventory->at(pair.first) -= itemsToGet;
-					unit.Inventory->at(pair.first) += itemsToGet;
+					_grid.GetTile(storagePositions[0]).Inventory->at(item) -= itemsToGet;
+					unit.Inventory->at(item) += itemsToGet;
 				}
 			}
 			// Check if there is resources to move to the storage from the unit
