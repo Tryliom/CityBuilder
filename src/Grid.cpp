@@ -577,7 +577,7 @@ std::vector<TilePosition> Grid::GetPath(TilePosition start, TilePosition end)
 	}
 
 	pointsPerTile[(int) TileType::None] = 3;
-	pointsPerTile[(int) TileType::Road] = 0;
+	pointsPerTile[(int) TileType::Road] = 1;
 
 	// Search the full path between the start and the end tile by taking in account the pointsPerTile
 	std::vector<TilePosition> path = std::vector<TilePosition>();

@@ -25,9 +25,9 @@ private:
 
 	// Unit tick functions
 	void OnTickUnitSawMill(Unit& unit);
-
 	void OnTickUnitBuilderHut(Unit& unit);
 	void onTickUnitLogistician(Unit& unit);
+	void OnTickUnitQuarry(Unit& unit);
 
 	Characters GetCharacter(int jobTileIndex);
 	bool IsTileTakenCareBy(TilePosition position, Characters character);

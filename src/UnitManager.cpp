@@ -5,6 +5,7 @@
 #include "Timer.h"
 #include "Unit.h"
 #include "Grid.h"
+#include "Logger.h"
 
 float unitSpeed = 100.f;
 int unitSize = 16;
@@ -14,7 +15,7 @@ std::map<TileType, std::map<Items, int>>* unitMaxInventory = new std::map<TileTy
 {
 	{TileType::Sawmill, {{Items::Wood, 30}}},
 	{TileType::BuilderHut, {{Items::Wood, 30}, {Items::Stone, 20}}},
-	{TileType::LogisticsCenter, {{Items::Wood, 50}, {Items::Stone, 50}}},
+	{TileType::LogisticsCenter, {{Items::Wood, 50}, {Items::Stone, 50}}}
 };
 
 UnitManager::UnitManager(Grid& grid) : _grid(grid) {}
@@ -103,7 +104,7 @@ void UnitManager::UpdateUnits()
 			if (tile.Type == TileType::Sawmill) OnTickUnitSawMill(unit);
 			if (tile.Type == TileType::BuilderHut) OnTickUnitBuilderHut(unit);
 			if (tile.Type == TileType::LogisticsCenter) onTickUnitLogistician(unit);
-			//TODO: Add miner
+			if (tile.Type == TileType::Quarry) OnTickUnitQuarry(unit);
 		}
 		else
 		{
@@ -126,9 +127,9 @@ void UnitManager::UpdateUnits()
 		// Remove the overflow of items
 		if (unit.JobTileIndex == -1) continue;
 
-		for (auto& item : *unit.Inventory)
+		for (auto& item: *unit.Inventory)
 		{
-			int max = unitMaxInventory->at(_grid.GetTile(unit.JobTileIndex).Type)[item.first];
+			int max = GetMaxItemsFor(unit, item.first);
 
 			item.second = std::min(item.second, max);
 		}
@@ -486,6 +487,44 @@ void UnitManager::onTickUnitLogistician(Unit& unit)
 				unit.Inventory->at(pair.first) += itemsToDropInUnit;
 				tile.Inventory->at(pair.first) -= itemsToDropInUnit;
 			}
+		}
+
+		unit.SetBehavior(UnitBehavior::Idle);
+	}
+}
+
+void UnitManager::OnTickUnitQuarry(Unit& unit)
+{
+	if (unit.CurrentBehavior == UnitBehavior::Idle)
+	{
+		TilePosition tilePosition = _grid.GetTilePosition(unit.JobTileIndex);
+
+		// Check if the quarry is full
+		if (Grid::GetLeftSpaceForItems(_grid.GetTile(tilePosition), Items::Stone) == 0) return;
+
+		// If the unit is not on the quarry, move to it
+		if (tilePosition != unit.TargetTile)
+		{
+			unit.TargetTile = tilePosition;
+			unit.SetBehavior(UnitBehavior::Moving);
+		}
+		else
+		{
+			unit.SetBehavior(UnitBehavior::Working);
+		}
+	}
+	else if (unit.CurrentBehavior == UnitBehavior::Working)
+	{
+		if (unit.TimeSinceLastAction < 5.f) return;
+
+		Tile& tile = _grid.GetTile(unit.TargetTile);
+
+		// Check if the quarry is full
+		if (Grid::GetLeftSpaceForItems(tile, Items::Stone) > 0)
+		{
+			// Add stone to the quarry
+			tile.Inventory->at(Items::Stone) += 1;
+			//TODO: Add more resources with a chance
 		}
 
 		unit.SetBehavior(UnitBehavior::Idle);
