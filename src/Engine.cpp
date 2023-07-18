@@ -8,10 +8,20 @@
 
 #include "Constants.h"
 #include "Image.h"
+#include "Input.h"
 #include "Logger.h"
 #include "Timer.h"
 
 #include "Graphics.h"
+
+#include <assert.h>
+#include <malloc.h>
+#include <Windows.h> 
+#include <stdint.h>
+#include <stdio.h>
+#include <Shlwapi.h> // Include this header for PathCombine function
+
+#pragma comment(lib, "Shlwapi.lib") // Link to the Shlwapi library
 
 struct vs_window
 {
@@ -32,14 +42,29 @@ static struct
 
 // ====== Hot Reload =========
 
-#include <assert.h>
-#include <malloc.h>
-#include <Windows.h> 
-#include <stdint.h>
-#include <stdio.h>
-#include <Shlwapi.h> // Include this header for PathCombine function
+void(*DLL_OnInput) (const sapp_event*)  = nullptr;
+void(*DLL_InitGame)(void*, Image*) = nullptr;
+void(*DLL_OnFrame) (void*, FrameData*, TimerData*) = nullptr;
 
-#pragma comment(lib, "Shlwapi.lib") // Link to the Shlwapi library
+void* gameStateMemory = nullptr;
+
+HMODULE libHandle = NULL; // Handle to a loaded module (DLL).
+
+uint64_t lastMod = 0;
+
+FrameData   frameData   = {};
+TextureData textureData = {};
+TimerData   timerData   = {};
+
+void InitGame(void* gameMemory, Image* tilemap);
+
+void OnFrame(FrameData* frameData, TimerData* timerData);
+
+void RunnerOnEvent(const sapp_event* event)
+{
+    if (DLL_OnInput) DLL_OnInput(event);
+    else Input::OnInput(event);
+}
 
 bool RdxFileExists(const char* path) 
 {
@@ -71,34 +96,19 @@ int64_t RdxLastModified(const char* path)
 	return -1;
 }
 
-#define GAME_STATE_MAX_BYTE_SIZE 1000000
-
-void(*DLL_OnInput) (const sapp_event*)  = nullptr;
-void(*DLL_InitGame)(void*, Image*) = nullptr;
-void(*DLL_OnFrame) (void*, FrameData*, TimerData*) = nullptr;
-
-void* gameStateMemory = nullptr;
-
-HMODULE libHandle = NULL; // Handle to a loaded module (DLL).
-
-uint64_t lastMod = 0;
-
-FrameData   frameData   = {};
-TextureData textureData = {};
-TimerData   timerData   = {};
-
 void LoadDLL()
 {
     uint64_t newLastMod = RdxLastModified("bin/Game.dll");
 
     if (newLastMod != -1 && newLastMod != lastMod) 
     {
+        LOG("NEW DLL LOAD");
+
         lastMod = newLastMod;
 
         // Unload the previous DLL if it was loaded
         if (libHandle != NULL)
         {
-            LOG("NEW DLL LOAD");
             FreeLibrary(libHandle);
             libHandle = NULL; // Reset the handle to indicate that the DLL is no longer loaded
         }
@@ -141,30 +151,19 @@ void LoadDLL()
 
 #pragma region SokolFunctions
 
-void InitGame();
-
-void OnFrame();
-
-void RunnerOnEvent(const sapp_event* event)
-{
-    if (DLL_OnInput) DLL_OnInput(event);
-}
-
 static void init()
 { 
+    Image tilemap;
+
     gameStateMemory = malloc(GAME_STATE_MAX_BYTE_SIZE);
     memset(gameStateMemory, 0, GAME_STATE_MAX_BYTE_SIZE);
 
-    Image tilemap;
-
-    //InitGame(&tilemap);
-
+    #ifdef HOT_RELOAD
     LoadDLL();
-
-    if(DLL_InitGame)
-    {
-        DLL_InitGame(gameStateMemory, &tilemap);
-    }
+    if(DLL_InitGame) DLL_InitGame(gameStateMemory, &tilemap);
+    #else
+    InitGame(gameStateMemory, &tilemap);
+    #endif
 
     sg_desc desc = (sg_desc){
         .logger = {.func = slog_func},
@@ -230,10 +229,6 @@ static void init()
 
 void frame()
 {
-    #ifdef HOT_RELOAD
-    LoadDLL();
-    #endif
-
     sg_begin_default_pass(&state.pass_action, sapp_width(), sapp_height());
     sg_apply_pipeline(state.pip);
     sg_apply_bindings(&state.bind);
@@ -244,12 +239,16 @@ void frame()
     state.vs_window = {(float)width, (float)height};
 
     Timer::Update();
-
     timerData.Time = Timer::Time;
     timerData.DeltaTime = Timer::DeltaTime;
     timerData.SmoothDeltaTime = Timer::SmoothDeltaTime;
 
+    #ifdef HOT_RELOAD
+    LoadDLL();
     if (DLL_OnFrame) DLL_OnFrame(gameStateMemory, &frameData, &timerData);
+    #else
+    OnFrame(&frameData, &timerData);
+    #endif
 
     sg_update_buffer(state.bind.vertex_buffers[0], (sg_range){.ptr = frameData.vertexBufferPtr, 
                      .size = frameData.vertexBufferUsed * Graphics::VertexNbAttributes * sizeof(frameData.vertexBufferPtr[0])});

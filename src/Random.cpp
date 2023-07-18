@@ -49,4 +49,9 @@ namespace Random
     {
         useSeed = false;
     }
+
+    int GetSeed()
+    {
+        return seed;
+    }
 }

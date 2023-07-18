@@ -8,6 +8,7 @@ class UnitManager
 {
 public:
 	UnitManager() = default;
+	UnitManager::UnitManager(Grid* grid);
 
 private:
 	Grid* _grid;

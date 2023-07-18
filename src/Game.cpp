@@ -35,23 +35,28 @@ struct GameState
 
 GameState* gameState = nullptr;
 
-bool newDLL = false;
-
-void InitGame()
+void InitGame(void* gameMemory, Image* tilemap)
 {
-    /*Audio::SetupSound();
+	gameState = (GameState*)gameMemory;
 
-    SoundClip testTheme = Audio::loadSoundClip(ASSETS_PATH "testTheme.wav");*/
+	gameState->Camera = Graphics::camera;
 
-    // Audio::PlaySoundClip(testTheme, 1.f, 440, 0, 0, true);
+	gameState->Grid = Grid(5000, 5000, 100);
+	gameState->UnitManager.SetGrid(&gameState->Grid);
+	gameState->SelectedTileType = TileType::Sawmill;
 
+    tilemap->AddImagesAtRow(Graphics::tileSheets);
+
+	Graphics::textureWidth  = tilemap->GetWidth();
+	Graphics::textureHeight = tilemap->GetHeight();
+	
 	GenerateMap();
 }
 
-void OnFrame()
+void OnFrame(FrameData* frameData, TimerData* timerData)
 {
-	Input::Update();
 	Graphics::ClearFrameBuffers();
+	Input::Update();
 
 	auto mousePosition = Input::GetMousePosition();
 
@@ -66,7 +71,23 @@ void OnFrame()
 	gameState->UnitManager.UpdateUnits();
 	gameState->UnitManager.DrawUnits();
 
+	//Graphics::DrawRect(Vector2F(150, 400), Vector2F(300, 300), Color::Purple);
+
 	DrawUi();
+
+	// Update the current camera state.
+	gameState->Camera = Graphics::camera;
+
+	// Send the frame data to the engine.
+	frameData->vertexBufferPtr  = Graphics::vertexes;
+	frameData->vertexBufferUsed = Graphics::vertexesUsed;
+	frameData->indexBufferPtr   = Graphics::indices;
+	frameData->indexBufferUsed  = Graphics::indicesUsed;
+
+	// Get the timer data from the engine.
+	Timer::Time = timerData->Time;
+	Timer::DeltaTime = timerData->DeltaTime;
+	Timer::SmoothDeltaTime = timerData->SmoothDeltaTime;
 }
 
 #ifdef __cplusplus // If used by C++ code, 
@@ -85,20 +106,7 @@ extern "C"         // we need to export the C interface
 
 	EXPORT void DLL_InitGame(void* gameMemory, Image* tilemap)
 	{
-		gameState = (GameState*)gameMemory;
-
-		gameState->Camera = Graphics::camera;
-
-		gameState->Grid = Grid(5000, 5000, 100);
-		gameState->UnitManager.SetGrid(&gameState->Grid);
-		gameState->SelectedTileType = TileType::Sawmill;
-	
-		InitGame();
-
-		tilemap->AddImagesAtRow(Graphics::tileSheets);
-
-		Graphics::textureWidth  = tilemap->GetWidth();
-		Graphics::textureHeight = tilemap->GetHeight();
+		InitGame(gameMemory, tilemap);
 	}
 
     EXPORT void DLL_OnFrame(void* gameMemory, FrameData* frameData, TimerData* timerData)
@@ -119,21 +127,8 @@ extern "C"         // we need to export the C interface
 			Graphics::textureHeight = tilemap.GetHeight();
 		}
 
-		OnFrame();
-
-		// Update the current camera state.
-		gameState->Camera = Graphics::camera;
-
-		// Send the frame data to the engine.
-		frameData->vertexBufferPtr  = Graphics::vertexes;
-		frameData->vertexBufferUsed = Graphics::vertexesUsed;
-		frameData->indexBufferPtr   = Graphics::indices;
-		frameData->indexBufferUsed  = Graphics::indicesUsed;
-
-		// Get the timer data from the engine.
-		Timer::Time = timerData->Time;
-		Timer::DeltaTime = timerData->DeltaTime;
-		Timer::SmoothDeltaTime = timerData->SmoothDeltaTime;
+		OnFrame(frameData, timerData);
+		// Don't draw anything under the OnFrame() function because the frame buffers clear is inside.
 	}
 }
 #endif

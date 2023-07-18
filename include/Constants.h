@@ -9,3 +9,5 @@
 #else
 #define ASSETS_PATH "../assets/"
 #endif
+
+#define GAME_STATE_MAX_BYTE_SIZE 10000

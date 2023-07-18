@@ -6,6 +6,8 @@ float unitSpeed = 100.f;
 int unitSize = 10;
 float unitProgress;
 
+UnitManager::UnitManager(Grid* grid) : _grid(grid) {}
+
 void UnitManager::AddUnit(Unit unit)
 {
 	_units.push_back(unit);
