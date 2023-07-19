@@ -93,6 +93,7 @@ void UnitManager::UpdateUnits()
 						// Check if it reached the center of the next tile or if it's too far
 						if (hasReached)
 						{
+                            unit.Position = lastPosition;
 							unit.PathToTargetTile.erase(unit.PathToTargetTile.begin());
 						}
 
