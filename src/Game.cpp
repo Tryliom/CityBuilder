@@ -1,6 +1,3 @@
-#include <cmath>
-#include <iostream>
-
 #include "sokol_app.h"
 
 #include "Audio.h"
@@ -116,7 +113,7 @@ extern "C"         // we need to export the C interface
 		// Update the gameState. When a new DLL is created, it will automatically set his gameState to the old one.
 		gameState = (GameState*)gameMemory;
 
-		// Set the camera and textures data in the new DLL (not clean but it works).
+		// Set the camera and textures data in the new DLL (not clean, but it works).
 		if (Graphics::textureWidth == 0)
 		{
 			Graphics::camera = gameState->Camera;

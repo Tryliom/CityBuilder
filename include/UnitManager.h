@@ -4,10 +4,10 @@
 #include <map>
 
 #include "Texture.h"
+#include "Unit.h"
 
 class Grid;
 struct TilePosition;
-struct Unit;
 
 enum class InventoryReason
 {
@@ -17,7 +17,7 @@ enum class InventoryReason
 class UnitManager
 {
 public:
-	UnitManager() = default;
+	UnitManager();
 
 private:
 	Grid* _grid {};

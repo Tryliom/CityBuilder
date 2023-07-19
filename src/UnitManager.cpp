@@ -18,6 +18,11 @@ std::map<TileType, std::map<Items, int>>* unitMaxInventory = new std::map<TileTy
 	{TileType::LogisticsCenter, {{Items::Wood, 50}, {Items::Stone, 50}, {Items::Coal, 25}, {Items::IronOre, 25}, {Items::IronIngot, 10}}},
 };
 
+UnitManager::UnitManager()
+{
+    _units = std::vector<Unit>();
+}
+
 void UnitManager::AddUnit(const Unit& unit)
 {
 	_units.push_back(unit);
