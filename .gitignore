@@ -1,15 +1,6 @@
-bin/game.exe
-bin/game.js
-bin/game.wasm
-bin/game.data
-bin/game.js.mem
-bin/assets/*
+bin
 cmake-build-debug
-bin/.vs
 out
 .idea
 .vs
 .vscode
-bin/game.*
-bin/Game.*
-bin/*.dll
