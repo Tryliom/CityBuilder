@@ -43,7 +43,7 @@ private:
 	std::vector<TilePosition> GetAllBuildableOrDestroyableTiles();
 	// Get all tiles that need items to be built but has enough total items to be built
 	std::vector<TilePosition> GetTilesThatNeedItemsToBeBuilt();
-	std::vector<TilePosition> GetStorageThatHave(Items item);
+	std::vector<TilePosition> GetStorageThatHave(TilePosition position, Items item);
 	std::vector<int> GetAvailableJobs();
 
 	// Inventory

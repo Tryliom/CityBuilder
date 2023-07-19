@@ -372,7 +372,7 @@ void UnitManager::onTickUnitLogistician(Unit& unit)
 				if (unit.Inventory->at(item) >= itemsToGet || unit.Inventory->at(item) == GetMaxItemsFor(unit, item)) continue;
 
 				// Search for a storage that has the resources
-				auto storagePositions = GetStorageThatHave(item);
+				auto storagePositions = GetStorageThatHave(_grid.GetTilePosition(unit.Position), item);
 
 				if (storagePositions.empty()) continue;
 
@@ -482,8 +482,10 @@ void UnitManager::onTickUnitLogistician(Unit& unit)
 					// Check if the unit has the resources in his inventory or has his inventory full of this item
 					if (unit.Inventory->at(item) >= itemsToGet || unit.Inventory->at(item) == GetMaxItemsFor(unit, item)) continue;
 
+                    //TODO: Fix this, not correct
+
 					// Search for a storage that has the resources
-					auto storagePositions = GetStorageThatHave(item);
+					auto storagePositions = GetStorageThatHave(_grid.GetTilePosition(unit.Position), item);
 
 					if (storagePositions.empty()) continue;
 
@@ -775,7 +777,7 @@ std::vector<TilePosition> UnitManager::GetTilesThatNeedItemsToBeBuilt()
 	return tiles;
 }
 
-std::vector<TilePosition> UnitManager::GetStorageThatHave(Items item)
+std::vector<TilePosition> UnitManager::GetStorageThatHave(TilePosition position, Items item)
 {
 	std::vector<TilePosition> storages = std::vector<TilePosition>();
 
@@ -786,6 +788,12 @@ std::vector<TilePosition> UnitManager::GetStorageThatHave(Items item)
 
 		storages.push_back(position);
 	});
+
+    // Sort them by the less distance
+    std::sort(storages.begin(), storages.end(), [&](TilePosition a, TilePosition b)
+    {
+        return std::abs(position.GetDistance(a)) < std::abs(position.GetDistance(b));
+    });
 
 	return storages;
 }
