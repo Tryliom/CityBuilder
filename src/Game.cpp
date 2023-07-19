@@ -62,6 +62,7 @@ void OnFrame(FrameData* frameData, TimerData* timerData)
 	HandleInput();
     
 	Graphics::ClearFrameBuffers();
+    Graphics::CalculTransformationMatrix();
 	Input::Update();
 
 	gameState->Grid.Update();

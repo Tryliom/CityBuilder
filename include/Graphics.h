@@ -51,7 +51,7 @@ namespace Graphics
 
     inline Camera camera;
 
-    inline float MinZoom = 1.f;
+    inline float MinZoom = 0.7f;
     inline float MaxZoom = 2.f;
 
     inline Matrix2x3F transformMatrix;

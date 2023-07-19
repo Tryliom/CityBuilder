@@ -10,3 +10,6 @@ out
 .idea
 .vs
 .vscode
+bin/game.*
+bin/Game.*
+bin/*.dll
