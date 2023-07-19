@@ -5,6 +5,7 @@
 #include "Random.h"
 #include "Input.h"
 #include "Timer.h"
+#include "Serialization.hpp"
 
 std::map<TileType, std::map<Items, int>> *tileMaxInventory = new std::map<TileType, std::map<Items, int>>{
     {TileType::Sawmill, {{Items::Wood, 50}}},
@@ -742,4 +743,18 @@ std::vector<TilePosition> Grid::GetNeighbours(TilePosition position) const
     }
 
     return neighbours;
+}
+
+void Serialize(Serializer* ser, Grid* grid)
+{
+    Serialize(ser,  &grid->_width);
+    Serialize(ser, &grid->_height);
+    Serialize(ser, &grid->_tileSize);
+
+    for (int i = 0; i < grid->_width * grid->_height; i++)
+    {
+        //Faire une fonction Serialize pour un tile  
+        //Serialize pour chaque Tile
+        Serialize(ser, &grid->_tiles[i]);
+    }
 }

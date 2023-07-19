@@ -10,6 +10,7 @@
 #include "Grid.h"
 
 #include "Graphics.h"
+#include "Serialization.hpp"
 
 void GenerateMap();
 
@@ -54,6 +55,11 @@ void InitGame(void* gameMemory, Image* tilemap)
 	// gameState->Seed = Random::GetSeed();
 }
 
+void SerializeGame(Serializer* serializer)
+{
+	Serialize(serializer, &gameState->Grid);
+}
+
 void OnFrame(FrameData* frameData, TimerData* timerData)
 {
 	auto mousePosition = Input::GetMousePosition();
@@ -88,6 +94,24 @@ void OnFrame(FrameData* frameData, TimerData* timerData)
 	Timer::Time = timerData->Time;
 	Timer::DeltaTime = timerData->DeltaTime;
 	Timer::SmoothDeltaTime = timerData->SmoothDeltaTime;
+
+	if (Input::IsKeyHeld(SAPP_KEYCODE_U))
+	{
+		printf("Pressed \n");
+		Serializer ser = SerializerOpenFile(true);
+		SerializeGame(&ser);
+		SerializerFileClose(&ser);
+
+		printf("FileCLosed \n");
+	}
+	if (Input::IsKeyHeld(SAPP_KEYCODE_L))
+	{
+		Serializer ser = SerializerOpenFile(false);
+		SerializeGame(&ser);
+		SerializerFileClose(&ser);
+		printf("load  %i \n", gameState->Grid._width);
+		printf("load  %i \n", gameState->Grid._tiles[2].Type);
+	}
 }
 
 #ifdef __cplusplus // If used by C++ code, 

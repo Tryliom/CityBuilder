@@ -1,5 +1,5 @@
 mkdir bin
-clang++ src/Engine.cpp src/Graphics.cpp src/Game.cpp src/Image.cpp src/Input.cpp src/Timer.cpp src/Audio.cpp src/Tile.cpp src/Grid.cpp src/Color.cpp src/Random.cpp src/UnitManager.cpp ^
+clang++ src/Engine.cpp src/Graphics.cpp src/Game.cpp src/Image.cpp src/Input.cpp src/Timer.cpp src/Audio.cpp src/Tile.cpp src/Grid.cpp src/Color.cpp src/Random.cpp src/UnitManager.cpp src/Serialization.cpp^
     -o bin/game.exe ^
     -std=c++20 ^
     -Wall -Wextra -Wno-c99-designator -Wno-reorder-init-list -Wno-microsoft-enum-forward-reference -Wno-unused-parameter -Wno-unused-variable -Wno-missing-field-initializers -Wno-switch -Wno-logical-op-parentheses -Wno-deprecated-declarations -Wno-missing-braces ^

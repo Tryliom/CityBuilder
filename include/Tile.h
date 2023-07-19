@@ -3,6 +3,7 @@
 #include <map>
 
 #include "Texture.h"
+#include "Serialization.hpp"
 
 enum class TileType
 {
@@ -61,3 +62,8 @@ struct Tile
 		}
 	}
 };
+
+struct Serializer;
+
+
+void Serialize(Serializer* ser, Tile* tile);
