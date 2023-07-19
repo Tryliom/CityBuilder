@@ -361,7 +361,7 @@ bool Grid::IsTileValid(TilePosition position) const
 void Grid::SetTile(TilePosition position, Tile tile)
 {
     // Set the tile as build if it's not a building
-    if (tile.Type != TileType::Storage && tile.Type != TileType::BuilderHut && tile.Type != TileType::Quarry && tile.Type != TileType::Sawmill && tile.Type != TileType::House && tile.Type != TileType::MayorHouse)
+    if (tile.Type == TileType::None || tile.Type == TileType::Tree || tile.Type == TileType::Road || tile.Type == TileType::Stone)
     {
         tile.IsBuilt = true;
     }
