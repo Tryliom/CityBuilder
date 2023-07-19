@@ -17,6 +17,8 @@ void UpdateCamera();
 void HandleInput();
 void DrawUi();
 
+Vector2F centerOfScreen;
+
 float speed = 500.f;
 
 struct GameState
@@ -35,9 +37,9 @@ GameState* gameState = nullptr;
 
 void InitGame(void* gameMemory, Image* tilemap)
 {
-	gameState = (GameState*) gameMemory;
+	centerOfScreen = Vector2F{sapp_widthf(), sapp_heightf()} / 2.f;
 
-	gameState->Camera = Graphics::camera;
+	gameState = (GameState*) gameMemory;
 
 	gameState->Grid = Grid(5000, 5000, 100);
 	gameState->UnitManager.SetGrid(&gameState->Grid);
@@ -50,6 +52,8 @@ void InitGame(void* gameMemory, Image* tilemap)
 	Graphics::textureHeight = tilemap->GetHeight();
     
 	GenerateMap();
+
+	gameState->Camera = Graphics::camera;
 
 	// gameState->Seed = Random::GetSeed();
 }
@@ -114,11 +118,11 @@ extern "C"         // we need to export the C interface
 		// Update the gameState. When a new DLL is created, it will automatically set his gameState to the old one.
 		gameState = (GameState*)gameMemory;
 
+		Graphics::camera = gameState->Camera;
+
 		// Set the camera and textures data in the new DLL (not clean, but it works).
 		if (Graphics::textureWidth == 0)
 		{
-			Graphics::camera = gameState->Camera;
-
 			// ICI faire que Random::seed = gameState->Seed;
 
 			Image tilemap;
@@ -170,7 +174,9 @@ void UpdateCamera()
         Graphics::Zoom(-0.1f);
     }
 
-    Graphics::Zoom(Input::GetMouseWheelDelta() / 50.f);
+	float mouseWheelDelta = Input::GetMouseWheelDelta();
+
+    Graphics::Zoom(mouseWheelDelta / 50.f);
 
     if (Input::IsMouseButtonHeld(SAPP_MOUSEBUTTON_MIDDLE))
 	{
@@ -318,7 +324,7 @@ void DrawUi()
 
 void GenerateMap()
 {
-	Vector2F centerOfScreen = Vector2F{sapp_widthf(), sapp_heightf()} / 2.f;
+	LOG("center of screen" << centerOfScreen.X << " " << centerOfScreen.Y);
 
 	auto mayorHouse = Tile(TileType::MayorHouse);
 	mayorHouse.IsBuilt = true;

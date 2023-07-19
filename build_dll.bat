@@ -12,8 +12,8 @@ ccache.exe clang++ -c -o bin/obj/Image.o src/Image.cpp -g %flags%
 ccache.exe clang++ -c -o bin/obj/Input.o src/Input.cpp -g %flags%
 ccache.exe clang++ -c -o bin/obj/Timer.o src/Timer.cpp -g %flags%
 ccache.exe clang++ -c -o bin/obj/Audio.o src/Audio.cpp -g %flags%
-ccache.exe clang++ -c -o bin/obj/Tile.o src/Tile.cpp -g %flags%
-ccache.exe clang++ -c -o bin/obj/Grid.o src/Grid.cpp -g %flags%
+ccache.exe clang++ -c -o bin/obj/Tile.o src/Tile.cpp   -g %flags%
+ccache.exe clang++ -c -o bin/obj/Grid.o src/Grid.cpp   -g %flags%
 ccache.exe clang++ -c -o bin/obj/Color.o src/Color.cpp -g %flags%
 ccache.exe clang++ -c -o bin/obj/Random.o src/Random.cpp -g %flags%
 ccache.exe clang++ -c -o bin/obj/UnitManager.o src/UnitManager.cpp -g %flags%

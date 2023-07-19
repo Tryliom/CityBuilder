@@ -1,13 +1,15 @@
 #include "Graphics.h"
 #include "Constants.h"
+#include "Input.h"
+#include "Logger.h"
 
 #include <assert.h>
 #include <iostream>
 
+#include <sokol_app.h>
+
 namespace Graphics
 {
-    
-
     int GetFrameCount()
     {
         return Graphics::frameCount;
@@ -184,7 +186,9 @@ namespace Graphics
 
     void CalculTransformationMatrix()
     {
-        transformMatrix     = Matrix2x3F::TransformMatrix({camera.Zoom, camera.Zoom}, 0, camera.Position);
+        Vector2F centerOfScreen = Vector2F{sapp_widthf(), sapp_heightf()} / 2.f;
+
+        transformMatrix     = Matrix2x3F::TransformMatrix({camera.Zoom, camera.Zoom}, 0, camera.Position, centerOfScreen);
         inversedTransMatrix = Matrix2x3F::Invert(transformMatrix);
     }
 
