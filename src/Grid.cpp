@@ -6,8 +6,7 @@
 #include "Input.h"
 #include "Timer.h"
 
-std::map<TileType, std::map<Items, int>> *tileMaxInventory = new std::map<TileType, std::map<Items, int>>
-{
+std::map<TileType, std::map<Items, int>> *tileMaxInventory = new std::map<TileType, std::map<Items, int>>{
     {TileType::Sawmill, {{Items::Wood, 50}}},
     {TileType::Storage, {{Items::Wood, 100}, {Items::Stone, 100}, {Items::Coal, 50}, {Items::IronOre, 100}, {Items::IronIngot, 20}}},
     {TileType::LogisticsCenter, {{Items::Wood, 50}, {Items::Stone, 50}, {Items::Coal, 25}, {Items::IronOre, 50}, {Items::IronIngot, 10}}},
@@ -16,8 +15,7 @@ std::map<TileType, std::map<Items, int>> *tileMaxInventory = new std::map<TileTy
 };
 
 // Items needed to build a tile
-std::map<TileType, std::map<Items, int>> tileNeededItems = std::map<TileType, std::map<Items, int>>
-{
+std::map<TileType, std::map<Items, int>> tileNeededItems = std::map<TileType, std::map<Items, int>>{
     {TileType::Sawmill, {{Items::Wood, 10}}},
     {TileType::Storage, {{Items::Wood, 20}}},
     {TileType::LogisticsCenter, {{Items::Wood, 20}, {Items::Stone, 10}}},
@@ -89,17 +87,21 @@ Texture Grid::getTreeTexture(Tile &tile)
         return Texture(Ressources::TreeFull);
     }
 }
+bool Grid::IsRoad(TilePosition tp)
+{
+    return IsTileValid(tp) ? GetTile(tp).Type == TileType::Road : false;
+}
 
 Texture Grid::getRoadTexture(TilePosition position)
 {
-    bool up = IsTileValid(position + TilePosition{0, -1}) ? GetTile(position + TilePosition{0, -1}).Type == TileType::Road : false;
-    bool down = IsTileValid(position + TilePosition{0, 1}) ? GetTile(position + TilePosition{0, 1}).Type == TileType::Road : false;
-    bool left = IsTileValid(position + TilePosition{-1, 0}) ? GetTile(position + TilePosition{-1, 0}).Type == TileType::Road : false;
-    bool right = IsTileValid(position + TilePosition{1, 0}) ? GetTile(position + TilePosition{1, 0}).Type == TileType::Road : false;
-    bool upLeft = IsTileValid(position + TilePosition{-1, -1}) ? GetTile(position + TilePosition{-1, -1}).Type == TileType::Road : false;
-    bool upRight = IsTileValid(position + TilePosition{1, -1}) ? GetTile(position + TilePosition{1, -1}).Type == TileType::Road : false;
-    bool downLeft = IsTileValid(position + TilePosition{-1, 1}) ? GetTile(position + TilePosition{-1, 1}).Type == TileType::Road : false;
-    bool downRight = IsTileValid(position + TilePosition{1, 1}) ? GetTile(position + TilePosition{1, 1}).Type == TileType::Road : false;
+    bool up = IsRoad(position + TilePosition{0, -1});
+    bool down = IsRoad(position + TilePosition{0, 1});
+    bool left = IsRoad(position + TilePosition{-1, 0});
+    bool right = IsRoad(position + TilePosition{1, 0});
+    bool upLeft = IsRoad(position + TilePosition{-1, -1});
+    bool upRight = IsRoad(position + TilePosition{1, -1});
+    bool downLeft = IsRoad(position + TilePosition{-1, 1});
+    bool downRight = IsRoad(position + TilePosition{1, 1});
 
     if (up && down && left && right && !upLeft && !upRight && !downLeft && !downRight) // cross
         return Texture(Road::Cross);
