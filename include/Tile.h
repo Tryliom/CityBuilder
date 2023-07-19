@@ -60,4 +60,16 @@ struct Tile
 			item.second = 0;
 		}
 	}
+
+    [[nodiscard]] int GetInventorySize() const
+    {
+        int size = 0;
+
+        for (auto& item : *Inventory)
+        {
+            size += item.second;
+        }
+
+        return size;
+    }
 };

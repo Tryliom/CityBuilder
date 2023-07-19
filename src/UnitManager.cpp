@@ -406,23 +406,29 @@ void UnitManager::onTickUnitLogistician(Unit& unit)
 
 		std::vector<TilePosition> tilesToGetItemsFrom = {};
 		auto sawmills = _grid->GetTilesWithItems(TileType::Sawmill, Items::Wood);
-		auto quarries = _grid->GetTilesWithItems(TileType::Quarry, Items::Stone);
+		auto stoneQuarries = _grid->GetTilesWithItems(TileType::Quarry, Items::Stone);
+        auto coalQuarries = _grid->GetTilesWithItems(TileType::Quarry, Items::Coal);
+        auto ironOreQuarries = _grid->GetTilesWithItems(TileType::Quarry, Items::IronOre);
+        auto addList = [&](const std::vector<TilePosition>& list)
+        {
+            for (auto tile : list)
+            {
+                if (IsTileTakenCareBy(tile, Characters::Logistician)) continue;
 
-		tilesToGetItemsFrom.reserve(sawmills.size());
+                tilesToGetItemsFrom.push_back(tile);
+            }
+        };
 
-		for (auto tile : sawmills)
-		{
-			tilesToGetItemsFrom.push_back(tile);
-		}
+		tilesToGetItemsFrom.reserve(sawmills.size() + stoneQuarries.size() + coalQuarries.size() + ironOreQuarries.size());
 
-		for (auto tile : quarries)
-		{
-			tilesToGetItemsFrom.push_back(tile);
-		}
+        addList(sawmills);
+        addList(stoneQuarries);
+        addList(coalQuarries);
+        addList(ironOreQuarries);
 
 		std::sort(tilesToGetItemsFrom.begin(), tilesToGetItemsFrom.end(), [&](TilePosition a, TilePosition b)
 		{
-			return _grid->GetTile(a).Inventory->at(Items::Wood) + _grid->GetTile(a).Inventory->at(Items::Stone) > _grid->GetTile(b).Inventory->at(Items::Wood) + _grid->GetTile(b).Inventory->at(Items::Stone);
+			return _grid->GetTile(a).GetInventorySize() > _grid->GetTile(b).GetInventorySize();
 		});
 
 		if (!tilesToGetItemsFrom.empty())
