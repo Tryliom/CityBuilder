@@ -254,7 +254,7 @@ void GenerateMap()
 
 	// Place random trees
 	grid.ForEachTile([&](Tile &tile, TilePosition position)
-					 {
+     {
 		if (tile.Type == TileType::None)
 		{
 			if (Random::Range(0, 100) < 10)
@@ -263,11 +263,12 @@ void GenerateMap()
 				tile.TreeGrowth = Random::Range(0.f, 30.f);
 				tile.IsBuilt = true;
 			}
-		} });
+		}
+     });
 
 	// Place random rocks
 	grid.ForEachTile([&](Tile &tile, TilePosition position)
-					 {
+     {
 		if (tile.Type == TileType::None)
 		{
 			if (Random::Range(0, 100) < 1)
@@ -275,7 +276,8 @@ void GenerateMap()
 				tile.Type = TileType::Stone;
 				tile.IsBuilt = true;
 			}
-		} });
+		}
+     });
 
 	Random::StopUseSeed();
 

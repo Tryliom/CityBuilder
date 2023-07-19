@@ -227,20 +227,30 @@ void UnitManager::OnTickUnitBuilderHut(Unit& unit)
 
 	if (unit.CurrentBehavior == UnitBehavior::Idle)
 	{
-		// Check if he has something in his inventory
-		if (!IsInventoryEmpty(unit))
+        auto searchAStorage = [&]()
+        {
+            for (auto pair : *unit.Inventory)
+            {
+                if (pair.second == 0) continue;
+
+                auto storagePositions = GetStorageAroundFor(_grid.GetTilePosition(unit.JobTileIndex), 5, pair.first);
+
+                if (storagePositions.empty()) continue;
+
+                unit.TargetTile = storagePositions[0];
+                unit.SetBehavior(UnitBehavior::Moving);
+
+                return true;
+            }
+
+            return false;
+        };
+
+		// Check if his inventory is more than half full
+		if (IsInventoryHalfFull(unit))
 		{
 			// Search for a storage free space to drop the resources he has around his builder house
-			for (auto pair : *unit.Inventory)
-			{
-				if (pair.second == 0) continue;
-
-				auto storagePositions = GetStorageAroundFor(_grid.GetTilePosition(unit.JobTileIndex), 5, pair.first);
-
-				unit.TargetTile = storagePositions[0];
-				unit.SetBehavior(UnitBehavior::Moving);
-				return;
-			}
+            if (searchAStorage()) return;
 		}
 
 		// Check if there is a construction to build
@@ -252,6 +262,13 @@ void UnitManager::OnTickUnitBuilderHut(Unit& unit)
 			unit.SetBehavior(UnitBehavior::Moving);
 			return;
 		}
+
+        // Check if he has something in his inventory
+        if (!IsInventoryEmpty(unit))
+        {
+            // Search for a storage free space to drop the resources he has around his builder house
+            if (searchAStorage()) return;
+        }
 	}
 	else if (unit.CurrentBehavior == UnitBehavior::Working)
 	{
@@ -725,26 +742,26 @@ std::vector<TilePosition> UnitManager::GetTilesThatNeedItemsToBeBuilt()
 	auto items = GetAllUsableItems();
 
 	_grid.ForEachTile([&](Tile& tile, TilePosition position)
-	{
-		if (IsTileTakenCareBy(position, Characters::Logistician) || tile.Type == TileType::None) return;
-		if (Grid::IsTileReadyToBuild(tile) || tile.IsBuilt) return;
+    {
+        if (IsTileTakenCareBy(position, Characters::Logistician) || tile.Type == TileType::None) return;
+        if (Grid::IsTileReadyToBuild(tile) || tile.IsBuilt) return;
 
-		// Check if we have the items to build the tile
-		bool canBuild = true;
+        // Check if we have the items to build the tile
+        bool canBuild = true;
 
-		for (auto& item : items)
-		{
-			if (Grid::GetNeededItemsToBuild(tile.Type, item.first) - tile.Inventory->at(item.first) > item.second)
-			{
-				canBuild = false;
-				break;
-			}
-		}
+        for (auto& item : items)
+        {
+            if (Grid::GetNeededItemsToBuild(tile.Type, item.first) - tile.Inventory->at(item.first) > item.second)
+            {
+                canBuild = false;
+                break;
+            }
+        }
 
-		if (!canBuild) return;
+        if (!canBuild) return;
 
-		tiles.push_back(position);
-	});
+        tiles.push_back(position);
+    });
 
 	return tiles;
 }
@@ -805,6 +822,19 @@ bool UnitManager::IsInventoryEmpty(Unit& unit)
 	}
 
 	return true;
+}
+
+bool UnitManager::IsInventoryHalfFull(Unit& unit)
+{
+    for (auto& item : *unit.Inventory)
+    {
+        if (item.second > GetMaxItemsFor(unit, item.first) / 2)
+        {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 std::map<Items, int> UnitManager::GetAllUsableItems()

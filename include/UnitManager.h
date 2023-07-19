@@ -49,6 +49,7 @@ private:
 	// Inventory
 	int GetMaxItemsFor(Unit& unit, Items item);
 	static bool IsInventoryEmpty(Unit& unit);
+    bool IsInventoryHalfFull(Unit& unit);
 	std::map<Items, int> GetAllUsableItems();
 
 public:
