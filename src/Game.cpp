@@ -35,7 +35,7 @@ GameState* gameState = nullptr;
 
 void InitGame(void* gameMemory, Image* tilemap)
 {
-	gameState = (GameState*)gameMemory;
+	gameState = (GameState*) gameMemory;
 
 	gameState->Camera = Graphics::camera;
 

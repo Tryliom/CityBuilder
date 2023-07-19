@@ -17,7 +17,7 @@ enum class InventoryReason
 class UnitManager
 {
 public:
-	UnitManager();
+	UnitManager() = default;
 
 private:
 	Grid* _grid {};
