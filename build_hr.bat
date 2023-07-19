@@ -1,7 +1,7 @@
 mkdir bin
-mkdir bin\obj
+mkdir bin/obj
 
-call .\hot_reload.bat
+call .\build_dll.bat
 
 clang++ src/Engine.cpp src/Input.cpp src/Image.cpp src/Timer.cpp bin/Game.lib ^
     -o bin/game.exe ^
