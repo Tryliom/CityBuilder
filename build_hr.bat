@@ -1,5 +1,5 @@
 mkdir bin
-mkdir bin/obj
+mkdir bin\obj
 
 call .\build_dll.bat
 
