@@ -90,14 +90,14 @@ Texture Grid::getTreeTexture(Tile &tile)
 
 Texture Grid::getRoadTexture(TilePosition position)
 {
-    bool up = GetTile(position + TilePosition{0, -1}).Type == TileType::Road;
-    bool down = GetTile(position + TilePosition{0, 1}).Type == TileType::Road;
-    bool left = GetTile(position + TilePosition{-1, 0}).Type == TileType::Road;
-    bool right = GetTile(position + TilePosition{1, 0}).Type == TileType::Road;
-    bool upLeft = GetTile(position + TilePosition{-1, -1}).Type == TileType::Road;
-    bool upRight = GetTile(position + TilePosition{1, -1}).Type == TileType::Road;
-    bool downLeft = GetTile(position + TilePosition{-1, 1}).Type == TileType::Road;
-    bool downRight = GetTile(position + TilePosition{1, 1}).Type == TileType::Road;
+    bool up = IsTileValid(position + TilePosition{0, -1}) ? GetTile(position + TilePosition{0, -1}).Type == TileType::Road : false;
+    bool down = IsTileValid(position + TilePosition{0, 1}) ? GetTile(position + TilePosition{0, 1}).Type == TileType::Road : false;
+    bool left = IsTileValid(position + TilePosition{-1, 0}) ? GetTile(position + TilePosition{-1, 0}).Type == TileType::Road : false;
+    bool right = IsTileValid(position + TilePosition{1, 0}) ? GetTile(position + TilePosition{1, 0}).Type == TileType::Road : false;
+    bool upLeft = IsTileValid(position + TilePosition{-1, -1}) ? GetTile(position + TilePosition{-1, -1}).Type == TileType::Road : false;
+    bool upRight = IsTileValid(position + TilePosition{1, -1}) ? GetTile(position + TilePosition{1, -1}).Type == TileType::Road : false;
+    bool downLeft = IsTileValid(position + TilePosition{-1, 1}) ? GetTile(position + TilePosition{-1, 1}).Type == TileType::Road : false;
+    bool downRight = IsTileValid(position + TilePosition{1, 1}) ? GetTile(position + TilePosition{1, 1}).Type == TileType::Road : false;
 
     if (up && down && left && right && !upLeft && !upRight && !downLeft && !downRight) // cross
         return Texture(Road::Cross);
@@ -313,8 +313,7 @@ TilePosition Grid::GetTilePosition(Vector2F position) const
 {
     return TilePosition{
         (int)(position.X + _width / 2.f) / _tileSize,
-        (int)(position.Y + _height / 2.f) / _tileSize
-    };
+        (int)(position.Y + _height / 2.f) / _tileSize};
 }
 
 [[nodiscard]] TilePosition Grid::GetTilePosition(int tileIndex) const

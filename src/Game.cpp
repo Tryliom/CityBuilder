@@ -32,17 +32,17 @@ void InitGame()
 
 void OnFrame()
 {
-    auto mousePosition = Input::GetMousePosition();
+	auto mousePosition = Input::GetMousePosition();
 
-    UpdateCamera();
+	UpdateCamera();
 	HandleInput();
 
-    Window::CalculTransformationMatrix();
+	Window::CalculTransformationMatrix();
 
-    grid.Update();
-    grid.Draw();
+	grid.Update();
+	grid.Draw();
 
-    unitManager.UpdateUnits();
+	unitManager.UpdateUnits();
 	unitManager.DrawUnits();
 
 	DrawUi();
@@ -50,41 +50,41 @@ void OnFrame()
 
 void UpdateCamera()
 {
-    auto mousePosition = Input::GetMousePosition();
-    auto previousMousePosition = Input::GetPreviousMousePosition();
-    auto smoothDeltaTime = Timer::SmoothDeltaTime;
-    auto movementValue = speed * smoothDeltaTime;
-    auto mouseWorldPosition = Window::ScreenToWorld(mousePosition);
+	auto mousePosition = Input::GetMousePosition();
+	auto previousMousePosition = Input::GetPreviousMousePosition();
+	auto smoothDeltaTime = Timer::SmoothDeltaTime;
+	auto movementValue = speed * smoothDeltaTime;
+	auto mouseWorldPosition = Window::ScreenToWorld(mousePosition);
 
-    if (Input::IsKeyHeld(SAPP_KEYCODE_A))
-    {
-        Window::MoveCamera({movementValue, 0});
-    }
-    if (Input::IsKeyHeld(SAPP_KEYCODE_D))
-    {
-        Window::MoveCamera({-movementValue, 0});
-    }
-    if (Input::IsKeyHeld(SAPP_KEYCODE_W))
-    {
-        Window::MoveCamera({0, movementValue});
-    }
-    if (Input::IsKeyHeld(SAPP_KEYCODE_S))
-    {
-        Window::MoveCamera({0, -movementValue});
-    }
+	if (Input::IsKeyHeld(SAPP_KEYCODE_A))
+	{
+		Window::MoveCamera({movementValue, 0});
+	}
+	if (Input::IsKeyHeld(SAPP_KEYCODE_D))
+	{
+		Window::MoveCamera({-movementValue, 0});
+	}
+	if (Input::IsKeyHeld(SAPP_KEYCODE_W))
+	{
+		Window::MoveCamera({0, movementValue});
+	}
+	if (Input::IsKeyHeld(SAPP_KEYCODE_S))
+	{
+		Window::MoveCamera({0, -movementValue});
+	}
 
-    if (Input::IsKeyPressed(SAPP_KEYCODE_Z))
-    {
-        Window::Zoom(0.1f);
-    }
-    if (Input::IsKeyPressed(SAPP_KEYCODE_X))
-    {
-        Window::Zoom(-0.1f);
-    }
+	if (Input::IsKeyPressed(SAPP_KEYCODE_Z))
+	{
+		Window::Zoom(0.1f);
+	}
+	if (Input::IsKeyPressed(SAPP_KEYCODE_X))
+	{
+		Window::Zoom(-0.1f);
+	}
 
-    Window::Zoom(Input::GetMouseWheelDelta() / 50.f);
+	Window::Zoom(Input::GetMouseWheelDelta() / 50.f);
 
-    if (Input::IsMouseButtonHeld(SAPP_MOUSEBUTTON_MIDDLE))
+	if (Input::IsMouseButtonHeld(SAPP_MOUSEBUTTON_MIDDLE))
 	{
 		Window::MoveCamera((mousePosition - previousMousePosition) * 1.f / Window::GetZoom());
 	}
@@ -124,7 +124,7 @@ void HandleInput()
 	if (Input::IsKeyPressed(SAPP_KEYCODE_F))
 	{
 		// Spawn a unit
-		unitManager.AddUnit(Unit(grid.ToWorldPosition(grid.GetTiles(TileType::MayorHouse)[0]) + Vector2F{ Random::Range(0, 25), Random::Range(0, 25) }));
+		unitManager.AddUnit(Unit(grid.ToWorldPosition(grid.GetTiles(TileType::MayorHouse)[0]) + Vector2F{Random::Range(0, 25), Random::Range(0, 25)}));
 	}
 
 	if (Input::IsMouseButtonHeld(SAPP_MOUSEBUTTON_LEFT))
@@ -133,7 +133,7 @@ void HandleInput()
 		auto mouseWorldPosition = Window::ScreenToWorld(mousePosition);
 		auto tilePosition = grid.GetTilePosition(mouseWorldPosition);
 
-		if (grid.CanBuild(tilePosition, selectedTileType))
+		if (grid.IsTileValid(tilePosition) && grid.CanBuild(tilePosition, selectedTileType))
 		{
 			grid.SetTile(tilePosition, Tile(selectedTileType));
 		}
@@ -145,9 +145,10 @@ void HandleInput()
 		auto mousePosition = Input::GetMousePosition();
 		auto mouseWorldPosition = Window::ScreenToWorld(mousePosition);
 		auto tilePosition = grid.GetTilePosition(mouseWorldPosition);
-		auto& tile = grid.GetTile(tilePosition);
+		auto &tile = grid.GetTile(tilePosition);
 
-		if (tile.Type == TileType::None) return;
+		if (tile.Type == TileType::None)
+			return;
 
 		if (tile.NeedToBeDestroyed)
 		{
@@ -177,9 +178,10 @@ void HandleInput()
 		auto mousePosition = Input::GetMousePosition();
 		auto mouseWorldPosition = Window::ScreenToWorld(mousePosition);
 		auto tilePosition = grid.GetTilePosition(mouseWorldPosition);
-		auto& tile = grid.GetTile(tilePosition);
+		auto &tile = grid.GetTile(tilePosition);
 
-		if (tile.Type != TileType::Road) return;
+		if (tile.Type != TileType::Road)
+			return;
 
 		tile.Type = TileType::None;
 		tile.IsBuilt = true;
@@ -194,27 +196,27 @@ void DrawUi()
 
 	switch (selectedTileType)
 	{
-		case TileType::Sawmill:
-			selectedTileTexture = Texture(Buildings::Sawmill);
-			break;
-		case TileType::BuilderHut:
-			selectedTileTexture = Texture(Buildings::BuilderHut);
-			break;
-		case TileType::Quarry:
-			selectedTileTexture = Texture(Buildings::Quarry);
-			break;
-		case TileType::Storage:
-			selectedTileTexture = Texture(Buildings::Storage);
-			break;
-		case TileType::House:
-			selectedTileTexture = Texture(Buildings::House);
-			break;
-		case TileType::Road:
-			selectedTileTexture = Texture(Road::Single);
-			break;
-		case TileType::LogisticsCenter:
-			selectedTileTexture = Texture(Buildings::LogisticsCenter);
-			break;
+	case TileType::Sawmill:
+		selectedTileTexture = Texture(Buildings::Sawmill);
+		break;
+	case TileType::BuilderHut:
+		selectedTileTexture = Texture(Buildings::BuilderHut);
+		break;
+	case TileType::Quarry:
+		selectedTileTexture = Texture(Buildings::Quarry);
+		break;
+	case TileType::Storage:
+		selectedTileTexture = Texture(Buildings::Storage);
+		break;
+	case TileType::House:
+		selectedTileTexture = Texture(Buildings::House);
+		break;
+	case TileType::Road:
+		selectedTileTexture = Texture(Road::Single);
+		break;
+	case TileType::LogisticsCenter:
+		selectedTileTexture = Texture(Buildings::LogisticsCenter);
+		break;
 	}
 
 	// Draw the select tile type at the top left
@@ -228,7 +230,7 @@ void DrawUi()
 
 void GenerateMap()
 {
-	Vector2F centerOfScreen = Vector2F{ sapp_widthf(), sapp_heightf() } / 2.f;
+	Vector2F centerOfScreen = Vector2F{sapp_widthf(), sapp_heightf()} / 2.f;
 
 	auto mayorHouse = Tile(TileType::MayorHouse);
 	mayorHouse.IsBuilt = true;
@@ -236,23 +238,23 @@ void GenerateMap()
 
 	auto builderHouse = Tile(TileType::BuilderHut);
 	builderHouse.IsBuilt = true;
-	grid.SetTile(grid.GetTilePosition(centerOfScreen) + TilePosition{ 2, 0}, builderHouse);
+	grid.SetTile(grid.GetTilePosition(centerOfScreen) + TilePosition{2, 0}, builderHouse);
 
 	auto logisticsCenter = Tile(TileType::LogisticsCenter);
 	logisticsCenter.IsBuilt = true;
-	grid.SetTile(grid.GetTilePosition(centerOfScreen) + TilePosition{ 0, 2 }, logisticsCenter);
+	grid.SetTile(grid.GetTilePosition(centerOfScreen) + TilePosition{0, 2}, logisticsCenter);
 
 	auto house = Tile(TileType::House);
 	house.IsBuilt = true;
-	grid.SetTile(grid.GetTilePosition(centerOfScreen) + TilePosition{ 2, 2 }, house);
+	grid.SetTile(grid.GetTilePosition(centerOfScreen) + TilePosition{2, 2}, house);
 
 	// Generate a random seed for the map
 	Random::SetSeed(Random::Range(0, 1000000));
 	Random::UseSeed();
 
 	// Place random trees
-	grid.ForEachTile([&](Tile& tile, TilePosition position)
-	{
+	grid.ForEachTile([&](Tile &tile, TilePosition position)
+					 {
 		if (tile.Type == TileType::None)
 		{
 			if (Random::Range(0, 100) < 10)
@@ -261,12 +263,11 @@ void GenerateMap()
 				tile.TreeGrowth = Random::Range(0.f, 30.f);
 				tile.IsBuilt = true;
 			}
-		}
-	});
+		} });
 
 	// Place random rocks
-	grid.ForEachTile([&](Tile& tile, TilePosition position)
-	{
+	grid.ForEachTile([&](Tile &tile, TilePosition position)
+					 {
 		if (tile.Type == TileType::None)
 		{
 			if (Random::Range(0, 100) < 1)
@@ -274,13 +275,12 @@ void GenerateMap()
 				tile.Type = TileType::Stone;
 				tile.IsBuilt = true;
 			}
-		}
-	});
+		} });
 
 	Random::StopUseSeed();
 
 	for (int i = 0; i < 3; i++)
 	{
-		unitManager.AddUnit(Unit(grid.ToWorldPosition(grid.GetTiles(TileType::MayorHouse)[0]) + Vector2F{ Random::Range(0, 25), Random::Range(0, 25) }));
+		unitManager.AddUnit(Unit(grid.ToWorldPosition(grid.GetTiles(TileType::MayorHouse)[0]) + Vector2F{Random::Range(0, 25), Random::Range(0, 25)}));
 	}
 }
