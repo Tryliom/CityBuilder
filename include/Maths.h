@@ -370,12 +370,41 @@ struct Matrix2x3
         return inverted;
     }
 
-    static Matrix2x3<T> TransformMatrix(Vector2F scaleRatio, float angle, Vector2F translation)
+    static Matrix2x3<T> TransformMatrix(Vector2F scaleRatio, float angle, Vector2F translation, Vector2F pivot)
     {
-        Matrix2x3<T> resultMatrix = ScaleMatrix(scaleRatio);
-        resultMatrix = Multiply(resultMatrix, RotationMatrix(angle));
-        resultMatrix = Multiply(resultMatrix, TranslationMatrix(translation));
+        // Step 1: Move the pivot to the origin (0, 0)
+        Matrix2x3<T> toOriginMatrix = TranslationMatrix(Vector2F(-pivot.X, -pivot.Y));
 
-        return resultMatrix;
+        // Step 2: Create the transformation matrix (scale, rotate, translate)
+        Matrix2x3<T> transformationMatrix = Matrix2x3<T>::IdentityMatrix();
+        transformationMatrix = Multiply(transformationMatrix, ScaleMatrix(scaleRatio));
+        transformationMatrix = Multiply(transformationMatrix, RotationMatrix(angle));
+        transformationMatrix = Multiply(transformationMatrix, TranslationMatrix(translation));
+
+        // Step 3: Move back the pivot to its original position
+        Matrix2x3<T> fromOriginMatrix = TranslationMatrix(pivot);
+
+        // Step 4: Combine the matrices
+        return Multiply(fromOriginMatrix, Multiply(transformationMatrix, toOriginMatrix));
     }
+
+    // template <class T>
+    // static Matrix2x3<T> TransformMatrix(Vector2F pivot, Vector2F scaleRatio, float angle, Vector2F translation)
+    // {
+    //     // Step 1: Move the pivot to the origin (0, 0)
+    //     Matrix2x3<T> toOriginMatrix = Matrix2x3<T>::TranslationMatrix(-pivot);
+
+    //     // Step 2: Create the transformation matrix (scale, rotate, translate)
+    //     Matrix2x3<T> transformationMatrix = Matrix2x3<T>::IdentityMatrix();
+    //     transformationMatrix = Matrix2x3<T>::Multiply(transformationMatrix, Matrix2x3<T>::ScaleMatrix(scaleRatio));
+    //     transformationMatrix = Matrix2x3<T>::Multiply(transformationMatrix, Matrix2x3<T>::RotationMatrix(angle));
+    //     transformationMatrix = Matrix2x3<T>::Multiply(transformationMatrix, Matrix2x3<T>::TranslationMatrix(translation));
+
+    //     // Step 3: Move back the pivot to its original position
+    //     Matrix2x3<T> fromOriginMatrix = Matrix2x3<T>::TranslationMatrix(pivot);
+
+    //     // Step 4: Combine the matrices
+    //     return Matrix2x3<T>::Multiply(fromOriginMatrix, Matrix2x3<T>::Multiply(transformationMatrix, toOriginMatrix));
+    // }
+
 };
