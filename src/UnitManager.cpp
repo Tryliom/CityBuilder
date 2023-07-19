@@ -6,6 +6,7 @@
 #include "Unit.h"
 #include "Grid.h"
 #include "Random.h"
+#include "Logger.h"
 
 float unitSpeed = 100.f;
 int unitSize = 16;
@@ -84,7 +85,12 @@ void UnitManager::UpdateUnits()
                         auto lastPosition = unit.Position;
 
 						// Move it to the center of the next tile
-						unit.Position += (nextTileWorldPosition - unit.Position).Normalized() * unitSpeed * speedFactor * Timer::SmoothDeltaTime;
+                        auto offset = (nextTileWorldPosition - unit.Position).Normalized() * unitSpeed * speedFactor * Timer::SmoothDeltaTime;
+
+                        if (offset.X != -NAN && offset.Y != -NAN)
+                        {
+                            unit.Position += offset;
+                        }
 
                         float distance = nextTileWorldPosition.GetDistance(unit.Position);
                         float previousDistance = nextTileWorldPosition.GetDistance(lastPosition);
