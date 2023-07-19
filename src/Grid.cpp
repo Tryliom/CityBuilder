@@ -580,10 +580,8 @@ int Grid::GetLeftSpaceForItems(Tile tile, Items item)
 bool Grid::IsTileReadyToBuild(Tile &tile)
 {
     // Check if the tile has the items to be built
-    if (!tileNeededItems.contains(tile.Type))
-        return true;
-    if (tileNeededItems[tile.Type].empty())
-        return true;
+    if (!tileNeededItems.contains(tile.Type)) return true;
+    if (tileNeededItems[tile.Type].empty()) return true;
 
     for (auto &item : tileNeededItems[tile.Type])
     {

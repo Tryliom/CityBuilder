@@ -6,6 +6,7 @@
 #include "Unit.h"
 #include "Grid.h"
 #include "Random.h"
+#include "Logger.h"
 
 float unitSpeed = 100.f;
 int unitSize = 16;
@@ -27,6 +28,12 @@ void UnitManager::UpdateUnits()
 {
 	for (auto& unit : _units)
 	{
+        if (unit.Position.X == NAN || unit.Position.Y == NAN)
+        {
+            // TODO: Fix this, but now it's a workaround, respawn the unit at the mayor's house
+            unit.Position = _grid->ToWorldPosition(_grid->GetTiles(TileType::MayorHouse)[0]);
+        }
+
 		if (unit.JobTileIndex != -1)
 		{
 			Tile& tile = _grid->GetTile(unit.JobTileIndex);
@@ -84,7 +91,9 @@ void UnitManager::UpdateUnits()
                         auto lastPosition = unit.Position;
 
 						// Move it to the center of the next tile
-						unit.Position += (nextTileWorldPosition - unit.Position).Normalized() * unitSpeed * speedFactor * Timer::SmoothDeltaTime;
+                        auto offset = (nextTileWorldPosition - unit.Position).Normalized() * unitSpeed * speedFactor * Timer::SmoothDeltaTime;
+
+                        unit.Position += offset;
 
                         float distance = nextTileWorldPosition.GetDistance(unit.Position);
                         float previousDistance = nextTileWorldPosition.GetDistance(lastPosition);
@@ -366,9 +375,10 @@ void UnitManager::onTickUnitLogistician(Unit& unit)
 				if (quantity >= neededItems) continue;
 
 				int itemsToGet = neededItems - quantity;
+                int unitItem = unit.Inventory->at(item);
 
 				// Check if the unit has the resources in his inventory or has his inventory full of this item
-				if (unit.Inventory->at(item) >= itemsToGet || unit.Inventory->at(item) == GetMaxItemsFor(unit, item)) continue;
+				if (unitItem >= itemsToGet || unitItem == GetMaxItemsFor(unit, item)) continue;
 
 				// Search for a storage that has the resources
 				auto storagePositions = GetStorageThatHave(_grid->GetTilePosition(unit.Position), item);
@@ -380,7 +390,8 @@ void UnitManager::onTickUnitLogistician(Unit& unit)
 				return;
 			}
 
-			if (!IsInventoryEmpty(unit))
+            // Check if the unit has more than 0 of the items needed for the construction
+			if (HasAtLeastOneItemNeededToBuild(unit, tilePosition))
 			{
 				unit.TargetTile = tilePosition;
 				unit.SetBehavior(UnitBehavior::Moving);
@@ -891,6 +902,22 @@ std::map<Items, int> UnitManager::GetAllUsableItems()
 	});
 
 	return items;
+}
+
+bool UnitManager::HasAtLeastOneItemNeededToBuild(Unit& unit, TilePosition position)
+{
+    auto& tile = _grid->GetTile(position);
+
+    if (tile.Type == TileType::None) return false;
+
+    for (auto& item : *tile.Inventory)
+    {
+        if (Grid::GetNeededItemsToBuild(tile.Type, item.first) - item.second <= 0) continue;
+
+        if (unit.Inventory->at(item.first) > 0) return true;
+    }
+
+    return false;
 }
 
 void UnitManager::SetGrid(Grid *grid)
