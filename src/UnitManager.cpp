@@ -464,13 +464,14 @@ void UnitManager::onTickUnitLogistician(Unit& unit)
 			if (!buildsThatNeedResources.empty())
 			{
 				auto tilePosition = buildsThatNeedResources[0];
+                Tile& buildTile = _grid->GetTile(tilePosition);
 
 				// Check if the unit has the resources to build it or need to go to a storage to get them
-				for (auto pair : *_grid->GetTile(tilePosition).Inventory)
+				for (auto pair : *buildTile.Inventory)
 				{
 					Items item = pair.first;
 					int quantity = pair.second;
-					int neededItems = Grid::GetNeededItemsToBuild(_grid->GetTile(tilePosition).Type, item);
+					int neededItems = Grid::GetNeededItemsToBuild(buildTile.Type, item);
 
 					if (quantity >= neededItems) continue;
 
@@ -479,16 +480,11 @@ void UnitManager::onTickUnitLogistician(Unit& unit)
 					// Check if the unit has the resources in his inventory or has his inventory full of this item
 					if (unit.Inventory->at(item) >= itemsToGet || unit.Inventory->at(item) == GetMaxItemsFor(unit, item)) continue;
 
-                    //TODO: Fix this, not correct
+                    itemsToGet = std::min(itemsToGet, tile.Inventory->at(item));
 
-					// Search for a storage that has the resources
-					auto storagePositions = GetStorageThatHave(_grid->GetTilePosition(unit.Position), item);
-
-					if (storagePositions.empty()) continue;
-
-					// Take the items
-					_grid->GetTile(storagePositions[0]).Inventory->at(item) -= itemsToGet;
-					unit.Inventory->at(item) += itemsToGet;
+					// Get the resources from the storage
+                    tile.Inventory->at(item) -= itemsToGet;
+                    unit.Inventory->at(item) += itemsToGet;
 				}
 			}
 			// Check if there is resources to move to the storage from the unit
