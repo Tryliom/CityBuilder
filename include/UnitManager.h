@@ -17,10 +17,10 @@ enum class InventoryReason
 class UnitManager
 {
 public:
-	explicit UnitManager(Grid& grid);
+	UnitManager() = default;
 
 private:
-	Grid& _grid;
+	Grid* _grid {};
 	std::vector<Unit> _units;
 
 	// Unit tick functions
@@ -57,4 +57,6 @@ public:
 	void DrawUnits();
 
 	void AddUnit(const Unit& unit);
+
+	void SetGrid(Grid* grid);
 };

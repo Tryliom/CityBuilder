@@ -1,7 +1,7 @@
 #include "map"
 
 #include "Grid.h"
-#include "Window.h"
+#include "Graphics.h"
 #include "Random.h"
 #include "Input.h"
 #include "Timer.h"
@@ -204,7 +204,7 @@ void Grid::Draw()
     Random::UseSeed();
 
     auto mousePosition = Input::GetMousePosition();
-    Vector2F worldMousePosition = Window::ScreenToWorld(mousePosition);
+    Vector2F worldMousePosition = Graphics::ScreenToWorld(mousePosition);
 
     for (int x = 0; x < _width / _tileSize; x++)
     {
@@ -218,21 +218,25 @@ void Grid::Draw()
 
             if (tile.Type != TileType::Road)
             {
-                Window::DrawObject({.Position = position, .Size = size, .Texture = background});
+                Graphics::DrawObject({
+                    .Position = position,
+                    .Size = size,
+                    .Texture = background
+                });
             }
 
             if (tile.Type != TileType::None)
             {
                 if (!tile.IsBuilt)
                 {
-                    Window::DrawRect(position, size, Color(1, 1, 0, 1.f - tile.Progress / GetMaxConstructionProgress(tile.Type)));
+                    Graphics::DrawRect(position, size, Color(1, 1, 0, 1.f - tile.Progress / GetMaxConstructionProgress(tile.Type)));
                 }
                 else if (tile.NeedToBeDestroyed)
                 {
-                    Window::DrawRect(position, size, Color(1, 0, 0, 1.f - tile.Progress / GetMaxDestructionProgress(tile.Type)));
+                    Graphics::DrawRect(position, size, Color(1, 0, 0, 1.f - tile.Progress / GetMaxDestructionProgress(tile.Type)));
                 }
 
-                Window::DrawObject({.Position = position,
+                Graphics::DrawObject({.Position = position,
                                     .Size = size,
                                     .Texture = GetTexture({x, y})});
             }
@@ -240,7 +244,7 @@ void Grid::Draw()
             if (position.X < worldMousePosition.X && position.X + _tileSize > worldMousePosition.X &&
                 position.Y < worldMousePosition.Y && position.Y + _tileSize > worldMousePosition.Y)
             {
-                Window::DrawRect(
+                Graphics::DrawRect(
                     position,
                     Vector2F{(float)_tileSize, (float)_tileSize},
                     Color(1, 1, 1, 0.2f));

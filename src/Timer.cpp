@@ -7,8 +7,6 @@ float timeStack[200];
 
 namespace Timer
 {
-    float Time, DeltaTime, SmoothDeltaTime;
-
     void Update()
     {
         if (frames == 200)

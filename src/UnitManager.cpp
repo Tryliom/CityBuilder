@@ -1,7 +1,7 @@
-#include <algorithm>
 #include "UnitManager.h"
 
-#include "Window.h"
+#include <algorithm>
+#include "Graphics.h"
 #include "Timer.h"
 #include "Unit.h"
 #include "Grid.h"
@@ -18,8 +18,6 @@ std::map<TileType, std::map<Items, int>>* unitMaxInventory = new std::map<TileTy
 	{TileType::LogisticsCenter, {{Items::Wood, 50}, {Items::Stone, 50}, {Items::Coal, 25}, {Items::IronOre, 25}, {Items::IronIngot, 10}}},
 };
 
-UnitManager::UnitManager(Grid& grid) : _grid(grid) {}
-
 void UnitManager::AddUnit(const Unit& unit)
 {
 	_units.push_back(unit);
@@ -31,7 +29,7 @@ void UnitManager::UpdateUnits()
 	{
 		if (unit.JobTileIndex != -1)
 		{
-			Tile& tile = _grid.GetTile(unit.JobTileIndex);
+			Tile& tile = _grid->GetTile(unit.JobTileIndex);
 
 			if (tile.Type == TileType::None)
 			{
@@ -45,7 +43,7 @@ void UnitManager::UpdateUnits()
 			// Always the same for all units
 			if (unit.CurrentBehavior == UnitBehavior::Moving)
 			{
-				auto targetPosition = _grid.ToWorldPosition(unit.TargetTile);
+				auto targetPosition = _grid->ToWorldPosition(unit.TargetTile);
 
 				if (targetPosition == unit.Position)
 				{
@@ -55,7 +53,7 @@ void UnitManager::UpdateUnits()
 				{
 					if (unit.PathToTargetTile.empty())
 					{
-						unit.PathToTargetTile = _grid.GetPath(_grid.GetTilePosition(unit.Position), unit.TargetTile);
+						unit.PathToTargetTile = _grid->GetPath(_grid->GetTilePosition(unit.Position), unit.TargetTile);
 
 						// Check if it's already on the target tile
 						if (unit.PathToTargetTile.empty())
@@ -66,11 +64,11 @@ void UnitManager::UpdateUnits()
 					else
 					{
 						TilePosition nextTilePosition = unit.PathToTargetTile.front();
-						Vector2F nextTileWorldPosition = _grid.ToWorldPosition(nextTilePosition) + Vector2F(0.5f, 0.5f) * (float) (_grid.GetTileSize() - unitSize);
+						Vector2F nextTileWorldPosition = _grid->ToWorldPosition(nextTilePosition) + Vector2F(0.5f, 0.5f) * (float) (_grid->GetTileSize() - unitSize);
 						float speedFactor = 1.f;
 
 						// Check if the next tile is a road
-						if (_grid.GetTile(nextTilePosition).Type == TileType::Road)
+						if (_grid->GetTile(nextTilePosition).Type == TileType::Road)
 						{
 							speedFactor = 1.5f;
 						}
@@ -80,7 +78,7 @@ void UnitManager::UpdateUnits()
 						// Check if it's the last tile to set the target position to the center-bottom of the tile
 						if (unit.PathToTargetTile.size() == 1)
 						{
-							nextTileWorldPosition += Vector2F(0.f, 1.f) * ((float) _grid.GetTileSize()) / 2.f;
+							nextTileWorldPosition += Vector2F(0.f, 1.f) * ((float) _grid->GetTileSize()) / 2.f;
 						}
 
                         auto lastPosition = unit.Position;
@@ -142,7 +140,7 @@ void UnitManager::UpdateUnits()
 	}
 
 	// Check if there is enough place for a new unit
-	size_t housesCount = _grid.GetTiles(TileType::House).size();
+	size_t housesCount = _grid->GetTiles(TileType::House).size();
 
 	if (_units.size() < housesCount * 5)
 	{
@@ -152,27 +150,28 @@ void UnitManager::UpdateUnits()
 		{
 			unitProgress = 0.f;
 
-			_units.emplace_back(_grid.ToWorldPosition(_grid.GetTiles(TileType::MayorHouse)[0]));
+			_units.emplace_back(_grid->ToWorldPosition(_grid->GetTiles(TileType::MayorHouse)[0]));
 		}
 	}
 }
 
 void UnitManager::OnTickUnitSawMill(Unit& unit)
 {
-	Tile& jobTile = _grid.GetTile(unit.JobTileIndex);
+	Tile& jobTile = _grid->GetTile(unit.JobTileIndex);
 
 	if (unit.CurrentBehavior == UnitBehavior::Idle)
 	{
 		// Check if the unit need to drop items at the sawmill
 		if (NeedToDropItemsAtJob(unit, Items::Wood, InventoryReason::MoreThanHalf))
 		{
-			unit.TargetTile = _grid.GetTilePosition(unit.JobTileIndex);
+			// Go back to the sawmill to drop the logs
+			unit.TargetTile = _grid->GetTilePosition(unit.JobTileIndex);
 			unit.SetBehavior(UnitBehavior::Moving);
 			return;
 		}
 
 		// Check if there is a full tree
-		auto treePositions = GetAllHarvestableTrees(_grid.GetTilePosition(unit.JobTileIndex), 3);
+		auto treePositions = GetAllHarvestableTrees(_grid->GetTilePosition(unit.JobTileIndex), 3);
 
 		if (!treePositions.empty())
 		{
@@ -185,14 +184,14 @@ void UnitManager::OnTickUnitSawMill(Unit& unit)
 		// If the unit has nothing to do, check if he has wood in his inventory, then go to the sawmill drop it
 		if (NeedToDropItemsAtJob(unit, Items::Wood, InventoryReason::MoreThanOne))
 		{
-			unit.TargetTile = _grid.GetTilePosition(unit.JobTileIndex);
+			unit.TargetTile = _grid->GetTilePosition(unit.JobTileIndex);
 			unit.SetBehavior(UnitBehavior::Moving);
 			return;
 		}
 	}
 	else if (unit.CurrentBehavior == UnitBehavior::Working)
 	{
-		Tile& tile = _grid.GetTile(unit.TargetTile);
+		Tile& tile = _grid->GetTile(unit.TargetTile);
 
 		// Drop the logs in the sawmill
 		if (tile.Type == TileType::Sawmill)
@@ -222,7 +221,7 @@ void UnitManager::OnTickUnitBuilderHut(Unit& unit)
 {
 	if (unit.CurrentBehavior == UnitBehavior::Moving)
 	{
-		Tile& tile = _grid.GetTile(unit.TargetTile);
+		Tile& tile = _grid->GetTile(unit.TargetTile);
 
 		// Check that the tile is still valid
 		if (!Grid::IsAStorage(tile.Type) && (tile.IsBuilt && !tile.NeedToBeDestroyed) || tile.Type == TileType::None)
@@ -239,7 +238,7 @@ void UnitManager::OnTickUnitBuilderHut(Unit& unit)
             {
                 if (pair.second == 0) continue;
 
-                auto storagePositions = GetStorageAroundFor(_grid.GetTilePosition(unit.Position), pair.first);
+                auto storagePositions = GetStorageAroundFor(_grid->GetTilePosition(unit.Position), pair.first);
 
                 if (storagePositions.empty()) continue;
 
@@ -278,7 +277,7 @@ void UnitManager::OnTickUnitBuilderHut(Unit& unit)
 	}
 	else if (unit.CurrentBehavior == UnitBehavior::Working)
 	{
-		Tile& tile = _grid.GetTile(unit.TargetTile);
+		Tile& tile = _grid->GetTile(unit.TargetTile);
 
 		if (!tile.NeedToBeDestroyed && tile.IsBuilt)
 		{
@@ -338,7 +337,7 @@ void UnitManager::onTickUnitLogistician(Unit& unit)
 {
 	if (unit.CurrentBehavior == UnitBehavior::Moving)
 	{
-		Tile& tile = _grid.GetTile(unit.TargetTile);
+		Tile& tile = _grid->GetTile(unit.TargetTile);
 
 		// Check that the tile is still valid
 		if (tile.Type == TileType::None)
@@ -357,12 +356,11 @@ void UnitManager::onTickUnitLogistician(Unit& unit)
 			auto tilePosition = buildsThatNeedResources[0];
 
 			// Check if the unit has the resources to build it or need to go to a storage to get them
-			for (auto pair : *_grid.GetTile(tilePosition).Inventory)
+			for (auto pair : *_grid->GetTile(tilePosition).Inventory)
 			{
 				Items item = pair.first;
 				int quantity = pair.second;
-
-				int neededItems = Grid::GetNeededItemsToBuild(_grid.GetTile(tilePosition).Type, item);
+				int neededItems = Grid::GetNeededItemsToBuild(_grid->GetTile(tilePosition).Type, item);
 
 				if (quantity >= neededItems) continue;
 
@@ -372,7 +370,7 @@ void UnitManager::onTickUnitLogistician(Unit& unit)
 				if (unit.Inventory->at(item) >= itemsToGet || unit.Inventory->at(item) == GetMaxItemsFor(unit, item)) continue;
 
 				// Search for a storage that has the resources
-				auto storagePositions = GetStorageThatHave(_grid.GetTilePosition(unit.Position), item);
+				auto storagePositions = GetStorageThatHave(_grid->GetTilePosition(unit.Position), item);
 
 				if (storagePositions.empty()) continue;
 
@@ -396,7 +394,7 @@ void UnitManager::onTickUnitLogistician(Unit& unit)
 			{
 				if (pair.second == 0) continue;
 
-				auto storagePositions = GetStorageAroundFor(_grid.GetTilePosition(unit.Position), pair.first);
+				auto storagePositions = GetStorageAroundFor(_grid->GetTilePosition(unit.Position), pair.first);
 
                 if (storagePositions.empty()) continue;
 
@@ -407,8 +405,8 @@ void UnitManager::onTickUnitLogistician(Unit& unit)
 		}
 
 		std::vector<TilePosition> tilesToGetItemsFrom = {};
-		auto sawmills = _grid.GetTilesWithItems(TileType::Sawmill, Items::Wood);
-		auto quarries = _grid.GetTilesWithItems(TileType::Quarry, Items::Stone);
+		auto sawmills = _grid->GetTilesWithItems(TileType::Sawmill, Items::Wood);
+		auto quarries = _grid->GetTilesWithItems(TileType::Quarry, Items::Stone);
 
 		tilesToGetItemsFrom.reserve(sawmills.size());
 
@@ -424,7 +422,7 @@ void UnitManager::onTickUnitLogistician(Unit& unit)
 
 		std::sort(tilesToGetItemsFrom.begin(), tilesToGetItemsFrom.end(), [&](TilePosition a, TilePosition b)
 		{
-			return _grid.GetTile(a).Inventory->at(Items::Wood) + _grid.GetTile(a).Inventory->at(Items::Stone) > _grid.GetTile(b).Inventory->at(Items::Wood) + _grid.GetTile(b).Inventory->at(Items::Stone);
+			return _grid->GetTile(a).Inventory->at(Items::Wood) + _grid->GetTile(a).Inventory->at(Items::Stone) > _grid->GetTile(b).Inventory->at(Items::Wood) + _grid->GetTile(b).Inventory->at(Items::Stone);
 		});
 
 		if (!tilesToGetItemsFrom.empty())
@@ -440,7 +438,7 @@ void UnitManager::onTickUnitLogistician(Unit& unit)
 
 		if (unit.TimeSinceLastAction < 1.f) return;
 
-		Tile& tile = _grid.GetTile(unit.TargetTile);
+		Tile& tile = _grid->GetTile(unit.TargetTile);
 
 		// If it's a building that is not built, add the needed resources to it
 		if (!tile.IsBuilt)
@@ -468,12 +466,11 @@ void UnitManager::onTickUnitLogistician(Unit& unit)
 				auto tilePosition = buildsThatNeedResources[0];
 
 				// Check if the unit has the resources to build it or need to go to a storage to get them
-				for (auto pair : *_grid.GetTile(tilePosition).Inventory)
+				for (auto pair : *_grid->GetTile(tilePosition).Inventory)
 				{
 					Items item = pair.first;
 					int quantity = pair.second;
-
-					int neededItems = Grid::GetNeededItemsToBuild(_grid.GetTile(tilePosition).Type, item);
+					int neededItems = Grid::GetNeededItemsToBuild(_grid->GetTile(tilePosition).Type, item);
 
 					if (quantity >= neededItems) continue;
 
@@ -485,12 +482,12 @@ void UnitManager::onTickUnitLogistician(Unit& unit)
                     //TODO: Fix this, not correct
 
 					// Search for a storage that has the resources
-					auto storagePositions = GetStorageThatHave(_grid.GetTilePosition(unit.Position), item);
+					auto storagePositions = GetStorageThatHave(_grid->GetTilePosition(unit.Position), item);
 
 					if (storagePositions.empty()) continue;
 
 					// Take the items
-					_grid.GetTile(storagePositions[0]).Inventory->at(item) -= itemsToGet;
+					_grid->GetTile(storagePositions[0]).Inventory->at(item) -= itemsToGet;
 					unit.Inventory->at(item) += itemsToGet;
 				}
 			}
@@ -536,10 +533,10 @@ void UnitManager::OnTickUnitQuarry(Unit& unit)
 {
 	if (unit.CurrentBehavior == UnitBehavior::Idle)
 	{
-		TilePosition tilePosition = _grid.GetTilePosition(unit.JobTileIndex);
+		TilePosition tilePosition = _grid->GetTilePosition(unit.JobTileIndex);
 
 		// Check if the quarry is full
-		if (Grid::GetLeftSpaceForItems(_grid.GetTile(tilePosition), Items::Stone) == 0) return;
+		if (Grid::GetLeftSpaceForItems(_grid->GetTile(tilePosition), Items::Stone) == 0) return;
 
 		// If the unit is not on the quarry, move to it
 		if (tilePosition != unit.TargetTile)
@@ -556,7 +553,7 @@ void UnitManager::OnTickUnitQuarry(Unit& unit)
 	{
 		if (unit.TimeSinceLastAction < 5.f) return;
 
-		Tile& tile = _grid.GetTile(unit.TargetTile);
+		Tile& tile = _grid->GetTile(unit.TargetTile);
 
 		int stoneLeftSpace = Grid::GetLeftSpaceForItems(tile, Items::Stone);
 		int coalLeftSpace = Grid::GetLeftSpaceForItems(tile, Items::Coal);
@@ -591,7 +588,7 @@ void UnitManager::DrawUnits()
 	{
 		Characters character = GetCharacter(unit.JobTileIndex);
 
-		Window::DrawObject({
+		Graphics::DrawObject({
             .Position = unit.Position,
             .Size = {unitSize, unitSize},
             .Texture = Texture(character),
@@ -603,7 +600,7 @@ Characters UnitManager::GetCharacter(int jobTileIndex)
 {
 	if (jobTileIndex == -1) return Characters::Unemployed;
 
-	Tile& jobTile = _grid.GetTile(jobTileIndex);
+	Tile& jobTile = _grid->GetTile(jobTileIndex);
 
 	if (jobTile.Type == TileType::Sawmill)
 	{
@@ -642,7 +639,7 @@ bool UnitManager::IsTileTakenCareBy(TilePosition position, Characters character)
 
 bool UnitManager::IsTileJobFull(int jobTileIndex)
 {
-	Tile& tile = _grid.GetTile(jobTileIndex);
+	Tile& tile = _grid->GetTile(jobTileIndex);
 
 	if (!tile.IsBuilt) return true;
 
@@ -651,7 +648,7 @@ bool UnitManager::IsTileJobFull(int jobTileIndex)
 
 int UnitManager::GetMaxUnitOnJob(int jobTileIndex)
 {
-	Tile& tile = _grid.GetTile(jobTileIndex);
+	Tile& tile = _grid->GetTile(jobTileIndex);
 
 	if (!tile.IsBuilt) return true;
 
@@ -682,11 +679,11 @@ int UnitManager::CountHowManyUnitAreWorkingOn(int jobTileIndex)
 std::vector<TilePosition> UnitManager::GetAllHarvestableTrees(TilePosition position, int radius)
 {
 	std::vector<TilePosition> trees = std::vector<TilePosition>();
-	auto treePositions = _grid.GetTiles(TileType::Tree, position, radius);
+	auto treePositions = _grid->GetTiles(TileType::Tree, position, radius);
 
 	for (auto& treePosition : treePositions)
 	{
-		auto& treeTile = _grid.GetTile(treePosition);
+		auto& treeTile = _grid->GetTile(treePosition);
 
 		if (treeTile.TreeGrowth < 30.f || IsTileTakenCareBy(treePosition, Characters::Lumberjack)) continue;
 
@@ -698,7 +695,7 @@ std::vector<TilePosition> UnitManager::GetAllHarvestableTrees(TilePosition posit
 
 bool UnitManager::NeedToDropItemsAtJob(Unit& unit, Items item, InventoryReason reason)
 {
-	Tile& jobTile = _grid.GetTile(unit.JobTileIndex);
+	Tile& jobTile = _grid->GetTile(unit.JobTileIndex);
 	int maxItems = GetMaxItemsFor(unit, item);
 
 	if (jobTile.Inventory->at(item) == Grid::GetMaxItemsStored(jobTile, item)) return false;
@@ -713,7 +710,7 @@ std::vector<TilePosition> UnitManager::GetStorageAroundFor(TilePosition position
 {
 	std::vector<TilePosition> storages = std::vector<TilePosition>();
 
-    _grid.ForEachTile([&](Tile& tile, TilePosition position)
+    _grid->ForEachTile([&](Tile& tile, TilePosition position)
     {
         if (!Grid::IsAStorage(tile.Type)) return;
         if (tile.Inventory->at(item) == Grid::GetMaxItemsStored(tile, item)) return;
@@ -734,7 +731,7 @@ std::vector<TilePosition> UnitManager::GetAllBuildableOrDestroyableTiles()
 {
 	std::vector<TilePosition> tiles = std::vector<TilePosition>();
 
-	_grid.ForEachTile([&](Tile& tile, TilePosition position)
+	_grid->ForEachTile([&](Tile& tile, TilePosition position)
 	{
 		if (IsTileTakenCareBy(position, Characters::Builder) || tile.Type == TileType::None) return;
 
@@ -752,7 +749,7 @@ std::vector<TilePosition> UnitManager::GetTilesThatNeedItemsToBeBuilt()
 	std::vector<TilePosition> tiles = std::vector<TilePosition>();
 	auto items = GetAllUsableItems();
 
-	_grid.ForEachTile([&](Tile& tile, TilePosition position)
+	_grid->ForEachTile([&](Tile& tile, TilePosition position)
     {
         if (IsTileTakenCareBy(position, Characters::Logistician) || tile.Type == TileType::None) return;
         if (Grid::IsTileReadyToBuild(tile) || tile.IsBuilt) return;
@@ -781,7 +778,7 @@ std::vector<TilePosition> UnitManager::GetStorageThatHave(TilePosition position,
 {
 	std::vector<TilePosition> storages = std::vector<TilePosition>();
 
-	_grid.ForEachTile([&](Tile& tile, TilePosition position)
+	_grid->ForEachTile([&](Tile& tile, TilePosition position)
 	{
 		if (!Grid::IsAStorage(tile.Type)) return;
 		if (tile.Inventory->at(item) == 0) return;
@@ -802,9 +799,9 @@ std::vector<int> UnitManager::GetAvailableJobs()
 {
 	std::vector<int> jobs = std::vector<int>();
 
-	_grid.ForEachTile([&](Tile& tile, TilePosition position)
+	_grid->ForEachTile([&](Tile& tile, TilePosition position)
 	{
-		int index = _grid.GetTileIndex(position);
+		int index = _grid->GetTileIndex(position);
 
 		if (tile.Type == TileType::None) return;
 		if (IsTileJobFull(index)) return;
@@ -819,7 +816,7 @@ int UnitManager::GetMaxItemsFor(Unit& unit, Items item)
 {
 	if (unit.JobTileIndex == -1) return 0;
 
-	Tile& tile = _grid.GetTile(unit.JobTileIndex);
+	Tile& tile = _grid->GetTile(unit.JobTileIndex);
 
 	if (!tile.IsBuilt) return 0;
 
@@ -868,7 +865,7 @@ std::map<Items, int> UnitManager::GetAllUsableItems()
 	{
 		if (unit.JobTileIndex == -1) continue;
 
-		auto& tile = _grid.GetTile(unit.JobTileIndex);
+		auto& tile = _grid->GetTile(unit.JobTileIndex);
 
 		if (tile.Type != TileType::LogisticsCenter) continue;
 
@@ -884,7 +881,7 @@ std::map<Items, int> UnitManager::GetAllUsableItems()
     };
 
 	// Add all items from storages
-	_grid.ForEachTile([&](Tile& tile, TilePosition position)
+	_grid->ForEachTile([&](Tile& tile, TilePosition position)
 	{
 		if (!isValidToCountItemsFromIt(tile.Type)) return;
 
@@ -895,4 +892,9 @@ std::map<Items, int> UnitManager::GetAllUsableItems()
 	});
 
 	return items;
+}
+
+void UnitManager::SetGrid(Grid *grid)
+{
+	_grid = grid;
 }

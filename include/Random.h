@@ -21,4 +21,6 @@ namespace Random
      * Stop using a seed for the next random numbers
      */
     void StopUseSeed();
+
+    int GetSeed();
 }
