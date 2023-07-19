@@ -650,7 +650,7 @@ std::vector<TilePosition> Grid::GetPath(TilePosition start, TilePosition end)
         int lowestScore = INT_MAX;
         int lowestScoreIndex = -1;
 
-        for (int i = 0; i < openList.size(); i++)
+        for (size_t i = 0; i < openList.size(); i++)
         {
             int index = openList[i].X + openList[i].Y * _width / _tileSize;
 
