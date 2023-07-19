@@ -51,6 +51,7 @@ private:
 	static bool IsInventoryEmpty(Unit& unit);
     bool IsInventoryHalfFull(Unit& unit);
 	std::map<Items, int> GetAllUsableItems();
+    bool HasAtLeastOneItemNeededToBuild(Unit& unit, TilePosition position);
 
 public:
 	void UpdateUnits();
