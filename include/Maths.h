@@ -64,9 +64,13 @@ struct Vector2
 
     [[nodiscard]] Vector2<T> Normalized() const
     {
-        Vector2<T> normalized;
+        Vector2<T> normalized = Vector2<T>(0, 0);
+        float length = this->Length();
 
-        normalized = (*this) / this->Length();
+        if (length > MathUtility::epsilon)
+        {
+            normalized = (*this) / this->Length();
+        }
 
         return normalized;
     }
