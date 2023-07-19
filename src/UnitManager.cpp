@@ -28,6 +28,12 @@ void UnitManager::UpdateUnits()
 {
 	for (auto& unit : _units)
 	{
+        if (unit.Position.X == NAN || unit.Position.Y == NAN)
+        {
+            // TODO: Fix this, but now it's a workaround, respawn the unit at the mayor's house
+            unit.Position = _grid->ToWorldPosition(_grid->GetTiles(TileType::MayorHouse)[0]);
+        }
+
 		if (unit.JobTileIndex != -1)
 		{
 			Tile& tile = _grid->GetTile(unit.JobTileIndex);
@@ -87,10 +93,7 @@ void UnitManager::UpdateUnits()
 						// Move it to the center of the next tile
                         auto offset = (nextTileWorldPosition - unit.Position).Normalized() * unitSpeed * speedFactor * Timer::SmoothDeltaTime;
 
-                        if (offset.X != -NAN && offset.Y != -NAN)
-                        {
-                            unit.Position += offset;
-                        }
+                        unit.Position += offset;
 
                         float distance = nextTileWorldPosition.GetDistance(unit.Position);
                         float previousDistance = nextTileWorldPosition.GetDistance(lastPosition);
