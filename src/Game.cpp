@@ -31,6 +31,8 @@ struct GameState
 	UnitManager UnitManager;
 
 	TileType SelectedTileType;
+
+	// int Seed;
 };
 
 GameState* gameState = nullptr;
@@ -45,12 +47,15 @@ void InitGame(void* gameMemory, Image* tilemap)
 	gameState->UnitManager.SetGrid(&gameState->Grid);
 	gameState->SelectedTileType = TileType::Sawmill;
 
+	// Passer tout ce code à l'Engine et transférer les valeurs de textures de l'Engine au Game comme pour les valeurs du Timer.
     tilemap->AddImagesAtRow(Graphics::tileSheets);
 
 	Graphics::textureWidth  = tilemap->GetWidth();
 	Graphics::textureHeight = tilemap->GetHeight();
 	
 	GenerateMap();
+
+	// gameState->Seed = Random::GetSeed();
 }
 
 void OnFrame(FrameData* frameData, TimerData* timerData)
@@ -71,7 +76,7 @@ void OnFrame(FrameData* frameData, TimerData* timerData)
 	gameState->UnitManager.UpdateUnits();
 	gameState->UnitManager.DrawUnits();
 
-	//Graphics::DrawRect(Vector2F(150, 400), Vector2F(300, 300), Color::Purple);
+	Graphics::DrawRect(Vector2F(150, 400), Vector2F(300, 300), Color::Purple);
 
 	DrawUi();
 
@@ -83,6 +88,8 @@ void OnFrame(FrameData* frameData, TimerData* timerData)
 	frameData->vertexBufferUsed = Graphics::vertexesUsed;
 	frameData->indexBufferPtr   = Graphics::indices;
 	frameData->indexBufferUsed  = Graphics::indicesUsed;
+
+	// = WARNING = Don't draw anything here because the frame buffers are clear right up there. = WARNING =
 
 	// Get the timer data from the engine.
 	Timer::Time = timerData->Time;
@@ -119,6 +126,8 @@ extern "C"         // we need to export the C interface
 		{
 			Graphics::camera = gameState->Camera;
 
+			// ICI faire que Random::seed = gameState->Seed;
+
 			Image tilemap;
 
 			tilemap.AddImagesAtRow(Graphics::tileSheets);
@@ -128,7 +137,8 @@ extern "C"         // we need to export the C interface
 		}
 
 		OnFrame(frameData, timerData);
-		// Don't draw anything under the OnFrame() function because the frame buffers clear is inside.
+
+		// = WARNING = Don't draw anything under the OnFrame() function because the frame buffers clear is inside. = WARNING =
 	}
 }
 #endif
