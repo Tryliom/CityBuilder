@@ -376,6 +376,8 @@ void UnitManager::onTickUnitLogistician(Unit& unit)
 
 				auto storagePositions = GetStorageAroundFor(_grid.GetTilePosition(unit.JobTileIndex), 20, pair.first);
 
+                if (storagePositions.empty()) continue;
+
 				unit.TargetTile = storagePositions[0];
 				unit.SetBehavior(UnitBehavior::Moving);
 				return;
