@@ -6,7 +6,6 @@
 #include "Unit.h"
 #include "Grid.h"
 #include "Random.h"
-#include "Logger.h"
 
 float unitSpeed = 100.f;
 int unitSize = 16;
@@ -67,7 +66,7 @@ void UnitManager::UpdateUnits()
 					else
 					{
 						TilePosition nextTilePosition = unit.PathToTargetTile.front();
-						Vector2F nextTileWorldPosition = _grid.ToWorldPosition(nextTilePosition) + Vector2F(0.5f, 0.5f) * ((float) _grid.GetTileSize() - unitSize);
+						Vector2F nextTileWorldPosition = _grid.ToWorldPosition(nextTilePosition) + Vector2F(0.5f, 0.5f) * (float) (_grid.GetTileSize() - unitSize);
 						float speedFactor = 1.f;
 
 						// Check if the next tile is a road
@@ -137,9 +136,9 @@ void UnitManager::UpdateUnits()
 	}
 
 	// Check if there is enough place for a new unit
-	int housesCount = _grid.GetTiles(TileType::House).size();
+	size_t housesCount = _grid.GetTiles(TileType::House).size();
 
-	if (_units.size() < (size_t) (housesCount * 5))
+	if (_units.size() < housesCount * 5)
 	{
 		unitProgress += Timer::SmoothDeltaTime;
 
