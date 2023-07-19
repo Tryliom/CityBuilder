@@ -484,11 +484,13 @@ void UnitManager::onTickUnitLogistician(Unit& unit)
 					if (quantity >= neededItems) continue;
 
 					int itemsToGet = neededItems - quantity;
+                    int tileItem = tile.Inventory->at(item);
+                    int unitItem = unit.Inventory->at(item);
 
 					// Check if the unit has the resources in his inventory or has his inventory full of this item
-					if (unit.Inventory->at(item) >= itemsToGet || unit.Inventory->at(item) == GetMaxItemsFor(unit, item)) continue;
+					if (unitItem >= itemsToGet || unitItem == GetMaxItemsFor(unit, item)) continue;
 
-                    itemsToGet = std::min(itemsToGet, tile.Inventory->at(item));
+                    itemsToGet = std::min(itemsToGet, tileItem);
 
 					// Get the resources from the storage
                     tile.Inventory->at(item) -= itemsToGet;
@@ -784,7 +786,8 @@ std::vector<TilePosition> UnitManager::GetStorageThatHave(TilePosition position,
 
 	_grid->ForEachTile([&](Tile& tile, TilePosition position)
 	{
-		if (!Grid::IsAStorage(tile.Type)) return;
+        if (tile.Type == TileType::None || !tile.IsBuilt || tile.NeedToBeDestroyed) return;
+		if (!Grid::IsAStorage(tile.Type) && tile.Type != TileType::Sawmill && tile.Type != TileType::Quarry) return;
 		if (tile.Inventory->at(item) == 0) return;
 
 		storages.push_back(position);
