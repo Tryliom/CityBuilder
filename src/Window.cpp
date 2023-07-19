@@ -337,7 +337,7 @@ namespace Window
             AppendVertex({{point.X, point.Y}, color});
         }
 
-        for (int i = 0; i < points.size() - 2; i++)
+        for (size_t i = 0; i < points.size() - 2; i++)
         {
             indices[indicesUsed++] = startIndex;
             indices[indicesUsed++] = startIndex + i + 1;
