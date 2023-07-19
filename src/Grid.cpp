@@ -89,7 +89,7 @@ Texture Grid::getTreeTexture(Tile &tile)
 }
 bool Grid::IsRoad(TilePosition tp)
 {
-    return IsTileValid(tp) ? GetTile(tp).Type == TileType::Road : false;
+    return IsTileValid(tp) && GetTile(tp).Type == TileType::Road;
 }
 
 Texture Grid::getRoadTexture(TilePosition position)
