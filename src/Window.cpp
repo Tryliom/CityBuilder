@@ -162,7 +162,7 @@ void frame()
     auto width = sapp_width();
     auto height = sapp_height();
 
-    state.vs_window = {(float)width, (float)height};
+    state.vs_window = {(float) width, (float) height};
 
     // Clear buffers
     Clear();
