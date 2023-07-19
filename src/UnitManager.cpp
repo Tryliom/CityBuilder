@@ -841,7 +841,7 @@ std::map<Items, int> UnitManager::GetAllUsableItems()
 {
 	std::map<Items, int> items = std::map<Items, int>();
 
-	for (int i = 0; i < (int)Items::Count; i++)
+	for (int i = 0; i < (int) Items::Count; i++)
 	{
 		items.insert(std::pair<Items, int>((Items) i, 0));
 	}
@@ -861,10 +861,15 @@ std::map<Items, int> UnitManager::GetAllUsableItems()
 		}
 	}
 
+    auto isValidToCountItemsFromIt = [&](TileType type)
+    {
+        return Grid::IsAStorage(type) || type == TileType::Sawmill || type == TileType::Quarry;
+    };
+
 	// Add all items from storages
 	_grid.ForEachTile([&](Tile& tile, TilePosition position)
 	{
-		if (!Grid::IsAStorage(tile.Type)) return;
+		if (!isValidToCountItemsFromIt(tile.Type)) return;
 
 		for (auto& item : *tile.Inventory)
 		{
