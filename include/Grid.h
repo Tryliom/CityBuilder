@@ -52,6 +52,7 @@ public:
     Tile& GetTile(TilePosition position);
     Tile& GetTile(int index);
     [[nodiscard]] int GetTileIndex(TilePosition position) const;
+    [[nodiscard]] bool IsTileValid(TilePosition position) const;
 
     void SetTile(TilePosition position, Tile tile);
     void RemoveTile(TilePosition position);

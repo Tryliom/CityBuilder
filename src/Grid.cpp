@@ -313,7 +313,8 @@ TilePosition Grid::GetTilePosition(Vector2F position) const
 {
     return TilePosition{
         (int)(position.X + _width / 2.f) / _tileSize,
-        (int)(position.Y + _height / 2.f) / _tileSize};
+        (int)(position.Y + _height / 2.f) / _tileSize
+    };
 }
 
 [[nodiscard]] TilePosition Grid::GetTilePosition(int tileIndex) const
@@ -343,6 +344,11 @@ Tile &Grid::GetTile(int index)
 int Grid::GetTileIndex(TilePosition position) const
 {
     return position.X + position.Y * _width;
+}
+
+bool Grid::IsTileValid(TilePosition position) const
+{
+    return position.X >= 0 && position.X < _width / _tileSize && position.Y >= 0 && position.Y < _height / _tileSize;
 }
 
 void Grid::SetTile(TilePosition position, Tile tile)
