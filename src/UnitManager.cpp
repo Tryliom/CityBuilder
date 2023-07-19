@@ -83,11 +83,17 @@ void UnitManager::UpdateUnits()
 							nextTileWorldPosition += Vector2F(0.f, 1.f) * ((float) _grid.GetTileSize()) / 2.f;
 						}
 
+                        auto lastPosition = unit.Position;
+
 						// Move it to the center of the next tile
 						unit.Position += (nextTileWorldPosition - unit.Position).Normalized() * unitSpeed * speedFactor * Timer::SmoothDeltaTime;
 
-						// Check if it reached the center of the next tile
-						if (std::abs(unit.Position.GetDistance(nextTileWorldPosition)) < 3.f)
+                        float distance = nextTileWorldPosition.GetDistance(unit.Position);
+                        float previousDistance = nextTileWorldPosition.GetDistance(lastPosition);
+                        bool hasReached = previousDistance < distance;
+
+						// Check if it reached the center of the next tile or if it's too far
+						if (hasReached)
 						{
 							unit.PathToTargetTile.erase(unit.PathToTargetTile.begin());
 						}
@@ -233,7 +239,7 @@ void UnitManager::OnTickUnitBuilderHut(Unit& unit)
             {
                 if (pair.second == 0) continue;
 
-                auto storagePositions = GetStorageAroundFor(_grid.GetTilePosition(unit.JobTileIndex), 5, pair.first);
+                auto storagePositions = GetStorageAroundFor(_grid.GetTilePosition(unit.Position), pair.first);
 
                 if (storagePositions.empty()) continue;
 
@@ -390,7 +396,7 @@ void UnitManager::onTickUnitLogistician(Unit& unit)
 			{
 				if (pair.second == 0) continue;
 
-				auto storagePositions = GetStorageAroundFor(_grid.GetTilePosition(unit.JobTileIndex), 20, pair.first);
+				auto storagePositions = GetStorageAroundFor(_grid.GetTilePosition(unit.Position), pair.first);
 
                 if (storagePositions.empty()) continue;
 
@@ -701,20 +707,23 @@ bool UnitManager::NeedToDropItemsAtJob(Unit& unit, Items item, InventoryReason r
 	return true;
 }
 
-std::vector<TilePosition> UnitManager::GetStorageAroundFor(TilePosition position, int radius, Items item)
+std::vector<TilePosition> UnitManager::GetStorageAroundFor(TilePosition position, Items item)
 {
 	std::vector<TilePosition> storages = std::vector<TilePosition>();
-	std::vector<TilePosition> storagePositions = _grid.GetTiles(position, radius);
 
-	for (auto& storagePosition : storagePositions)
-	{
-		auto& storageTile = _grid.GetTile(storagePosition);
+    _grid.ForEachTile([&](Tile& tile, TilePosition position)
+    {
+        if (!Grid::IsAStorage(tile.Type)) return;
+        if (tile.Inventory->at(item) == Grid::GetMaxItemsStored(tile, item)) return;
 
-		if (!Grid::IsAStorage(storageTile.Type)) continue;
-		if (storageTile.Inventory->at(item) == Grid::GetMaxItemsStored(storageTile, item)) continue;
+        storages.push_back(position);
+    });
 
-		storages.push_back(storagePosition);
-	}
+    // Sort them by the less distance
+    std::sort(storages.begin(), storages.end(), [&](TilePosition a, TilePosition b)
+    {
+        return std::abs(position.GetDistance(a)) < std::abs(position.GetDistance(b));
+    });
 
 	return storages;
 }

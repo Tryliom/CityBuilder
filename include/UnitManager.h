@@ -39,7 +39,7 @@ private:
 	std::vector<TilePosition> GetAllHarvestableTrees(TilePosition position, int radius);
 	bool NeedToDropItemsAtJob(Unit& unit, Items item, InventoryReason reason);
 	// Get all tiles that are around the position and have enough storage for the item
-	std::vector<TilePosition> GetStorageAroundFor(TilePosition position, int radius, Items item);
+	std::vector<TilePosition> GetStorageAroundFor(TilePosition position, Items item);
 	std::vector<TilePosition> GetAllBuildableOrDestroyableTiles();
 	// Get all tiles that need items to be built but has enough total items to be built
 	std::vector<TilePosition> GetTilesThatNeedItemsToBeBuilt();

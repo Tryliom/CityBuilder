@@ -21,6 +21,11 @@ struct TilePosition
 	{
 		return TilePosition{ X + other.X, Y + other.Y };
 	}
+
+    [[nodiscard]] float GetDistance(TilePosition other) const
+    {
+        return Vector2F{ X, Y }.GetDistance(Vector2F{ other.X, other.Y });
+    }
 };
 
 class Grid
