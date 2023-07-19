@@ -6,24 +6,22 @@
 #include "Input.h"
 #include "Timer.h"
 
-std::map<TileType, std::map<Items, int>>* tileMaxInventory = new std::map<TileType, std::map<Items, int>>
-{
-	{TileType::Sawmill, {{Items::Wood, 50}}},
-	{TileType::Storage, {{Items::Wood, 100}, {Items::Stone, 100}, {Items::Coal, 50}, {Items::IronOre, 100}, {Items::IronIngot, 20}}},
-	{TileType::LogisticsCenter, {{Items::Wood, 50}, {Items::Stone, 50}, {Items::Coal, 25}, {Items::IronOre, 50}, {Items::IronIngot, 10}}},
-	{TileType::Quarry, {{Items::Stone, 50}, {Items::Coal, 25}, {Items::IronOre, 50}}},
-	{TileType::MayorHouse, {{Items::Wood, 15}, {Items::Stone, 15}}},
+std::map<TileType, std::map<Items, int>> *tileMaxInventory = new std::map<TileType, std::map<Items, int>>{
+    {TileType::Sawmill, {{Items::Wood, 50}}},
+    {TileType::Storage, {{Items::Wood, 100}, {Items::Stone, 100}, {Items::Coal, 50}, {Items::IronOre, 100}, {Items::IronIngot, 20}}},
+    {TileType::LogisticsCenter, {{Items::Wood, 50}, {Items::Stone, 50}, {Items::Coal, 25}, {Items::IronOre, 50}, {Items::IronIngot, 10}}},
+    {TileType::Quarry, {{Items::Stone, 50}, {Items::Coal, 25}, {Items::IronOre, 50}}},
+    {TileType::MayorHouse, {{Items::Wood, 15}, {Items::Stone, 15}}},
 };
 
 // Items needed to build a tile
-std::map<TileType, std::map<Items, int>> tileNeededItems = std::map<TileType, std::map<Items, int>>
-{
-	{TileType::Sawmill, {{Items::Wood, 10}}},
-	{TileType::Storage, {{Items::Wood, 20}}},
-	{TileType::LogisticsCenter, {{Items::Wood, 20}, {Items::Stone, 10}}},
-	{TileType::Quarry, {{Items::Wood, 20}}},
-	{TileType::House, {{Items::Wood, 30}, {Items::Stone, 15}}},
-	{TileType::BuilderHut, {{Items::Wood, 20}, {Items::Stone, 10}}},
+std::map<TileType, std::map<Items, int>> tileNeededItems = std::map<TileType, std::map<Items, int>>{
+    {TileType::Sawmill, {{Items::Wood, 10}}},
+    {TileType::Storage, {{Items::Wood, 20}}},
+    {TileType::LogisticsCenter, {{Items::Wood, 20}, {Items::Stone, 10}}},
+    {TileType::Quarry, {{Items::Wood, 20}}},
+    {TileType::House, {{Items::Wood, 30}, {Items::Stone, 15}}},
+    {TileType::BuilderHut, {{Items::Wood, 20}, {Items::Stone, 10}}},
 };
 
 Grid::Grid(int width, int height, int tileSize)
@@ -49,17 +47,28 @@ Texture Grid::GetTexture(TilePosition position)
 
     switch (tile.Type)
     {
-        case TileType::Stone: return Texture(Ressources::Stone);
-        case TileType::Tree: return getTreeTexture(tile);
-        case TileType::Sawmill: return Texture(Buildings::Sawmill);
-        case TileType::Road: return getRoadTexture(position);
-	    case TileType::MayorHouse: return Texture(Buildings::MayorHouse);
-		case TileType::House: return Texture(Buildings::House);
-		case TileType::BuilderHut: return Texture(Buildings::BuilderHut);
-		case TileType::Storage: return Texture(Buildings::Storage);
-		case TileType::Quarry: return Texture(Buildings::Quarry);
-		case TileType::LogisticsCenter: return Texture(Buildings::LogisticsCenter);
-        default: return {};
+    case TileType::Stone:
+        return Texture(Ressources::Stone);
+    case TileType::Tree:
+        return getTreeTexture(tile);
+    case TileType::Sawmill:
+        return Texture(Buildings::Sawmill);
+    case TileType::Road:
+        return getRoadTexture(position);
+    case TileType::MayorHouse:
+        return Texture(Buildings::MayorHouse);
+    case TileType::House:
+        return Texture(Buildings::House);
+    case TileType::BuilderHut:
+        return Texture(Buildings::BuilderHut);
+    case TileType::Storage:
+        return Texture(Buildings::Storage);
+    case TileType::Quarry:
+        return Texture(Buildings::Quarry);
+    case TileType::LogisticsCenter:
+        return Texture(Buildings::LogisticsCenter);
+    default:
+        return {};
     }
 }
 
@@ -199,7 +208,7 @@ void Grid::Draw()
         {
             Tile &tile = _tiles[x + y * _width];
             auto position = Vector2F{x, y} * _tileSize - Vector2F{_width, _height} / 2.f;
-            auto size = Vector2F{ (float) _tileSize, (float) _tileSize };
+            auto size = Vector2F{(float)_tileSize, (float)_tileSize};
             auto randomLand = Texture((Land)Random::Range(1, (int)Land::Count - 1));
             auto background = tile.Type != TileType::None ? Texture(Land::Grass) : randomLand;
 
@@ -254,30 +263,30 @@ void Grid::Update()
                 tile.TreeGrowth += smoothDeltaTime;
             }
 
-			// Check tree spawn, have a 3% chance to spawn a tree on a neighbour tile every 30sec
-			if (tile.Type == TileType::Tree)
-			{
-				tile.TreeSpawnTimer += smoothDeltaTime;
+            // Check tree spawn, have a 3% chance to spawn a tree on a neighbour tile every 30sec
+            if (tile.Type == TileType::Tree)
+            {
+                tile.TreeSpawnTimer += smoothDeltaTime;
 
-				if (tile.TreeSpawnTimer >= 30.f)
-				{
-					tile.TreeSpawnTimer = 0.f;
+                if (tile.TreeSpawnTimer >= 30.f)
+                {
+                    tile.TreeSpawnTimer = 0.f;
 
-					auto neighbours = GetNeighbours({x, y});
+                    auto neighbours = GetNeighbours({x, y});
 
-					for (auto neighbour : neighbours)
-					{
-						Tile& tileNeighbour = GetTile(neighbour);
+                    for (auto neighbour : neighbours)
+                    {
+                        Tile &tileNeighbour = GetTile(neighbour);
 
-						if (tileNeighbour.Type == TileType::None && Random::Range(0, 100) < 1)
-						{
-							tileNeighbour.Type = TileType::Tree;
-							tileNeighbour.TreeGrowth = 0.f;
-							tileNeighbour.TreeSpawnTimer = 0.f;
-						}
-					}
-				}
-			}
+                        if (tileNeighbour.Type == TileType::None && Random::Range(0, 100) < 1)
+                        {
+                            tileNeighbour.Type = TileType::Tree;
+                            tileNeighbour.TreeGrowth = 0.f;
+                            tileNeighbour.TreeSpawnTimer = 0.f;
+                        }
+                    }
+                }
+            }
 
             // Check construction
             if (!tile.IsBuilt && tile.Type != TileType::None)
@@ -394,45 +403,45 @@ std::vector<TilePosition> Grid::GetTiles(TileType type, TilePosition position, i
 
 std::vector<TilePosition> Grid::GetTiles(TilePosition position, int radius) const
 {
-	std::vector<TilePosition> tiles;
+    std::vector<TilePosition> tiles;
 
-	for (int x = position.X - radius; x < position.X + radius; x++)
-	{
-		for (int y = position.Y - radius; y < position.Y + radius; y++)
-		{
-			Tile &tile = _tiles[x + y * _width];
+    for (int x = position.X - radius; x < position.X + radius; x++)
+    {
+        for (int y = position.Y - radius; y < position.Y + radius; y++)
+        {
+            Tile &tile = _tiles[x + y * _width];
 
-			if (tile.Type != TileType::None && tile.IsBuilt)
-			{
-				tiles.push_back(TilePosition{x, y});
-			}
-		}
-	}
+            if (tile.Type != TileType::None && tile.IsBuilt)
+            {
+                tiles.push_back(TilePosition{x, y});
+            }
+        }
+    }
 
-	return tiles;
+    return tiles;
 }
 
 std::vector<TilePosition> Grid::GetTilesWithItems(TileType type, Items item) const
 {
-	std::vector<TilePosition> tiles;
+    std::vector<TilePosition> tiles;
 
-	for (int x = 0; x < _width / _tileSize; x++)
-	{
-		for (int y = 0; y < _height / _tileSize; y++)
-		{
-			Tile &tile = _tiles[x + y * _width];
+    for (int x = 0; x < _width / _tileSize; x++)
+    {
+        for (int y = 0; y < _height / _tileSize; y++)
+        {
+            Tile &tile = _tiles[x + y * _width];
 
-			if (tile.Type == type && tile.IsBuilt && tile.Inventory->at(item) > 0)
-			{
-				tiles.push_back(TilePosition{x, y});
-			}
-		}
-	}
+            if (tile.Type == type && tile.IsBuilt && tile.Inventory->at(item) > 0)
+            {
+                tiles.push_back(TilePosition{x, y});
+            }
+        }
+    }
 
-	return tiles;
+    return tiles;
 }
 
-void Grid::ForEachTile(const std::function<void(Tile &, TilePosition)>& callback) const
+void Grid::ForEachTile(const std::function<void(Tile &, TilePosition)> &callback) const
 {
     for (int x = 0; x < _width / _tileSize; x++)
     {
@@ -446,257 +455,278 @@ void Grid::ForEachTile(const std::function<void(Tile &, TilePosition)>& callback
 
 float Grid::GetMaxConstructionProgress(TileType type)
 {
-	switch (type)
-	{
-		case TileType::Sawmill: return 10.f;
-		case TileType::Quarry: return 15.f;
-		case TileType::BuilderHut: return 10.f;
-		case TileType::Storage: return 10.f;
-		case TileType::House: return 30.f;
-		case TileType::LogisticsCenter: return 10.f;
-	}
+    switch (type)
+    {
+    case TileType::Sawmill:
+        return 10.f;
+    case TileType::Quarry:
+        return 15.f;
+    case TileType::BuilderHut:
+        return 10.f;
+    case TileType::Storage:
+        return 10.f;
+    case TileType::House:
+        return 30.f;
+    case TileType::LogisticsCenter:
+        return 10.f;
+    }
 
-	return 0.f;
+    return 0.f;
 }
 
 float Grid::GetMaxDestructionProgress(TileType type)
 {
-	switch (type)
-	{
-		case TileType::Sawmill: return 5.f;
-		case TileType::Quarry: return 7.5f;
-		case TileType::BuilderHut: return 5.f;
-		case TileType::Storage: return 5.f;
-		case TileType::House: return 15.f;
-		case TileType::Tree: return 5.f;
-		case TileType::Stone: return 10.f;
-	}
+    switch (type)
+    {
+    case TileType::Sawmill:
+        return 5.f;
+    case TileType::Quarry:
+        return 7.5f;
+    case TileType::BuilderHut:
+        return 5.f;
+    case TileType::Storage:
+        return 5.f;
+    case TileType::House:
+        return 15.f;
+    case TileType::Tree:
+        return 5.f;
+    case TileType::Stone:
+        return 10.f;
+    }
 
-	return 0.f;
+    return 0.f;
 }
 
 float Grid::GetSpeedFactor(TileType type)
 {
-	switch (type)
-	{
-		case TileType::Quarry: return -0.5f;
-		case TileType::BuilderHut: return 0.25f;
-		case TileType::LogisticsCenter: return 0.5f;
-	}
+    switch (type)
+    {
+    case TileType::Quarry:
+        return -0.5f;
+    case TileType::BuilderHut:
+        return 0.25f;
+    case TileType::LogisticsCenter:
+        return 0.5f;
+    }
 
-	return 0.f;
+    return 0.f;
 }
 
 bool Grid::CanBuild(TilePosition position, TileType type)
 {
-	Tile& tile = GetTile(position);
+    Tile &tile = GetTile(position);
 
-	if (type == TileType::Quarry)
-	{
-		return tile.Type == TileType::Stone;
-	}
+    if (type == TileType::Quarry)
+    {
+        return tile.Type == TileType::Stone;
+    }
 
-	if (tile.Type == TileType::None)
-	{
-		return true;
-	}
+    if (tile.Type == TileType::None)
+    {
+        return true;
+    }
 
-	return false;
+    return false;
 }
 
 bool Grid::CanBeDestroyed(TilePosition position)
 {
-	Tile& tile = GetTile(position);
+    Tile &tile = GetTile(position);
 
-	if (tile.Type == TileType::None) return false;
-	if (tile.Type == TileType::LogisticsCenter && GetTiles(TileType::LogisticsCenter).size() == 1) return false;
-	if (tile.Type == TileType::BuilderHut && GetTiles(TileType::BuilderHut).size() == 1) return false;
-	if (tile.Type == TileType::MayorHouse) return false;
-	if (!tile.IsBuilt) return false;
+    if (tile.Type == TileType::None)
+        return false;
+    if (tile.Type == TileType::LogisticsCenter && GetTiles(TileType::LogisticsCenter).size() == 1)
+        return false;
+    if (tile.Type == TileType::BuilderHut && GetTiles(TileType::BuilderHut).size() == 1)
+        return false;
+    if (tile.Type == TileType::MayorHouse)
+        return false;
+    if (!tile.IsBuilt)
+        return false;
 
-	return true;
+    return true;
 }
 
-int Grid::GetMaxItemsStored(const Tile& tile, Items item)
+int Grid::GetMaxItemsStored(const Tile &tile, Items item)
 {
-	if (!tile.IsBuilt || !tileMaxInventory->contains(tile.Type) || !tileMaxInventory->at(tile.Type).contains(item))
-	{
-		return 0;
-	}
+    if (!tile.IsBuilt || !tileMaxInventory->contains(tile.Type) || !tileMaxInventory->at(tile.Type).contains(item))
+    {
+        return 0;
+    }
 
-	return tileMaxInventory->at(tile.Type)[item];
+    return tileMaxInventory->at(tile.Type)[item];
 }
 
 int Grid::GetLeftSpaceForItems(Tile tile, Items item)
 {
-	int max = GetMaxItemsStored(tile, item);
+    int max = GetMaxItemsStored(tile, item);
 
-	return max - tile.Inventory->at(item);
+    return max - tile.Inventory->at(item);
 }
 
-bool Grid::IsTileReadyToBuild(Tile& tile)
+bool Grid::IsTileReadyToBuild(Tile &tile)
 {
-	// Check if the tile has the items to be built
-	if (!tileNeededItems.contains(tile.Type)) return true;
-	if (tileNeededItems[tile.Type].empty()) return true;
+    // Check if the tile has the items to be built
+    if (!tileNeededItems.contains(tile.Type))
+        return true;
+    if (tileNeededItems[tile.Type].empty())
+        return true;
 
-	for (auto& item : tileNeededItems[tile.Type])
-	{
-		if (tile.Inventory->at(item.first) < item.second)
-		{
-			return false;
-		}
-	}
+    for (auto &item : tileNeededItems[tile.Type])
+    {
+        if (tile.Inventory->at(item.first) < item.second)
+        {
+            return false;
+        }
+    }
 
-	return true;
+    return true;
 }
 
 bool Grid::IsAStorage(TileType type)
 {
-	return type == TileType::Storage || type == TileType::LogisticsCenter || type == TileType::MayorHouse;
+    return type == TileType::Storage || type == TileType::LogisticsCenter || type == TileType::MayorHouse;
 }
 
 int Grid::GetNeededItemsToBuild(TileType type, Items item)
 {
-	if (!tileNeededItems.contains(type) || !tileNeededItems[type].contains(item))
-	{
-		return 0;
-	}
+    if (!tileNeededItems.contains(type) || !tileNeededItems[type].contains(item))
+    {
+        return 0;
+    }
 
-	return tileNeededItems[type][item];
+    return tileNeededItems[type][item];
 }
 
 std::vector<TilePosition> Grid::GetPath(TilePosition start, TilePosition end)
 {
-	// Points per tile, the higher the value, the less the path will use this tile
-	std::vector<int> pointsPerTile = std::vector<int>();
+    // Points per tile, the higher the value, the less the path will use this tile
+    std::vector<int> pointsPerTile = std::vector<int>();
 
-	for (int i = 0; i < (int) TileType::Count; i++)
-	{
-		pointsPerTile.push_back(5);
-	}
+    for (int i = 0; i < (int)TileType::Count; i++)
+    {
+        pointsPerTile.push_back(5);
+    }
 
-	pointsPerTile[(int) TileType::None] = 3;
-	pointsPerTile[(int) TileType::Road] = 1;
+    pointsPerTile[(int)TileType::None] = 3;
+    pointsPerTile[(int)TileType::Road] = 1;
 
-	// Search the full path between the start and the end tile by taking in account the pointsPerTile
-	std::vector<TilePosition> path = std::vector<TilePosition>();
+    // Search the full path between the start and the end tile by taking in account the pointsPerTile
+    std::vector<TilePosition> path = std::vector<TilePosition>();
 
-	std::vector<TilePosition> openList = std::vector<TilePosition>();
-	std::vector<TilePosition> closedList = std::vector<TilePosition>();
+    std::vector<TilePosition> openList = std::vector<TilePosition>();
+    std::vector<TilePosition> closedList = std::vector<TilePosition>();
 
-	openList.push_back(start);
+    openList.push_back(start);
 
-	// Use tile index
-	auto cameFrom = std::vector<TilePosition>();
+    // Use tile index
+    auto cameFrom = std::vector<TilePosition>();
 
-	auto gScore = std::vector<int>();
-	auto fScore = std::vector<int>();
+    auto gScore = std::vector<int>();
+    auto fScore = std::vector<int>();
 
-	for (int x = 0; x < _width / _tileSize; x++)
-	{
-		for (int y = 0; y < _height / _tileSize; y++)
-		{
-			cameFrom.push_back(TilePosition{-1, -1});
-			gScore.push_back(0);
-			fScore.push_back(0);
-		}
-	}
+    for (int x = 0; x < _width / _tileSize; x++)
+    {
+        for (int y = 0; y < _height / _tileSize; y++)
+        {
+            cameFrom.push_back(TilePosition{-1, -1});
+            gScore.push_back(0);
+            fScore.push_back(0);
+        }
+    }
 
-	gScore[start.X + start.Y * _width / _tileSize] = 0;
-	fScore[start.X + start.Y * _width / _tileSize] = start.X - end.X + start.Y - end.Y;
+    gScore[start.X + start.Y * _width / _tileSize] = 0;
+    fScore[start.X + start.Y * _width / _tileSize] = start.X - end.X + start.Y - end.Y;
 
-	while (!openList.empty())
-	{
-		// Get the tile with the lowest fScore
-		int lowestScore = INT_MAX;
-		int lowestScoreIndex = -1;
+    while (!openList.empty())
+    {
+        // Get the tile with the lowest fScore
+        int lowestScore = INT_MAX;
+        int lowestScoreIndex = -1;
 
-		for (int i = 0; i < openList.size(); i++)
-		{
-			int index = openList[i].X + openList[i].Y * _width / _tileSize;
+        for (int i = 0; i < openList.size(); i++)
+        {
+            int index = openList[i].X + openList[i].Y * _width / _tileSize;
 
-			if (fScore[index] < lowestScore)
-			{
-				lowestScore = fScore[index];
-				lowestScoreIndex = i;
-			}
-		}
+            if (fScore[index] < lowestScore)
+            {
+                lowestScore = fScore[index];
+                lowestScoreIndex = i;
+            }
+        }
 
-		TilePosition current = openList[lowestScoreIndex];
+        TilePosition current = openList[lowestScoreIndex];
 
-		if (current == end)
-		{
-			// Reconstruct the path
-			TilePosition tmpCurrent = end;
+        if (current == end)
+        {
+            // Reconstruct the path
+            TilePosition tmpCurrent = end;
 
-			while (tmpCurrent != start)
-			{
-				path.push_back(tmpCurrent);
-				tmpCurrent = cameFrom[tmpCurrent.X + tmpCurrent.Y * _width / _tileSize];
-			}
+            while (tmpCurrent != start)
+            {
+                path.push_back(tmpCurrent);
+                tmpCurrent = cameFrom[tmpCurrent.X + tmpCurrent.Y * _width / _tileSize];
+            }
 
-			std::reverse(path.begin(), path.end());
+            std::reverse(path.begin(), path.end());
 
-			return path;
-		}
+            return path;
+        }
 
-		openList.erase(openList.begin() + lowestScoreIndex);
-		closedList.push_back(current);
+        openList.erase(openList.begin() + lowestScoreIndex);
+        closedList.push_back(current);
 
-		for (auto& neighbour : GetNeighbours(current))
-		{
-			if (std::find(closedList.begin(), closedList.end(), neighbour) != closedList.end())
-			{
-				continue;
-			}
+        for (auto &neighbour : GetNeighbours(current))
+        {
+            if (std::find(closedList.begin(), closedList.end(), neighbour) != closedList.end())
+            {
+                continue;
+            }
 
-			// The distance from start to a neighbor through current, the "distance between two adjacent tiles" is always 1
-			int tentativeGScore = gScore[current.X + current.Y * _width / _tileSize] + pointsPerTile[(int) GetTile(neighbour).Type];
+            // The distance from start to a neighbor through current, the "distance between two adjacent tiles" is always 1
+            int tentativeGScore = gScore[current.X + current.Y * _width / _tileSize] + pointsPerTile[(int)GetTile(neighbour).Type];
 
-			if (std::find(openList.begin(), openList.end(), neighbour) == openList.end())
-			{
-				openList.push_back(neighbour);
-			}
-			else if (tentativeGScore >= gScore[neighbour.X + neighbour.Y * _width / _tileSize])
-			{
-				continue;
-			}
+            if (std::find(openList.begin(), openList.end(), neighbour) == openList.end())
+            {
+                openList.push_back(neighbour);
+            }
+            else if (tentativeGScore >= gScore[neighbour.X + neighbour.Y * _width / _tileSize])
+            {
+                continue;
+            }
 
-			cameFrom[neighbour.X + neighbour.Y * _width / _tileSize] = current;
-			gScore[neighbour.X + neighbour.Y * _width / _tileSize] = tentativeGScore;
-			fScore[neighbour.X + neighbour.Y * _width / _tileSize] = gScore[neighbour.X + neighbour.Y * _width / _tileSize] + neighbour.X - end.X + neighbour.Y - end.Y;
-		}
-	}
+            cameFrom[neighbour.X + neighbour.Y * _width / _tileSize] = current;
+            gScore[neighbour.X + neighbour.Y * _width / _tileSize] = tentativeGScore;
+            fScore[neighbour.X + neighbour.Y * _width / _tileSize] = gScore[neighbour.X + neighbour.Y * _width / _tileSize] + neighbour.X - end.X + neighbour.Y - end.Y;
+        }
+    }
 
-	return path;
+    return path;
 }
 
 std::vector<TilePosition> Grid::GetNeighbours(TilePosition position) const
 {
-	std::vector<TilePosition> neighbours = std::vector<TilePosition>();
+    std::vector<TilePosition> neighbours = std::vector<TilePosition>();
 
-	if (position.X > 0)
-	{
-		neighbours.push_back(TilePosition{position.X - 1, position.Y});
-	}
+    if (position.X > 0)
+    {
+        neighbours.push_back(TilePosition{position.X - 1, position.Y});
+    }
 
-	if (position.X < _width / _tileSize - 1)
-	{
-		neighbours.push_back(TilePosition{position.X + 1, position.Y});
-	}
+    if (position.X < _width / _tileSize - 1)
+    {
+        neighbours.push_back(TilePosition{position.X + 1, position.Y});
+    }
 
-	if (position.Y > 0)
-	{
-		neighbours.push_back(TilePosition{position.X, position.Y - 1});
-	}
+    if (position.Y > 0)
+    {
+        neighbours.push_back(TilePosition{position.X, position.Y - 1});
+    }
 
-	if (position.Y < _height / _tileSize - 1)
-	{
-		neighbours.push_back(TilePosition{position.X, position.Y + 1});
-	}
+    if (position.Y < _height / _tileSize - 1)
+    {
+        neighbours.push_back(TilePosition{position.X, position.Y + 1});
+    }
 
-	return neighbours;
+    return neighbours;
 }
-
-
