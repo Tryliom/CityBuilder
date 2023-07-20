@@ -1,3 +1,4 @@
+#include <windows.h>
 #include "sokol_app.h"
 
 #include "Audio.h"
@@ -92,6 +93,13 @@ void OnFrame(FrameData* frameData, TimerData* timerData)
 	Timer::Time = timerData->Time;
 	Timer::DeltaTime = timerData->DeltaTime;
 	Timer::SmoothDeltaTime = timerData->SmoothDeltaTime;
+
+    // Set the console cursor position to the top left corner of the screen using Windows API.
+    #if _WIN32
+        HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+        COORD pos = {0, 0};
+        SetConsoleCursorPosition(hConsole, pos);
+    #endif
 }
 
 #ifdef __cplusplus // If used by C++ code, 
@@ -229,7 +237,12 @@ void HandleInput()
 
 		if (gameState->Grid.IsTileValid(tilePosition) && gameState->Grid.CanBuild(tilePosition, gameState->SelectedTileType))
 		{
-			gameState->Grid.SetTile(tilePosition, Tile(gameState->SelectedTileType));
+            gameState->Grid.SetTile(tilePosition, Tile(gameState->SelectedTileType));
+
+            if (Input::IsKeyHeld(SAPP_KEYCODE_LEFT_SHIFT))
+            {
+                gameState->Grid.GetTile(tilePosition).IsBuilt = true;
+            }
 		}
 	}
 
@@ -320,12 +333,26 @@ void DrawUi()
 		.Size = {100, 100},
 		.Texture = selectedTileTexture,
 	});
+
+    TilePosition mouseTilePosition = gameState->Grid.GetTilePosition(Graphics::ScreenToWorld(Input::GetMousePosition()));
+
+    if (gameState->Grid.IsTileValid(mouseTilePosition))
+    {
+        Tile& tile = gameState->Grid.GetTile(mouseTilePosition);
+        std::string tileTypeString[(int) Items::Count] = {"Wood", "Stone", "Coal", "IronOre", "IronIngot"};
+
+        if (tile.Type != TileType::None)
+        {
+            for (auto pair: *tile.Inventory)
+            {
+                LOG("Inventory: " << pair.second << " of " << tileTypeString[(int) pair.first]);
+            }
+        }
+    }
 }
 
 void GenerateMap()
 {
-	LOG("center of screen" << centerOfScreen.X << " " << centerOfScreen.Y);
-
 	auto mayorHouse = Tile(TileType::MayorHouse);
 	mayorHouse.IsBuilt = true;
 	gameState->Grid.SetTile(gameState->Grid.GetTilePosition(centerOfScreen), mayorHouse);
