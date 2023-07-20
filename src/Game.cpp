@@ -103,12 +103,12 @@ void OnFrame(FrameData *frameData, TimerData *timerData)
 	Timer::DeltaTime = timerData->DeltaTime;
 	Timer::SmoothDeltaTime = timerData->SmoothDeltaTime;
 
-// Set the console cursor position to the top left corner of the screen using Windows API.
-#if _WIN32
-	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-	COORD pos = {0, 0};
-	SetConsoleCursorPosition(hConsole, pos);
-#endif
+	// Set the console cursor position to the top left corner of the screen using Windows API.
+	#if _WIN32
+		HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+		COORD pos = {0, 0};
+		SetConsoleCursorPosition(hConsole, pos);
+	#endif
 }
 
 #ifdef __cplusplus // If used by C++ code,
