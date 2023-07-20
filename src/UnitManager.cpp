@@ -419,7 +419,17 @@ void UnitManager::onTickUnitLogistician(Unit& unit)
             {
                 if (IsTileTakenCareBy(tile, Characters::Logistician) || _grid->GetTile(tile).GetInventorySize() == 0) continue;
 
-                tilesToGetItemsFrom.push_back(tile);
+                // Check if any of the items in the tile can be pickup by the unit
+                for (auto pair : *_grid->GetTile(tile).Inventory)
+                {
+                    if (pair.second == 0) continue;
+
+                    if (unit.Inventory->at(pair.first) < GetMaxItemsFor(unit, pair.first))
+                    {
+                        tilesToGetItemsFrom.push_back(tile);
+                        break;
+                    }
+                }
             }
         };
 
@@ -718,7 +728,7 @@ std::vector<TilePosition> UnitManager::GetStorageAroundFor(TilePosition position
 
     _grid->ForEachTile([&](Tile& tile, TilePosition position)
     {
-        if (!Grid::IsAStorage(tile.Type)) return;
+        if (!Grid::IsAStorage(tile.Type) || !tile.IsBuilt || tile.NeedToBeDestroyed) return;
         if (tile.Inventory->at(item) == Grid::GetMaxItemsStored(tile, item)) return;
 
         storages.push_back(position);
@@ -925,4 +935,23 @@ void UnitManager::SetGrid(Grid *grid)
     }
 
 	_grid = grid;
+}
+
+void UnitManager::LogTotalItems()
+{
+    for (int i = 0; i < 2; i++)
+    {
+        LOG("                                                           ");
+    }
+
+    LOG("Total items:                                                    ");
+    for (auto pair: GetAllUsableItems())
+    {
+        LOG(Texture::ItemToString[(int) pair.first] << ": " << std::to_string(pair.second) + "                                  ");
+    }
+
+    for (int i = 0; i < 10; i++)
+    {
+        LOG("                                                           ");
+    }
 }

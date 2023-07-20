@@ -355,13 +355,16 @@ void DrawUi()
                 }
                 else
                 {
-                    text += "                      ";
+                    text += "                                            ";
                 }
                 
                 LOG(text);
             }
         }
     }
+
+    // Log the total items we have
+    gameState->UnitManager.LogTotalItems();
 }
 
 void GenerateMap()
