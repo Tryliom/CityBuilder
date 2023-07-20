@@ -165,7 +165,14 @@ void UnitManager::UpdateUnits()
 		{
 			unitProgress = 0.f;
 
-			_units.emplace_back(_grid->ToWorldPosition(_grid->GetTiles(TileType::MayorHouse)[0]));
+            // Spawn a new unit per house with 20% chance and still enough place
+            for (auto& house : _grid->GetTiles(TileType::House))
+            {
+                if (Random::Range(0, 100) < 20 && _units.size() < housesCount * 5)
+                {
+                    AddUnit(Unit(_grid->ToWorldPosition(house) + Vector2F(0.5f, 1.f) * (float) (_grid->GetTileSize() - unitSize)));
+                }
+            }
 		}
 	}
 }
