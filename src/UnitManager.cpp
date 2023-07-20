@@ -349,6 +349,18 @@ void UnitManager::OnTickUnitBuilderHut(Unit& unit)
 				unit.Inventory->at(Items::Stone) += 20;
 			}
 
+            // Remove all the resources from the inventory of the tile that was used to build the tile
+            for (auto pair : *tile.Inventory)
+            {
+                tile.Inventory->at(pair.first) -= Grid::GetNeededItemsToBuild(tile.Type, pair.first);
+            }
+
+            // Builder receive all the resources from the tile
+            for (auto pair : *tile.Inventory)
+            {
+                unit.Inventory->at(pair.first) += pair.second;
+            }
+
 			tile.Reset();
 			unit.SetBehavior(UnitBehavior::Idle);
 		}
