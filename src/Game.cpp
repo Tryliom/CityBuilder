@@ -269,8 +269,7 @@ void HandleInput()
 		auto tilePosition = gameState->Grid.GetTilePosition(mouseWorldPosition);
 		auto &tile = gameState->Grid.GetTile(tilePosition);
 
-		if (tile.Type == TileType::None)
-			return;
+		if (tile.Type == TileType::None) return;
 
 		if (tile.NeedToBeDestroyed)
 		{

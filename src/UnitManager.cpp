@@ -28,6 +28,8 @@ void UnitManager::UpdateUnits()
 {
 	for (auto& unit : _units)
 	{
+        SendInactiveBuildersToBuild();
+
 		if (unit.JobTileIndex != -1)
 		{
 			Tile& tile = _grid->GetTile(unit.JobTileIndex);
@@ -285,6 +287,12 @@ void UnitManager::OnTickUnitBuilderHut(Unit& unit)
 
 		if (!workPositions.empty())
 		{
+            // Sort it to have the closest one first
+            std::sort(workPositions.begin(), workPositions.end(), [&](TilePosition a, TilePosition b)
+            {
+                return _grid->GetTilePosition(unit.Position).GetDistance(a) < _grid->GetTilePosition(unit.Position).GetDistance(b);
+            });
+
 			unit.TargetTile = workPositions[0];
 			unit.SetBehavior(UnitBehavior::Moving);
 			return;
@@ -707,6 +715,67 @@ void UnitManager::OnTickUnitQuarry(Unit& unit)
 	}
 }
 
+void UnitManager::SendInactiveBuildersToBuild()
+{
+    auto inactiveBuilders = GetAllInactive(Characters::Builder);
+    auto buildableTiles = GetAllBuildableOrDestroyableTiles();
+
+    if (!inactiveBuilders.empty() && !buildableTiles.empty())
+    {
+        std::vector<int> buildersToCallFirst = {};
+
+        // For each builder, check the closest buildable tile and check which one is the closest
+        for (auto builder: inactiveBuilders)
+        {
+            bool alreadyCalled = false;
+
+            for (int called: buildersToCallFirst)
+            {
+                if (called == builder) alreadyCalled = true;
+            }
+
+            if (alreadyCalled) continue;
+
+            Unit& builderUnit = _units[builder];
+
+            std::sort(buildableTiles.begin(), buildableTiles.end(), [&](TilePosition a, TilePosition b)
+            {
+                return _grid->GetTilePosition(builderUnit.Position).GetDistance(a) < _grid->GetTilePosition(builderUnit.Position).GetDistance(b);
+            });
+
+            // Check for each other builders that they don't have a shortest distance to the tile
+            int bestBuilder = builder;
+            float bestDistance = _grid->GetTilePosition(builderUnit.Position).GetDistance(buildableTiles[0]);
+
+            for (auto otherBuilder: inactiveBuilders)
+            {
+                if (otherBuilder == builder) continue;
+
+                Unit& otherUnit = _units[otherBuilder];
+
+                float distance = _grid->GetTilePosition(otherUnit.Position).GetDistance(buildableTiles[0]);
+
+                if (distance < bestDistance)
+                {
+                    bestBuilder = otherBuilder;
+                    bestDistance = distance;
+                }
+            }
+
+            if (bestBuilder == builder)
+            {
+                buildersToCallFirst.push_back(builder);
+            }
+        }
+
+        // Call the builders that are the closest to the buildable tiles
+        for (auto builder: buildersToCallFirst)
+        {
+            OnTickUnitBuilderHut(_units[builder]);
+        }
+    }
+}
+
 void UnitManager::DrawUnits()
 {
 	for (auto& unit : _units)
@@ -800,6 +869,23 @@ int UnitManager::CountHowManyUnitAreWorkingOn(int jobTileIndex)
 	return result;
 }
 
+std::vector<int> UnitManager::GetAllInactive(Characters character)
+{
+    std::vector<int> result = std::vector<int>();
+    int index = 0;
+
+    for (auto& unit : _units)
+    {
+        if (unit.JobTileIndex != -1 && GetCharacter(unit.JobTileIndex) == character && unit.CurrentBehavior == UnitBehavior::Idle)
+        {
+            result.push_back(index);
+        }
+
+        index++;
+    }
+
+    return result;
+}
 
 std::vector<TilePosition> UnitManager::GetAllHarvestableTrees(TilePosition position, int radius)
 {
