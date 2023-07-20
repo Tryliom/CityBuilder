@@ -9,6 +9,7 @@
 #include "Logger.h"
 #include "UnitManager.h"
 #include "Grid.h"
+#include "Logger.h"
 
 #include "Graphics.h"
 
@@ -38,9 +39,9 @@ struct GameState
 
 GameState *gameState = nullptr;
 
-void InitGame(void *gameMemory, Image *tilemap)
+void InitGame(void* gameMemory, Image* tilemap, FrameData* frameData)
 {
-	centerOfScreen = Vector2F{sapp_widthf(), sapp_heightf()} / 2.f;
+	centerOfScreen = frameData->screenCenter;
 
 	gameState = (GameState *)gameMemory;
 
@@ -56,6 +57,8 @@ void InitGame(void *gameMemory, Image *tilemap)
 
 	GenerateMap();
 
+	//Graphics::camera.Position = centerOfScreen;
+	Graphics::camera.Pivot = centerOfScreen;
 	gameState->Camera = Graphics::camera;
 
 	// gameState->Seed = Random::GetSeed();
@@ -82,6 +85,9 @@ void OnFrame(FrameData *frameData, TimerData *timerData)
 
 	Graphics::CalculTransformationMatrix(Vector2F::One);
 	DrawUi();
+
+	centerOfScreen = frameData->screenCenter;
+	Graphics::camera.Pivot = centerOfScreen;
 
 	// Update the current camera state.
 	gameState->Camera = Graphics::camera;
@@ -121,9 +127,9 @@ extern "C"		   // we need to export the C interface
 		Input::OnInput(event);
 	}
 
-	EXPORT void DLL_InitGame(void *gameMemory, Image *tilemap)
+	EXPORT void DLL_InitGame(void* gameMemory, Image* tilemap, FrameData* frameData)
 	{
-		InitGame(gameMemory, tilemap);
+		InitGame(gameMemory, tilemap, frameData);
 	}
 
 	EXPORT void DLL_OnFrame(void *gameMemory, FrameData *frameData, TimerData *timerData)
@@ -357,13 +363,16 @@ void DrawUi()
                 }
                 else
                 {
-                    text += "                      ";
+                    text += "                                            ";
                 }
                 
                 LOG(text);
             }
         }
     }
+
+    // Log the total items we have
+    gameState->UnitManager.LogTotalItems();
 }
 
 void GenerateMap()
