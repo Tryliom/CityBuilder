@@ -411,36 +411,73 @@ void UnitManager::onTickUnitLogistician(Unit& unit)
 			}
 		}
 
-		if (!IsInventoryEmpty(unit))
-		{
-			// Search for a storage free space to drop the resources he has
-			for (auto pair : *unit.Inventory)
-			{
-				if (pair.second == 0) continue;
+        // Check if there is a furnace that need coal or/and iron ore
+        auto furnaces = GetFurnacesThatNeedItems();
 
-				auto storagePositions = GetStorageAroundFor(_grid->GetTilePosition(unit.Position), pair.first);
+        for (auto tilePosition : furnaces)
+        {
+            Tile& tile = _grid->GetTile(tilePosition);
+            Items itemToGet = Items::Coal;
+
+            if (tile.Inventory->at(Items::Coal) >= Grid::GetMaxItemsStored(tile, Items::Coal) / 2)
+            {
+                itemToGet = Items::IronOre;
+            }
+
+            if (unit.Inventory->at(itemToGet) > 0)
+            {
+                // Go to the furnace to drop the items
+                unit.TargetTile = tilePosition;
+                unit.SetBehavior(UnitBehavior::Moving);
+                return;
+            }
+            else
+            {
+                // Search a storage
+                auto storagePositions = GetStorageThatHave(_grid->GetTilePosition(unit.Position), itemToGet);
 
                 if (storagePositions.empty()) continue;
 
-				unit.TargetTile = storagePositions[0];
-				unit.SetBehavior(UnitBehavior::Moving);
-				return;
-			}
-		}
+                unit.TargetTile = storagePositions[0];
+                unit.SetBehavior(UnitBehavior::Moving);
+                return;
+            }
+        }
+
+        if (!IsInventoryEmpty(unit))
+        {
+            // Search for a storage free space to drop the resources he has
+            for (auto pair : *unit.Inventory)
+            {
+                if (pair.second == 0) continue;
+
+                auto storagePositions = GetStorageAroundFor(_grid->GetTilePosition(unit.Position), pair.first);
+
+                if (storagePositions.empty()) continue;
+
+                unit.TargetTile = storagePositions[0];
+                unit.SetBehavior(UnitBehavior::Moving);
+                return;
+            }
+        }
 
 		std::vector<TilePosition> tilesToGetItemsFrom = {};
 		auto sawmills = _grid->GetTiles(TileType::Sawmill);
 		auto quarries = _grid->GetTiles(TileType::Quarry);
+        auto furnaceToGet = _grid->GetTiles(TileType::Furnace);
         auto addList = [&](const std::vector<TilePosition>& list)
         {
             for (auto tile : list)
             {
-                if (IsTileTakenCareBy(tile, Characters::Logistician) || _grid->GetTile(tile).GetInventorySize() == 0) continue;
+                Tile& tileRef = _grid->GetTile(tile);
+
+                if (IsTileTakenCareBy(tile, Characters::Logistician) || tileRef.GetInventorySize() == 0) continue;
 
                 // Check if any of the items in the tile can be pickup by the unit
                 for (auto pair : *_grid->GetTile(tile).Inventory)
                 {
                     if (pair.second == 0) continue;
+                    if (tileRef.Type == TileType::Furnace && pair.first != Items::IronIngot) continue;
 
                     if (unit.Inventory->at(pair.first) < GetMaxItemsFor(unit, pair.first))
                     {
@@ -455,6 +492,7 @@ void UnitManager::onTickUnitLogistician(Unit& unit)
 
         addList(sawmills);
         addList(quarries);
+        addList(furnaceToGet);
 
 		std::sort(tilesToGetItemsFrom.begin(), tilesToGetItemsFrom.end(), [&](TilePosition a, TilePosition b)
 		{
@@ -496,6 +534,7 @@ void UnitManager::onTickUnitLogistician(Unit& unit)
 		else if (Grid::IsAStorage(tile.Type))
 		{
 			auto buildsThatNeedResources = GetTilesThatNeedItemsToBeBuilt();
+            auto furnaces = GetFurnacesThatNeedItems();
 
 			if (!buildsThatNeedResources.empty())
 			{
@@ -525,6 +564,31 @@ void UnitManager::onTickUnitLogistician(Unit& unit)
                     unit.Inventory->at(item) += itemsToGet;
 				}
 			}
+            else if (!furnaces.empty() && (tile.Inventory->at(Items::Coal) > 0 || tile.Inventory->at(Items::IronOre) > 0))
+            {
+                auto furnaceTile = _grid->GetTile(furnaces[0]);
+
+                // Try to get the items from the storage (coal and iron ore)
+                for (auto pair : *tile.Inventory)
+                {
+                    if (pair.second == 0 || (pair.first != Items::Coal && pair.first != Items::IronOre)) continue;
+
+                    Items item = pair.first;
+                    int quantity = pair.second;
+                    int neededItems = Grid::GetMaxItemsStored(furnaceTile, item) - furnaceTile.Inventory->at(item);
+                    int unitItem = unit.Inventory->at(item);
+
+                    // Check if the unit has the resources in his inventory or has his inventory full of this item
+                    if (unitItem >= neededItems || unitItem == GetMaxItemsFor(unit, item)) continue;
+
+                    int itemsToGet = std::min(GetMaxItemsFor(unit, item) - unitItem, std::min(quantity, neededItems));
+
+                    // Get the resources from the storage
+                    tile.Inventory->at(item) -= itemsToGet;
+                    unit.Inventory->at(item) += itemsToGet;
+                    break;
+                }
+            }
 			// Check if there is resources to move to the storage from the unit
 			else
 			{
@@ -558,6 +622,27 @@ void UnitManager::onTickUnitLogistician(Unit& unit)
 				tile.Inventory->at(pair.first) -= itemsToDropInUnit;
 			}
 		}
+        // If it's a furnace, check if there is coal or iron ore to drop on it and iron ingots to get
+        else if (tile.Type == TileType::Furnace)
+        {
+            int coalToDrop = std::min(unit.Inventory->at(Items::Coal), Grid::GetMaxItemsStored(tile, Items::Coal) - tile.Inventory->at(Items::Coal));
+            int ironOreToDrop = std::min(unit.Inventory->at(Items::IronOre), Grid::GetMaxItemsStored(tile, Items::IronOre) - tile.Inventory->at(Items::IronOre));
+
+            unit.Inventory->at(Items::Coal) -= coalToDrop;
+            unit.Inventory->at(Items::IronOre) -= ironOreToDrop;
+
+            tile.Inventory->at(Items::Coal) += coalToDrop;
+            tile.Inventory->at(Items::IronOre) += ironOreToDrop;
+
+            // Check if there is iron ingots to get
+            if (tile.Inventory->at(Items::IronIngot) > 0)
+            {
+                int ingotsToDrop = std::min(tile.Inventory->at(Items::IronIngot), GetMaxItemsFor(unit, Items::IronIngot) - unit.Inventory->at(Items::IronIngot));
+
+                tile.Inventory->at(Items::IronIngot) -= ingotsToDrop;
+                unit.Inventory->at(Items::IronIngot) += ingotsToDrop;
+            }
+        }
 
 		unit.SetBehavior(UnitBehavior::Idle);
 	}
@@ -845,6 +930,35 @@ std::vector<int> UnitManager::GetAvailableJobs()
 	});
 
 	return jobs;
+}
+
+std::vector<TilePosition> UnitManager::GetFurnacesThatNeedItems()
+{
+    std::vector<TilePosition> furnaces = std::vector<TilePosition>();
+
+    _grid->ForEachTile([&](Tile& tile, TilePosition position)
+    {
+        if (tile.Type != TileType::Furnace || !tile.IsBuilt || tile.NeedToBeDestroyed) return;
+
+        if (tile.Inventory->at(Items::Coal) < Grid::GetMaxItemsStored(tile, Items::Coal) ||
+            tile.Inventory->at(Items::IronOre) < Grid::GetMaxItemsStored(tile, Items::IronOre))
+        {
+            furnaces.push_back(position);
+        }
+    });
+
+    // Sort the furnaces by the one that have the less coal and iron ore
+    std::sort(furnaces.begin(), furnaces.end(), [&](TilePosition a, TilePosition b)
+    {
+        Tile& tileA = _grid->GetTile(a);
+        Tile& tileB = _grid->GetTile(b);
+        int aItems = tileA.Inventory->at(Items::Coal) + tileA.Inventory->at(Items::IronOre);
+        int bItems = tileB.Inventory->at(Items::Coal) + tileB.Inventory->at(Items::IronOre);
+
+        return aItems < bItems;
+    });
+
+    return furnaces;
 }
 
 int UnitManager::GetMaxItemsFor(Unit& unit, Items item)

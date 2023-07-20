@@ -12,6 +12,7 @@ std::map<TileType, std::map<Items, int>> *tileMaxInventory = new std::map<TileTy
     {TileType::LogisticsCenter, {{Items::Wood, 50}, {Items::Stone, 50}, {Items::Coal, 25}, {Items::IronOre, 50}, {Items::IronIngot, 10}}},
     {TileType::Quarry, {{Items::Stone, 50}, {Items::Coal, 25}, {Items::IronOre, 50}}},
     {TileType::MayorHouse, {{Items::Wood, 15}, {Items::Stone, 15}}},
+    {TileType::Furnace, {{Items::Coal, 10}, {Items::IronOre, 60}, {Items::IronIngot, 20}}},
 };
 
 // Items needed to build a tile
@@ -22,6 +23,7 @@ std::map<TileType, std::map<Items, int>> tileNeededItems = std::map<TileType, st
     {TileType::Quarry, {{Items::Wood, 20}}},
     {TileType::House, {{Items::Wood, 30}, {Items::Stone, 15}}},
     {TileType::BuilderHut, {{Items::Wood, 20}, {Items::Stone, 10}}},
+    {TileType::Furnace, {{Items::Stone, 35}}},
 };
 
 Grid::Grid(int width, int height, int tileSize)
@@ -47,28 +49,18 @@ Texture Grid::GetTexture(TilePosition position)
 
     switch (tile.Type)
     {
-    case TileType::Stone:
-        return Texture(Ressources::Stone);
-    case TileType::Tree:
-        return getTreeTexture(tile);
-    case TileType::Sawmill:
-        return Texture(Buildings::Sawmill);
-    case TileType::Road:
-        return getRoadTexture(position);
-    case TileType::MayorHouse:
-        return Texture(Buildings::MayorHouse);
-    case TileType::House:
-        return Texture(Buildings::House);
-    case TileType::BuilderHut:
-        return Texture(Buildings::BuilderHut);
-    case TileType::Storage:
-        return Texture(Buildings::Storage);
-    case TileType::Quarry:
-        return Texture(Buildings::Quarry);
-    case TileType::LogisticsCenter:
-        return Texture(Buildings::LogisticsCenter);
-    default:
-        return {};
+        case TileType::Stone: return Texture(Resources::Stone);
+        case TileType::Tree: return getTreeTexture(tile);
+        case TileType::Sawmill: return Texture(Buildings::Sawmill);
+        case TileType::Road: return getRoadTexture(position);
+        case TileType::MayorHouse: return Texture(Buildings::MayorHouse);
+        case TileType::House: return Texture(Buildings::House);
+        case TileType::BuilderHut: return Texture(Buildings::BuilderHut);
+        case TileType::Storage: return Texture(Buildings::Storage);
+        case TileType::Quarry: return Texture(Buildings::Quarry);
+        case TileType::LogisticsCenter: return Texture(Buildings::LogisticsCenter);
+        case TileType::Furnace: return tile.BurnTimer > 0.f ? Texture(Buildings::ActiveFurnace) : Texture(Buildings::InactiveFurnace);
+        default: return {};
     }
 }
 
@@ -76,15 +68,15 @@ Texture Grid::getTreeTexture(Tile &tile)
 {
     if (tile.TreeGrowth < 15.f)
     {
-        return Texture(Ressources::TreeSprout);
+        return Texture(Resources::TreeSprout);
     }
     else if (tile.TreeGrowth < 30.f)
     {
-        return Texture(Ressources::TreeMiddle);
+        return Texture(Resources::TreeMiddle);
     }
     else
     {
-        return Texture(Ressources::TreeFull);
+        return Texture(Resources::TreeFull);
     }
 }
 bool Grid::IsRoad(TilePosition tp)
@@ -296,6 +288,47 @@ void Grid::Update()
                 }
             }
 
+            // Check furnace
+            if (tile.Type == TileType::Furnace)
+            {
+                tile.BurnTimer -= smoothDeltaTime;
+
+                if (tile.BurnTimer <= 0.f)
+                {
+                    tile.BurnTimer = 0.f;
+
+                    if (tile.Inventory->at(Items::Coal) > 0 && tile.Inventory->at(Items::IronOre) > 3)
+                    {
+                        tile.Inventory->at(Items::Coal)--;
+                        tile.BurnTimer = 30.f;
+                    }
+                }
+
+                if (tile.BurnTimer > 0.f)
+                {
+                    // Can melt some things
+                    if (tile.SmeltTimer == 0.f)
+                    {
+                        // Check if he has enough items to smelt
+                        if (tile.Inventory->at(Items::IronOre) > 3 && tile.Inventory->at(Items::IronIngot) < GetMaxItemsStored(tile, Items::IronIngot))
+                        {
+                            tile.Inventory->at(Items::IronOre) -= 3;
+                            tile.SmeltTimer = 10.f;
+                        }
+                    }
+                    else
+                    {
+                        tile.SmeltTimer -= smoothDeltaTime;
+
+                        if (tile.SmeltTimer <= 0.f)
+                        {
+                            tile.SmeltTimer = 0.f;
+                            tile.Inventory->at(Items::IronIngot)++;
+                        }
+                    }
+                }
+            }
+
             // Check construction
             if (!tile.IsBuilt && tile.Type != TileType::None)
             {
@@ -470,18 +503,20 @@ float Grid::GetMaxConstructionProgress(TileType type)
 {
     switch (type)
     {
-    case TileType::Sawmill:
-        return 10.f;
-    case TileType::Quarry:
-        return 15.f;
-    case TileType::BuilderHut:
-        return 10.f;
-    case TileType::Storage:
-        return 10.f;
-    case TileType::House:
-        return 30.f;
-    case TileType::LogisticsCenter:
-        return 10.f;
+        case TileType::Sawmill:
+            return 10.f;
+        case TileType::Quarry:
+            return 15.f;
+        case TileType::BuilderHut:
+            return 10.f;
+        case TileType::Storage:
+            return 10.f;
+        case TileType::House:
+            return 30.f;
+        case TileType::LogisticsCenter:
+            return 10.f;
+        case TileType::Furnace:
+            return 15.f;
     }
 
     return 0.f;
@@ -491,20 +526,24 @@ float Grid::GetMaxDestructionProgress(TileType type)
 {
     switch (type)
     {
-    case TileType::Sawmill:
-        return 5.f;
-    case TileType::Quarry:
-        return 7.5f;
-    case TileType::BuilderHut:
-        return 5.f;
-    case TileType::Storage:
-        return 5.f;
-    case TileType::House:
-        return 15.f;
-    case TileType::Tree:
-        return 5.f;
-    case TileType::Stone:
-        return 10.f;
+        case TileType::Sawmill:
+            return 5.f;
+        case TileType::Quarry:
+            return 7.5f;
+        case TileType::BuilderHut:
+            return 5.f;
+        case TileType::Storage:
+            return 5.f;
+        case TileType::House:
+            return 15.f;
+        case TileType::Tree:
+            return 5.f;
+        case TileType::Stone:
+            return 10.f;
+        case TileType::LogisticsCenter:
+            return 5.f;
+        case TileType::Furnace:
+            return 7.5f;
     }
 
     return 0.f;
@@ -546,16 +585,11 @@ bool Grid::CanBeDestroyed(TilePosition position)
 {
     Tile &tile = GetTile(position);
 
-    if (tile.Type == TileType::None)
-        return false;
-    if (tile.Type == TileType::LogisticsCenter && GetTiles(TileType::LogisticsCenter).size() == 1)
-        return false;
-    if (tile.Type == TileType::BuilderHut && GetTiles(TileType::BuilderHut).size() == 1)
-        return false;
-    if (tile.Type == TileType::MayorHouse)
-        return false;
-    if (!tile.IsBuilt)
-        return false;
+    if (tile.Type == TileType::None) return false;
+    if (tile.Type == TileType::LogisticsCenter && GetTiles(TileType::LogisticsCenter).size() == 1) return false;
+    if (tile.Type == TileType::BuilderHut && GetTiles(TileType::BuilderHut).size() == 1) return false;
+    if (tile.Type == TileType::MayorHouse) return false;
+    if (!tile.IsBuilt) return false;
 
     return true;
 }

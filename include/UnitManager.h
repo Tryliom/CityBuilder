@@ -45,6 +45,7 @@ private:
 	std::vector<TilePosition> GetTilesThatNeedItemsToBeBuilt();
 	std::vector<TilePosition> GetStorageThatHave(TilePosition position, Items item);
 	std::vector<int> GetAvailableJobs();
+    std::vector<TilePosition> GetFurnacesThatNeedItems();
 
 	// Inventory
 	int GetMaxItemsFor(Unit& unit, Items item);
