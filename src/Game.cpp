@@ -13,6 +13,10 @@
 
 #include "Graphics.h"
 
+#include "sokol_gfx.h"
+#include "imgui.h"
+#include "util\sokol_imgui.h"
+
 void GenerateMap();
 
 void UpdateCamera();
@@ -21,9 +25,14 @@ void DrawUi();
 
 int gridWidth = 5000, gridHeight = 5000, tileSize = 100;
 
+Vector2F screenSize;
 Vector2F centerOfScreen;
 
 float speed = 500.f;
+
+ImGuiData currentImGuiData = {};
+
+bool isMouseOnAWindow;
 
 struct GameState
 {
@@ -39,8 +48,11 @@ struct GameState
 
 GameState *gameState = nullptr;
 
-void InitGame(void* gameMemory, Image* tilemap, FrameData* frameData)
+void InitGame(void* gameMemory, Image* tilemap, FrameData* frameData, ImGuiData* engineImGuiData)
 {
+	LOG("time : " << engineImGuiData->Context->IO.DeltaTime);
+
+	screenSize = frameData->screenSize;
 	centerOfScreen = frameData->screenCenter;
 
 	gameState = (GameState *)gameMemory;
@@ -49,10 +61,8 @@ void InitGame(void* gameMemory, Image* tilemap, FrameData* frameData)
 	gameState->UnitManager.SetGrid(&gameState->Grid);
 	gameState->SelectedTileType = TileType::Sawmill;
 
-	// Passer tout ce code à l'Engine et transférer les valeurs de textures de l'Engine au Game comme pour les valeurs du Timer.
-	tilemap->AddImagesAtRow(Graphics::tileSheets);
-
-	Graphics::textureWidth = tilemap->GetWidth();
+	// Get the textures from the Engine.
+	Graphics::textureWidth  = tilemap->GetWidth();
 	Graphics::textureHeight = tilemap->GetHeight();
 
 	GenerateMap();
@@ -62,14 +72,27 @@ void InitGame(void* gameMemory, Image* tilemap, FrameData* frameData)
 	gameState->Camera = Graphics::camera;
 
 	// gameState->Seed = Random::GetSeed();
+
+	currentImGuiData.Context = engineImGuiData->Context;
+	currentImGuiData.IO      = engineImGuiData->IO;
+
+	ImGui::SetCurrentContext(engineImGuiData->Context);
+
+	currentImGuiData.Context = ImGui::GetCurrentContext();
+	LOG("Current Context : time : " << ImGui::GetCurrentContext()->IO.DeltaTime);
 }
 
-void OnFrame(FrameData *frameData, TimerData *timerData)
+void OnFrame(FrameData *frameData, TimerData *timerData, const simgui_frame_desc_t* simgui_frame_desc)
 {
 	Graphics::ClearFrameBuffers();
 	Graphics::CalculTransformationMatrix();
 
+	LOG("Before frame");
+	simgui_new_frame(simgui_frame_desc);
+	LOG("After frame");
+
 	auto mousePosition = Input::GetMousePosition();
+	isMouseOnAWindow = currentImGuiData.IO->WantCaptureMouse;
 
 	UpdateCamera();
 	HandleInput();
@@ -86,6 +109,14 @@ void OnFrame(FrameData *frameData, TimerData *timerData)
 	Graphics::CalculTransformationMatrix(Vector2F::One);
 	DrawUi();
 
+	bool isWindowOpen = true;
+
+	ImGui::Begin("My first Window", &isWindowOpen);
+	ImGui::SetWindowSize(ImVec2(200, 200), ImGuiCond_Always);
+	ImGui::Text("YOOOOOOOO");
+	ImGui::End();	
+
+	screenSize = frameData->screenSize;
 	centerOfScreen = frameData->screenCenter;
 	Graphics::camera.Pivot = centerOfScreen;
 
@@ -127,12 +158,12 @@ extern "C"		   // we need to export the C interface
 		Input::OnInput(event);
 	}
 
-	EXPORT void DLL_InitGame(void* gameMemory, Image* tilemap, FrameData* frameData)
+	EXPORT void DLL_InitGame(void* gameMemory, Image* tilemap, FrameData* frameData, ImGuiData* engineImGuiData)
 	{
-		InitGame(gameMemory, tilemap, frameData);
+		InitGame(gameMemory, tilemap, frameData, engineImGuiData);
 	}
 
-	EXPORT void DLL_OnFrame(void *gameMemory, FrameData *frameData, TimerData *timerData)
+	EXPORT void DLL_OnFrame(void *gameMemory, Image* tilemap, FrameData *frameData, TimerData *timerData, const simgui_frame_desc_t* simgui_frame_desc, ImGuiData* engineImGuiData)
 	{
 		// Update the gameState. When a new DLL is created, it will automatically set his gameState to the old one.
 		gameState = (GameState *)gameMemory;
@@ -144,15 +175,18 @@ extern "C"		   // we need to export the C interface
 		{
 			// ICI faire que Random::seed = gameState->Seed;
 
-			Image tilemap;
+			currentImGuiData.Context = engineImGuiData->Context;
+			currentImGuiData.IO      = engineImGuiData->IO;
 
-			tilemap.AddImagesAtRow(Graphics::tileSheets);
+			ImGui::SetCurrentContext(engineImGuiData->Context);
 
-			Graphics::textureWidth = tilemap.GetWidth();
-			Graphics::textureHeight = tilemap.GetHeight();
+			currentImGuiData.Context = ImGui::GetCurrentContext();
+
+			Graphics::textureWidth  = tilemap->GetWidth();
+			Graphics::textureHeight = tilemap->GetHeight();
 		}
 
-		OnFrame(frameData, timerData);
+		OnFrame(frameData, timerData, simgui_frame_desc);
 
 		// = WARNING = Don't draw anything under the OnFrame() function because the frame buffers clear is inside. = WARNING =
 	}
@@ -193,13 +227,16 @@ void UpdateCamera()
 		Graphics::Zoom(-0.1f);
 	}
 
-	float mouseWheelDelta = Input::GetMouseWheelDelta();
-
-	Graphics::Zoom(mouseWheelDelta / 50.f);
-
-	if (Input::IsMouseButtonHeld(SAPP_MOUSEBUTTON_MIDDLE))
+	if (!isMouseOnAWindow)
 	{
-		Graphics::MoveCamera((mousePosition - previousMousePosition) * 1.f / Graphics::GetZoom());
+		float mouseWheelDelta = Input::GetMouseWheelDelta();
+
+		Graphics::Zoom(mouseWheelDelta / 50.f);
+
+		if (Input::IsMouseButtonHeld(SAPP_MOUSEBUTTON_MIDDLE))
+		{
+			Graphics::MoveCamera((mousePosition - previousMousePosition) * 1.f / Graphics::GetZoom());
+		}
 	}
 }
 
@@ -240,71 +277,74 @@ void HandleInput()
 		gameState->UnitManager.AddUnit(Unit(gameState->Grid.ToWorldPosition(gameState->Grid.GetTiles(TileType::MayorHouse)[0]) + Vector2F{Random::Range(0, 25), Random::Range(0, 25)}));
 	}
 
-	if (Input::IsMouseButtonHeld(SAPP_MOUSEBUTTON_LEFT))
+	if (!isMouseOnAWindow)
 	{
-		auto mousePosition = Input::GetMousePosition();
-		auto mouseWorldPosition = Graphics::ScreenToWorld(mousePosition);
-		auto tilePosition = gameState->Grid.GetTilePosition(mouseWorldPosition);
-
-		if (gameState->Grid.IsTileValid(tilePosition) && gameState->Grid.CanBuild(tilePosition, gameState->SelectedTileType))
+		if (Input::IsMouseButtonHeld(SAPP_MOUSEBUTTON_LEFT))
 		{
-			gameState->Grid.SetTile(tilePosition, Tile(gameState->SelectedTileType));
+			auto mousePosition = Input::GetMousePosition();
+			auto mouseWorldPosition = Graphics::ScreenToWorld(mousePosition);
+			auto tilePosition = gameState->Grid.GetTilePosition(mouseWorldPosition);
 
-			if (Input::IsKeyHeld(SAPP_KEYCODE_LEFT_SHIFT))
+			if (gameState->Grid.IsTileValid(tilePosition) && gameState->Grid.CanBuild(tilePosition, gameState->SelectedTileType))
 			{
-				gameState->Grid.GetTile(tilePosition).IsBuilt = true;
+				gameState->Grid.SetTile(tilePosition, Tile(gameState->SelectedTileType));
+
+				if (Input::IsKeyHeld(SAPP_KEYCODE_LEFT_SHIFT))
+				{
+					gameState->Grid.GetTile(tilePosition).IsBuilt = true;
+				}
 			}
 		}
-	}
 
-	if (Input::IsMouseButtonPressed(SAPP_MOUSEBUTTON_RIGHT))
-	{
-		// Remove some tiles with permissions and other are set to be destroyed by a builder
-		auto mousePosition = Input::GetMousePosition();
-		auto mouseWorldPosition = Graphics::ScreenToWorld(mousePosition);
-		auto tilePosition = gameState->Grid.GetTilePosition(mouseWorldPosition);
-		auto &tile = gameState->Grid.GetTile(tilePosition);
-
-		if (tile.Type == TileType::None)
-			return;
-
-		if (tile.NeedToBeDestroyed)
+		if (Input::IsMouseButtonPressed(SAPP_MOUSEBUTTON_RIGHT))
 		{
-			// Cancel the destruction
-			tile.NeedToBeDestroyed = false;
-			tile.Progress = 0;
+			// Remove some tiles with permissions and other are set to be destroyed by a builder
+			auto mousePosition = Input::GetMousePosition();
+			auto mouseWorldPosition = Graphics::ScreenToWorld(mousePosition);
+			auto tilePosition = gameState->Grid.GetTilePosition(mouseWorldPosition);
+			auto &tile = gameState->Grid.GetTile(tilePosition);
+
+			if (tile.Type == TileType::None)
+				return;
+
+			if (tile.NeedToBeDestroyed)
+			{
+				// Cancel the destruction
+				tile.NeedToBeDestroyed = false;
+				tile.Progress = 0;
+			}
+			// Can be destroyed immediately
+			else if (tile.Type == TileType::Road || !tile.IsBuilt)
+			{
+				tile.Type = tile.Type == TileType::Quarry ? TileType::Stone : TileType::None;
+				tile.IsBuilt = true;
+				tile.NeedToBeDestroyed = false;
+				tile.Progress = 0;
+			}
+			// Can be destroyed by a builder
+			else if (gameState->Grid.CanBeDestroyed(tilePosition))
+			{
+				tile.Progress = 0;
+				tile.NeedToBeDestroyed = true;
+			}
 		}
-		// Can be destroyed immediately
-		else if (tile.Type == TileType::Road || !tile.IsBuilt)
+
+		if (Input::IsMouseButtonHeld(SAPP_MOUSEBUTTON_RIGHT))
 		{
-			tile.Type = tile.Type == TileType::Quarry ? TileType::Stone : TileType::None;
+			// Remove some tiles with permissions and other are set to be destroyed by a builder
+			auto mousePosition = Input::GetMousePosition();
+			auto mouseWorldPosition = Graphics::ScreenToWorld(mousePosition);
+			auto tilePosition = gameState->Grid.GetTilePosition(mouseWorldPosition);
+			auto &tile = gameState->Grid.GetTile(tilePosition);
+
+			if (tile.Type != TileType::Road)
+				return;
+
+			tile.Type = TileType::None;
 			tile.IsBuilt = true;
 			tile.NeedToBeDestroyed = false;
 			tile.Progress = 0;
 		}
-		// Can be destroyed by a builder
-		else if (gameState->Grid.CanBeDestroyed(tilePosition))
-		{
-			tile.Progress = 0;
-			tile.NeedToBeDestroyed = true;
-		}
-	}
-
-	if (Input::IsMouseButtonHeld(SAPP_MOUSEBUTTON_RIGHT))
-	{
-		// Remove some tiles with permissions and other are set to be destroyed by a builder
-		auto mousePosition = Input::GetMousePosition();
-		auto mouseWorldPosition = Graphics::ScreenToWorld(mousePosition);
-		auto tilePosition = gameState->Grid.GetTilePosition(mouseWorldPosition);
-		auto &tile = gameState->Grid.GetTile(tilePosition);
-
-		if (tile.Type != TileType::Road)
-			return;
-
-		tile.Type = TileType::None;
-		tile.IsBuilt = true;
-		tile.NeedToBeDestroyed = false;
-		tile.Progress = 0;
 	}
 }
 

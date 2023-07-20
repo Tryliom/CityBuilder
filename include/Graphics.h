@@ -8,6 +8,9 @@
 #include "Constants.h"
 #include <vector>
 
+#include "imgui.h"
+#include "imgui_internal.h"
+
 struct Vertex
 {
     Vector2F Position = {0, 0};
@@ -22,6 +25,12 @@ struct Camera
 	Vector2F Pivot;
 };
 
+struct ImGuiData
+{
+    ImGuiContext* Context;
+    ImGuiIO* IO;
+};
+
 struct FrameData
 {
 	float* vertexBufferPtr;
@@ -29,16 +38,16 @@ struct FrameData
 	uint32_t* indexBufferPtr;
 	int indexBufferUsed;
 
+	Vector2I screenSize;
 	Vector2F screenCenter;
 };
 
 struct TextureData
 {
-	std::vector<Image> tileSheets;
-
-    int frameCount;
-    int textureWidth;
-    int textureHeight;
+	Image Tilemap;
+	
+	int TextureWidth;
+	int TextureHeight;
 };
 
 namespace Graphics

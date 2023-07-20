@@ -4,6 +4,11 @@
 #include "sokol_gfx.h"
 #include "sokol_log.h"
 #include "sokol_glue.h"
+
+#include "imgui.h"
+#include "imgui_internal.h"
+#include "util\sokol_imgui.h"
+
 #include "basic-sapp.glsl.h"
 
 #include "Constants.h"
@@ -38,13 +43,18 @@ static struct
     vs_window vs_window;
 } state;
 
+// ====== Imgui =========
+
+static bool show_test_window = true;
+static bool show_another_window = false;
+
 #pragma region Attributes
 
 // ====== Hot Reload =========
 
 void(*DLL_OnInput) (const sapp_event*)  = nullptr;
-void(*DLL_InitGame)(void*, Image*, FrameData*) = nullptr;
-void(*DLL_OnFrame) (void*, FrameData*, TimerData*) = nullptr;
+void(*DLL_InitGame)(void*, Image*, FrameData*, ImGuiData*) = nullptr;
+void(*DLL_OnFrame) (void*, Image*, FrameData*, TimerData*, const simgui_frame_desc_t*, ImGuiData*) = nullptr;
 
 void* gameStateMemory = nullptr;
 
@@ -52,18 +62,21 @@ HMODULE libHandle = NULL; // Handle to a loaded module (DLL).
 
 uint64_t lastMod = 0;
 
-FrameData   frameData   = {};
-TextureData textureData = {};
-TimerData   timerData   = {};
+Image tilemap;
+ImGuiData imguiData = {};
+FrameData frameData = {};
+TimerData timerData = {};
 
-void InitGame(void* gameMemory, Image* tilemap, FrameData* frameData);
+void InitGame(void* gameMemory, Image* tilemap, FrameData* frameData, ImGuiData* engineImGuiData);
 
-void OnFrame(FrameData* frameData, TimerData* timerData);
+void OnFrame(FrameData* frameData, TimerData* timerData, const simgui_frame_desc_t* simgui_frame_desc);
 
 void RunnerOnEvent(const sapp_event* event)
 {
     if (DLL_OnInput) DLL_OnInput(event);
     else Input::OnInput(event);
+
+    simgui_handle_event(event);
 }
 
 bool RdxFileExists(const char* path) 
@@ -137,10 +150,10 @@ void LoadDLL()
         DLL_OnInput = (void (*)(const sapp_event*))GetProcAddress(libHandle, "DLL_OnInput"); 
         assert(DLL_OnInput != NULL && "Couldn't find function DLL_OnInput in Game.dll");
 
-        DLL_InitGame = (void (*)(void*, Image*, FrameData*))GetProcAddress(libHandle, "DLL_InitGame"); 
+        DLL_InitGame = (void (*)(void*, Image*, FrameData*, ImGuiData*))GetProcAddress(libHandle, "DLL_InitGame"); 
         assert(DLL_InitGame != NULL && "Couldn't find function DLL_InitGame in Game.dll");
 
-        DLL_OnFrame = (void (*)(void*, FrameData*, TimerData*))GetProcAddress(libHandle, "DLL_OnFrame"); 
+        DLL_OnFrame  = (void (*)(void*, Image*, FrameData*, TimerData*, const simgui_frame_desc_t*, ImGuiData*))GetProcAddress(libHandle, "DLL_OnFrame"); 
         assert(DLL_OnFrame != NULL && "Couldn't find function DLL_OnFrame in Game.dll");
     }
 }
@@ -153,19 +166,10 @@ void LoadDLL()
 
 static void init()
 { 
+    frameData.screenSize   = Vector2F{sapp_widthf(), sapp_heightf()};
     frameData.screenCenter = Vector2F{sapp_widthf(), sapp_heightf()} / 2.f;
-    
-    Image tilemap;
 
-    gameStateMemory = malloc(GAME_STATE_MAX_BYTE_SIZE);
-    memset(gameStateMemory, 0, GAME_STATE_MAX_BYTE_SIZE);
-
-    #ifdef HOT_RELOAD
-    LoadDLL();
-    if(DLL_InitGame) DLL_InitGame(gameStateMemory, &tilemap, &frameData);
-    #else
-    InitGame(gameStateMemory, &tilemap, &frameData);
-    #endif
+	tilemap.AddImagesAtRow(Graphics::tileSheets);
 
     sg_desc desc = (sg_desc){
         .logger = {.func = slog_func},
@@ -224,6 +228,26 @@ static void init()
     };
     state.pip = sg_make_pipeline(pip_desc);
 
+    gameStateMemory = malloc(GAME_STATE_MAX_BYTE_SIZE);
+    memset(gameStateMemory, 0, GAME_STATE_MAX_BYTE_SIZE);
+
+    // use sokol-imgui with all default-options (we're not doing
+    // multi-sampled rendering or using non-default pixel formats)
+    simgui_desc_t simgui_desc = { };
+    simgui_setup(&simgui_desc);
+
+    imguiData.Context = ImGui::GetCurrentContext();
+    imguiData.Context->IO.DeltaTime = sapp_frame_duration();
+    
+    imguiData.IO = &ImGui::GetIO();
+
+    #ifdef HOT_RELOAD
+    LoadDLL();
+    if(DLL_InitGame) DLL_InitGame(gameStateMemory, &tilemap, &frameData, &imguiData);
+    #else
+    InitGame(gameStateMemory, &tilemap, &frameData, &imguiData);
+    #endif
+
     // a pass action to clear framebuffer to black
     state.pass_action = (sg_pass_action){
         .colors = {{.load_action = SG_LOADACTION_CLEAR, .clear_value = {95 / 255.f, 195 / 255.f, 65 / 255.f, 1.0f}}}};
@@ -235,7 +259,7 @@ void frame()
     sg_apply_pipeline(state.pip);
     sg_apply_bindings(&state.bind);
 
-    auto width = sapp_width();
+    auto width  = sapp_width();
     auto height = sapp_height();
 
     state.vs_window = {(float)width, (float)height};
@@ -247,12 +271,43 @@ void frame()
     timerData.DeltaTime = Timer::DeltaTime;
     timerData.SmoothDeltaTime = Timer::SmoothDeltaTime;
 
+    const simgui_frame_desc_t frame_desc{ width, height, sapp_frame_duration(), sapp_dpi_scale() };
+
     #ifdef HOT_RELOAD
     LoadDLL();
-    if (DLL_OnFrame) DLL_OnFrame(gameStateMemory, &frameData, &timerData);
+    if (DLL_OnFrame) DLL_OnFrame(gameStateMemory, &tilemap, &frameData, &timerData, &frame_desc, &imguiData);
     #else
-    OnFrame(&frameData, &timerData);
+    
+    OnFrame(&frameData, &timerData, &frame_desc);
     #endif
+
+    // 1. Show a simple window
+    // Tip: if we don't call ImGui::Begin()/ImGui::End() the widgets appears in a window automatically called "Debug"
+    static float f = 0.0f;
+    ImGui::Text("Hello, world!");
+    ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
+    ImGui::ColorEdit3("clear color", &state.pass_action.colors[0].clear_value.r);
+    if (ImGui::Button("Test Window")) show_test_window ^= 1;
+    if (ImGui::Button("Another Window")) show_another_window ^= 1;
+    ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+    ImGui::Text("w: %d, h: %d, dpi_scale: %.1f", sapp_width(), sapp_height(), sapp_dpi_scale());
+    if (ImGui::Button(sapp_is_fullscreen() ? "Switch to windowed" : "Switch to fullscreen")) {
+        sapp_toggle_fullscreen();
+    }
+
+    // // 2. Show another simple window, this time using an explicit Begin/End pair
+    // if (show_another_window) {
+    //     ImGui::SetNextWindowSize(ImVec2(200,100), ImGuiCond_FirstUseEver);
+    //     ImGui::Begin("Another Window", &show_another_window);
+    //     ImGui::Text("Hello");
+    //     ImGui::End();
+    // }
+
+    // 3. Show the ImGui test window. Most of the sample code is in ImGui::ShowDemoWindow()
+    if (show_test_window) {
+        ImGui::SetNextWindowPos(ImVec2(460, 20), ImGuiCond_FirstUseEver);
+        ImGui::ShowDemoWindow();
+    }
 
     sg_update_buffer(state.bind.vertex_buffers[0], (sg_range){.ptr = frameData.vertexBufferPtr, 
                      .size = frameData.vertexBufferUsed * Graphics::VertexNbAttributes * sizeof(frameData.vertexBufferPtr[0])});
@@ -260,6 +315,7 @@ void frame()
 
     sg_draw(0, frameData.vertexBufferUsed * Graphics::VertexNbAttributes, 1);
     sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, (sg_range){.ptr = &state.vs_window, .size = sizeof(state.vs_window)});
+    simgui_render();
     sg_end_pass();
     sg_commit();
 }
@@ -267,6 +323,7 @@ void frame()
 void cleanup()
 {
     //free(gameStateMemory);
+    simgui_shutdown();
     sg_shutdown();
 }
 
