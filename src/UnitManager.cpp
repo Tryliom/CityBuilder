@@ -109,10 +109,21 @@ void UnitManager::UpdateUnits()
 				}
 			}
 
+            auto lastBehavior = unit.CurrentBehavior;
+
 			if (tile.Type == TileType::Sawmill) OnTickUnitSawMill(unit);
-			if (tile.Type == TileType::BuilderHut) OnTickUnitBuilderHut(unit);
-			if (tile.Type == TileType::LogisticsCenter) onTickUnitLogistician(unit);
-			if (tile.Type == TileType::Quarry) OnTickUnitQuarry(unit);
+			else if (tile.Type == TileType::BuilderHut) OnTickUnitBuilderHut(unit);
+			else if (tile.Type == TileType::LogisticsCenter) onTickUnitLogistician(unit);
+			else if (tile.Type == TileType::Quarry) OnTickUnitQuarry(unit);
+
+            // Make them move to their job tile if they have nothing to do
+            auto jobPosition = _grid->GetTilePosition(unit.JobTileIndex);
+
+            if (lastBehavior == UnitBehavior::Idle && lastBehavior == unit.CurrentBehavior && _grid->GetTilePosition(unit.Position) != jobPosition)
+            {
+                unit.TargetTile = jobPosition;
+                unit.SetBehavior(UnitBehavior::Moving);
+            }
 		}
 		else
 		{
@@ -228,7 +239,7 @@ void UnitManager::OnTickUnitBuilderHut(Unit& unit)
 		Tile& tile = _grid->GetTile(unit.TargetTile);
 
 		// Check that the tile is still valid
-		if (!Grid::IsAStorage(tile.Type) && (tile.IsBuilt && !tile.NeedToBeDestroyed) || tile.Type == TileType::None)
+		if (!Grid::IsAStorage(tile.Type) && unit.TargetTile != _grid->GetTilePosition(unit.JobTileIndex) && (tile.IsBuilt && !tile.NeedToBeDestroyed) || tile.Type == TileType::None)
 		{
 			unit.SetBehavior(UnitBehavior::Idle);
 		}
@@ -419,7 +430,17 @@ void UnitManager::onTickUnitLogistician(Unit& unit)
             {
                 if (IsTileTakenCareBy(tile, Characters::Logistician) || _grid->GetTile(tile).GetInventorySize() == 0) continue;
 
-                tilesToGetItemsFrom.push_back(tile);
+                // Check if any of the items in the tile can be pickup by the unit
+                for (auto pair : *_grid->GetTile(tile).Inventory)
+                {
+                    if (pair.second == 0) continue;
+
+                    if (unit.Inventory->at(pair.first) < GetMaxItemsFor(unit, pair.first))
+                    {
+                        tilesToGetItemsFrom.push_back(tile);
+                        break;
+                    }
+                }
             }
         };
 
@@ -718,7 +739,7 @@ std::vector<TilePosition> UnitManager::GetStorageAroundFor(TilePosition position
 
     _grid->ForEachTile([&](Tile& tile, TilePosition position)
     {
-        if (!Grid::IsAStorage(tile.Type)) return;
+        if (!Grid::IsAStorage(tile.Type) || !tile.IsBuilt || tile.NeedToBeDestroyed) return;
         if (tile.Inventory->at(item) == Grid::GetMaxItemsStored(tile, item)) return;
 
         storages.push_back(position);
@@ -925,4 +946,23 @@ void UnitManager::SetGrid(Grid *grid)
     }
 
 	_grid = grid;
+}
+
+void UnitManager::LogTotalItems()
+{
+    for (int i = 0; i < 2; i++)
+    {
+        LOG("                                                           ");
+    }
+
+    LOG("Total items:                                                    ");
+    for (auto pair: GetAllUsableItems())
+    {
+        LOG(Texture::ItemToString[(int) pair.first] << ": " << std::to_string(pair.second) + "                                  ");
+    }
+
+    for (int i = 0; i < 10; i++)
+    {
+        LOG("                                                           ");
+    }
 }

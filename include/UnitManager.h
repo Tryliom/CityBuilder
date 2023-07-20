@@ -56,6 +56,7 @@ private:
 public:
 	void UpdateUnits();
 	void DrawUnits();
+    void LogTotalItems();
 
 	void AddUnit(const Unit& unit);
 
