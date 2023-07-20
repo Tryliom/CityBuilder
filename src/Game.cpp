@@ -9,6 +9,7 @@
 #include "Logger.h"
 #include "UnitManager.h"
 #include "Grid.h"
+#include "Logger.h"
 
 #include "Graphics.h"
 
@@ -38,9 +39,9 @@ struct GameState
 
 GameState *gameState = nullptr;
 
-void InitGame(void *gameMemory, Image *tilemap)
+void InitGame(void* gameMemory, Image* tilemap, FrameData* frameData)
 {
-	centerOfScreen = Vector2F{sapp_widthf(), sapp_heightf()} / 2.f;
+	centerOfScreen = frameData->screenCenter;
 
 	gameState = (GameState *)gameMemory;
 
@@ -56,6 +57,8 @@ void InitGame(void *gameMemory, Image *tilemap)
 
 	GenerateMap();
 
+	//Graphics::camera.Position = centerOfScreen;
+	Graphics::camera.Pivot = centerOfScreen;
 	gameState->Camera = Graphics::camera;
 
 	// gameState->Seed = Random::GetSeed();
@@ -81,6 +84,9 @@ void OnFrame(FrameData *frameData, TimerData *timerData)
 
 	DrawUi();
 
+	centerOfScreen = frameData->screenCenter;
+	Graphics::camera.Pivot = centerOfScreen;
+
 	// Update the current camera state.
 	gameState->Camera = Graphics::camera;
 
@@ -97,12 +103,12 @@ void OnFrame(FrameData *frameData, TimerData *timerData)
 	Timer::DeltaTime = timerData->DeltaTime;
 	Timer::SmoothDeltaTime = timerData->SmoothDeltaTime;
 
-    // Set the console cursor position to the top left corner of the screen using Windows API.
-    #if _WIN32
-        HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-        COORD pos = {0, 0};
-        SetConsoleCursorPosition(hConsole, pos);
-    #endif
+// Set the console cursor position to the top left corner of the screen using Windows API.
+#if _WIN32
+	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+	COORD pos = {0, 0};
+	SetConsoleCursorPosition(hConsole, pos);
+#endif
 }
 
 #ifdef __cplusplus // If used by C++ code,
@@ -119,9 +125,9 @@ extern "C"		   // we need to export the C interface
 		Input::OnInput(event);
 	}
 
-	EXPORT void DLL_InitGame(void *gameMemory, Image *tilemap)
+	EXPORT void DLL_InitGame(void* gameMemory, Image* tilemap, FrameData* frameData)
 	{
-		InitGame(gameMemory, tilemap);
+		InitGame(gameMemory, tilemap, frameData);
 	}
 
 	EXPORT void DLL_OnFrame(void *gameMemory, FrameData *frameData, TimerData *timerData)
@@ -240,12 +246,12 @@ void HandleInput()
 
 		if (gameState->Grid.IsTileValid(tilePosition) && gameState->Grid.CanBuild(tilePosition, gameState->SelectedTileType))
 		{
-            gameState->Grid.SetTile(tilePosition, Tile(gameState->SelectedTileType));
+			gameState->Grid.SetTile(tilePosition, Tile(gameState->SelectedTileType));
 
-            if (Input::IsKeyHeld(SAPP_KEYCODE_LEFT_SHIFT))
-            {
-                gameState->Grid.GetTile(tilePosition).IsBuilt = true;
-            }
+			if (Input::IsKeyHeld(SAPP_KEYCODE_LEFT_SHIFT))
+			{
+				gameState->Grid.GetTile(tilePosition).IsBuilt = true;
+			}
 		}
 	}
 
@@ -337,11 +343,11 @@ void DrawUi()
 		.Texture = selectedTileTexture,
 	});
 
-    TilePosition mouseTilePosition = gameState->Grid.GetTilePosition(Graphics::ScreenToWorld(Input::GetMousePosition()));
+	TilePosition mouseTilePosition = gameState->Grid.GetTilePosition(Graphics::ScreenToWorld(Input::GetMousePosition()));
 
-    if (gameState->Grid.IsTileValid(mouseTilePosition))
-    {
-        Tile& tile = gameState->Grid.GetTile(mouseTilePosition);
+	if (gameState->Grid.IsTileValid(mouseTilePosition))
+	{
+		Tile &tile = gameState->Grid.GetTile(mouseTilePosition);
 
         if (tile.Type != TileType::None && tile.Type != TileType::Road)
         {

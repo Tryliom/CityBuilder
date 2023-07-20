@@ -19,6 +19,7 @@ struct Camera
 {
     Vector2F Position = { 0, 0 };
     float Zoom = 1.f;
+	Vector2F Pivot;
 };
 
 struct FrameData
@@ -27,6 +28,8 @@ struct FrameData
 	int vertexBufferUsed;
 	uint32_t* indexBufferPtr;
 	int indexBufferUsed;
+
+	Vector2F screenCenter;
 };
 
 struct TextureData

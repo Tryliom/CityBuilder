@@ -43,7 +43,7 @@ static struct
 // ====== Hot Reload =========
 
 void(*DLL_OnInput) (const sapp_event*)  = nullptr;
-void(*DLL_InitGame)(void*, Image*) = nullptr;
+void(*DLL_InitGame)(void*, Image*, FrameData*) = nullptr;
 void(*DLL_OnFrame) (void*, FrameData*, TimerData*) = nullptr;
 
 void* gameStateMemory = nullptr;
@@ -56,7 +56,7 @@ FrameData   frameData   = {};
 TextureData textureData = {};
 TimerData   timerData   = {};
 
-void InitGame(void* gameMemory, Image* tilemap);
+void InitGame(void* gameMemory, Image* tilemap, FrameData* frameData);
 
 void OnFrame(FrameData* frameData, TimerData* timerData);
 
@@ -137,7 +137,7 @@ void LoadDLL()
         DLL_OnInput = (void (*)(const sapp_event*))GetProcAddress(libHandle, "DLL_OnInput"); 
         assert(DLL_OnInput != NULL && "Couldn't find function DLL_OnInput in Game.dll");
 
-        DLL_InitGame = (void (*)(void*, Image*))GetProcAddress(libHandle, "DLL_InitGame"); 
+        DLL_InitGame = (void (*)(void*, Image*, FrameData*))GetProcAddress(libHandle, "DLL_InitGame"); 
         assert(DLL_InitGame != NULL && "Couldn't find function DLL_InitGame in Game.dll");
 
         DLL_OnFrame = (void (*)(void*, FrameData*, TimerData*))GetProcAddress(libHandle, "DLL_OnFrame"); 
@@ -153,6 +153,8 @@ void LoadDLL()
 
 static void init()
 { 
+    frameData.screenCenter = Vector2F{sapp_widthf(), sapp_heightf()} / 2.f;
+    
     Image tilemap;
 
     gameStateMemory = malloc(GAME_STATE_MAX_BYTE_SIZE);
@@ -160,9 +162,9 @@ static void init()
 
     #ifdef HOT_RELOAD
     LoadDLL();
-    if(DLL_InitGame) DLL_InitGame(gameStateMemory, &tilemap);
+    if(DLL_InitGame) DLL_InitGame(gameStateMemory, &tilemap, &frameData);
     #else
-    InitGame(gameStateMemory, &tilemap);
+    InitGame(gameStateMemory, &tilemap, &frameData);
     #endif
 
     sg_desc desc = (sg_desc){
@@ -237,6 +239,8 @@ void frame()
     auto height = sapp_height();
 
     state.vs_window = {(float)width, (float)height};
+
+    frameData.screenCenter = Vector2F{sapp_widthf(), sapp_heightf()} / 2.f;
 
     Timer::Update();
     timerData.Time = Timer::Time;
