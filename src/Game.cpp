@@ -343,25 +343,25 @@ void DrawUi()
 	{
 		Tile &tile = gameState->Grid.GetTile(mouseTilePosition);
 
-		if (tile.Type != TileType::None && tile.Type != TileType::Road)
-		{
-			for (auto pair : *tile.Inventory)
-			{
-				std::string text = "Inventory: " + std::to_string(pair.second) + " of " + Texture::TileTypeString[(int)pair.first];
+        if (tile.Type != TileType::None && tile.Type != TileType::Road)
+        {
+            for (auto pair: *tile.Inventory)
+            {
+                std::string text = "Inventory: " + std::to_string(pair.second) + " of " + Texture::ItemToString[(int) pair.first];
 
-				if (!tile.IsBuilt)
-				{
-					text += " / " + std::to_string(Grid::GetNeededItemsToBuild(tile.Type, pair.first));
-				}
-				else
-				{
-					text += "        ";
-				}
-
-				LOG(text);
-			}
-		}
-	}
+                if (!tile.IsBuilt)
+                {
+                    text += " / " + std::to_string(Grid::GetNeededItemsToBuild(tile.Type, pair.first));
+                }
+                else
+                {
+                    text += "                      ";
+                }
+                
+                LOG(text);
+            }
+        }
+    }
 }
 
 void GenerateMap()
