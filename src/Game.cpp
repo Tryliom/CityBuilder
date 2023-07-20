@@ -50,8 +50,6 @@ GameState *gameState = nullptr;
 
 void InitGame(void* gameMemory, Image* tilemap, FrameData* frameData, ImGuiData* engineImGuiData)
 {
-	LOG("time : " << engineImGuiData->Context->IO.DeltaTime);
-
 	screenSize = frameData->screenSize;
 	centerOfScreen = frameData->screenCenter;
 
@@ -79,7 +77,6 @@ void InitGame(void* gameMemory, Image* tilemap, FrameData* frameData, ImGuiData*
 	ImGui::SetCurrentContext(engineImGuiData->Context);
 
 	currentImGuiData.Context = ImGui::GetCurrentContext();
-	LOG("Current Context : time : " << ImGui::GetCurrentContext()->IO.DeltaTime);
 }
 
 void OnFrame(FrameData *frameData, TimerData *timerData, const simgui_frame_desc_t* simgui_frame_desc)
@@ -87,9 +84,7 @@ void OnFrame(FrameData *frameData, TimerData *timerData, const simgui_frame_desc
 	Graphics::ClearFrameBuffers();
 	Graphics::CalculTransformationMatrix();
 
-	LOG("Before frame");
 	simgui_new_frame(simgui_frame_desc);
-	LOG("After frame");
 
 	auto mousePosition = Input::GetMousePosition();
 	isMouseOnAWindow = currentImGuiData.IO->WantCaptureMouse;
@@ -111,10 +106,10 @@ void OnFrame(FrameData *frameData, TimerData *timerData, const simgui_frame_desc
 
 	bool isWindowOpen = true;
 
-	ImGui::Begin("My first Window", &isWindowOpen);
-	ImGui::SetWindowSize(ImVec2(200, 200), ImGuiCond_Always);
-	ImGui::Text("YOOOOOOOO");
-	ImGui::End();	
+	// ImGui::Begin("My first Window", &isWindowOpen);
+	// ImGui::SetWindowSize(ImVec2(200, 200), ImGuiCond_Always);
+	// ImGui::Text("YOOOOOOOO");
+	// ImGui::End();	
 
 	screenSize = frameData->screenSize;
 	centerOfScreen = frameData->screenCenter;

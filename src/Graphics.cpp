@@ -186,10 +186,7 @@ namespace Graphics
 
     void CalculTransformationMatrix(Vector2F scale)
     {
-        Vector2F centerOfScreen = Vector2F{sapp_widthf(), sapp_heightf()} / 2.f;
-        // USe camera pivot if zoom on mouse.
-
-        transformMatrix     = Matrix2x3F::TransformMatrix(scale, 0, camera.Position, centerOfScreen);
+        transformMatrix     = Matrix2x3F::TransformMatrix(scale, 0, camera.Position, camera.Pivot);
         inversedTransMatrix = Matrix2x3F::Invert(transformMatrix);
     }
 
