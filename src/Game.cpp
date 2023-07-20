@@ -270,6 +270,10 @@ void HandleInput()
 	{
 		gameState->SelectedTileType = TileType::LogisticsCenter;
 	}
+    if (Input::IsKeyPressed(SAPP_KEYCODE_8))
+    {
+        gameState->SelectedTileType = TileType::Furnace;
+    }
 
 	if (Input::IsKeyPressed(SAPP_KEYCODE_F))
 	{
@@ -304,8 +308,7 @@ void HandleInput()
 			auto tilePosition = gameState->Grid.GetTilePosition(mouseWorldPosition);
 			auto &tile = gameState->Grid.GetTile(tilePosition);
 
-			if (tile.Type == TileType::None)
-				return;
+		if (tile.Type == TileType::None) return;
 
 			if (tile.NeedToBeDestroyed)
 			{
@@ -354,27 +357,30 @@ void DrawUi()
 
 	switch (gameState->SelectedTileType)
 	{
-	case TileType::Sawmill:
-		selectedTileTexture = Texture(Buildings::Sawmill);
-		break;
-	case TileType::BuilderHut:
-		selectedTileTexture = Texture(Buildings::BuilderHut);
-		break;
-	case TileType::Quarry:
-		selectedTileTexture = Texture(Buildings::Quarry);
-		break;
-	case TileType::Storage:
-		selectedTileTexture = Texture(Buildings::Storage);
-		break;
-	case TileType::House:
-		selectedTileTexture = Texture(Buildings::House);
-		break;
-	case TileType::Road:
-		selectedTileTexture = Texture(Road::Single);
-		break;
-	case TileType::LogisticsCenter:
-		selectedTileTexture = Texture(Buildings::LogisticsCenter);
-		break;
+        case TileType::Sawmill:
+            selectedTileTexture = Texture(Buildings::Sawmill);
+            break;
+        case TileType::BuilderHut:
+            selectedTileTexture = Texture(Buildings::BuilderHut);
+            break;
+        case TileType::Quarry:
+            selectedTileTexture = Texture(Buildings::Quarry);
+            break;
+        case TileType::Storage:
+            selectedTileTexture = Texture(Buildings::Storage);
+            break;
+        case TileType::House:
+            selectedTileTexture = Texture(Buildings::House);
+            break;
+        case TileType::Road:
+            selectedTileTexture = Texture(Road::Single);
+            break;
+        case TileType::LogisticsCenter:
+            selectedTileTexture = Texture(Buildings::LogisticsCenter);
+            break;
+        case TileType::Furnace:
+            selectedTileTexture = Texture(Buildings::InactiveFurnace);
+            break;
 	}
 
 	// Draw the select tile type at the top left

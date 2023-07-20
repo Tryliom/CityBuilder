@@ -30,10 +30,10 @@ enum class Road
 
 enum class Buildings
 {
-    MayorHouse, House, Sawmill, Quarry, Storage, BuilderHut, LogisticsCenter, Count
+    MayorHouse, House, Sawmill, Quarry, Storage, BuilderHut, LogisticsCenter, InactiveFurnace, ActiveFurnace, Count
 };
 
-enum class Ressources
+enum class Resources
 {
     TreeSprout, TreeMiddle, TreeFull, Stone, Count
 };
@@ -59,7 +59,7 @@ struct Texture
     explicit Texture(Land land) : TileSheetIndex(TileSheet::Land), TileIndex((int) land) {}
     explicit Texture(Road road) : TileSheetIndex(TileSheet::Road), TileIndex((int) road) {}
     explicit Texture(Buildings buildings) : TileSheetIndex(TileSheet::Buildings), TileIndex((int) buildings) {}
-    explicit Texture(Ressources ressources) : TileSheetIndex(TileSheet::Ressources), TileIndex((int) ressources) {}
+    explicit Texture(Resources ressources) : TileSheetIndex(TileSheet::Ressources), TileIndex((int) ressources) {}
     explicit Texture(Characters characters) : TileSheetIndex(TileSheet::Characters), TileIndex((int) characters) {}
     explicit Texture(Icons icons) : TileSheetIndex(TileSheet::Icons), TileIndex((int) icons) {}
 	explicit Texture(Items items) : TileSheetIndex(TileSheet::Icons), TileIndex((int) items) {}
@@ -72,7 +72,7 @@ struct Texture
     bool operator==(Land land) const { return TileSheetIndex == TileSheet::Land && TileIndex == (int) land; }
     bool operator==(Road road) const { return TileSheetIndex == TileSheet::Road && TileIndex == (int) road; }
     bool operator==(Buildings buildings) const { return TileSheetIndex == TileSheet::Buildings && TileIndex == (int) buildings; }
-    bool operator==(Ressources ressources) const { return TileSheetIndex == TileSheet::Ressources && TileIndex == (int) ressources; }
+    bool operator==(Resources ressources) const { return TileSheetIndex == TileSheet::Ressources && TileIndex == (int) ressources; }
     bool operator==(Characters characters) const { return TileSheetIndex == TileSheet::Characters && TileIndex == (int) characters; }
     bool operator==(Icons icons) const { return TileSheetIndex == TileSheet::Icons && TileIndex == (int) icons; }
 };

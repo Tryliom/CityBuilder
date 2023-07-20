@@ -15,6 +15,7 @@ enum class TileType
 	Sawmill,
 	Quarry,
 	LogisticsCenter,
+    Furnace,
 	// Resources
     Tree,
     Stone,
@@ -35,6 +36,10 @@ struct Tile
     float TreeGrowth = 0.f;
 	// When it met 30.f, it has a chance to spawn a new tree around it
 	float TreeSpawnTimer = 0.f;
+
+    // Furnace
+    float BurnTimer = 0.f; // Use 1 coal to increase it by 30.f
+    float SmeltTimer = 0.f;
 
     // Storage
     std::map<Items, int>* Inventory = new std::map<Items, int>

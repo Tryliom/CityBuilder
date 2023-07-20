@@ -29,11 +29,14 @@ private:
 	void onTickUnitLogistician(Unit& unit);
 	void OnTickUnitQuarry(Unit& unit);
 
+    void SendInactiveBuildersToBuild();
+
 	Characters GetCharacter(int jobTileIndex);
 	bool IsTileTakenCareBy(TilePosition position, Characters character);
 	bool IsTileJobFull(int jobTileIndex);
 	int GetMaxUnitOnJob(int jobTileIndex);
 	int CountHowManyUnitAreWorkingOn(int jobTileIndex);
+    std::vector<int> GetAllInactive(Characters character);
 
 	// Utility
 	std::vector<TilePosition> GetAllHarvestableTrees(TilePosition position, int radius);
@@ -45,6 +48,7 @@ private:
 	std::vector<TilePosition> GetTilesThatNeedItemsToBeBuilt();
 	std::vector<TilePosition> GetStorageThatHave(TilePosition position, Items item);
 	std::vector<int> GetAvailableJobs();
+    std::vector<TilePosition> GetFurnacesThatNeedItems();
 
 	// Inventory
 	int GetMaxItemsFor(Unit& unit, Items item);
