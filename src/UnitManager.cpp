@@ -109,10 +109,21 @@ void UnitManager::UpdateUnits()
 				}
 			}
 
+            auto lastBehavior = unit.CurrentBehavior;
+
 			if (tile.Type == TileType::Sawmill) OnTickUnitSawMill(unit);
-			if (tile.Type == TileType::BuilderHut) OnTickUnitBuilderHut(unit);
-			if (tile.Type == TileType::LogisticsCenter) onTickUnitLogistician(unit);
-			if (tile.Type == TileType::Quarry) OnTickUnitQuarry(unit);
+			else if (tile.Type == TileType::BuilderHut) OnTickUnitBuilderHut(unit);
+			else if (tile.Type == TileType::LogisticsCenter) onTickUnitLogistician(unit);
+			else if (tile.Type == TileType::Quarry) OnTickUnitQuarry(unit);
+
+            // Make them move to their job tile if they have nothing to do
+            auto jobPosition = _grid->GetTilePosition(unit.JobTileIndex);
+
+            if (lastBehavior == UnitBehavior::Idle && lastBehavior == unit.CurrentBehavior && _grid->GetTilePosition(unit.Position) != jobPosition)
+            {
+                unit.TargetTile = jobPosition;
+                unit.SetBehavior(UnitBehavior::Moving);
+            }
 		}
 		else
 		{
@@ -228,7 +239,7 @@ void UnitManager::OnTickUnitBuilderHut(Unit& unit)
 		Tile& tile = _grid->GetTile(unit.TargetTile);
 
 		// Check that the tile is still valid
-		if (!Grid::IsAStorage(tile.Type) && (tile.IsBuilt && !tile.NeedToBeDestroyed) || tile.Type == TileType::None)
+		if (!Grid::IsAStorage(tile.Type) && unit.TargetTile != _grid->GetTilePosition(unit.JobTileIndex) && (tile.IsBuilt && !tile.NeedToBeDestroyed) || tile.Type == TileType::None)
 		{
 			unit.SetBehavior(UnitBehavior::Idle);
 		}
