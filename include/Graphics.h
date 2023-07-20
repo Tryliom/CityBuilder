@@ -148,7 +148,7 @@ namespace Graphics
 
     float GetZoom();
 
-	void CalculTransformationMatrix();
+	void CalculTransformationMatrix(Vector2F scale = {camera.Zoom, camera.Zoom});
 
     Vector2F ScreenToWorld(Vector2F vec);
 

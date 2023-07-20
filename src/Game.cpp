@@ -63,13 +63,14 @@ void InitGame(void *gameMemory, Image *tilemap)
 
 void OnFrame(FrameData *frameData, TimerData *timerData)
 {
+	Graphics::ClearFrameBuffers();
+	Graphics::CalculTransformationMatrix();
+
 	auto mousePosition = Input::GetMousePosition();
 
 	UpdateCamera();
 	HandleInput();
 
-	Graphics::ClearFrameBuffers();
-	Graphics::CalculTransformationMatrix();
 	Input::Update();
 
 	Graphics::DrawRect({-(gridWidth / 2 + 10), -(gridHeight / 2 + 10)}, Vector2F(gridWidth + 20, gridHeight + 20), {0.2f, 0.2f, 0.2f, 0.8f});
@@ -79,6 +80,7 @@ void OnFrame(FrameData *frameData, TimerData *timerData)
 	gameState->UnitManager.UpdateUnits();
 	gameState->UnitManager.DrawUnits();
 
+	Graphics::CalculTransformationMatrix(Vector2F::One);
 	DrawUi();
 
 	// Update the current camera state.

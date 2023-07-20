@@ -184,11 +184,11 @@ namespace Graphics
         return camera.Zoom;
     }
 
-    void CalculTransformationMatrix()
+    void CalculTransformationMatrix(Vector2F scale)
     {
         Vector2F centerOfScreen = Vector2F{sapp_widthf(), sapp_heightf()} / 2.f;
 
-        transformMatrix     = Matrix2x3F::TransformMatrix({camera.Zoom, camera.Zoom}, 0, camera.Position, centerOfScreen);
+        transformMatrix     = Matrix2x3F::TransformMatrix(scale, 0, camera.Position, centerOfScreen);
         inversedTransMatrix = Matrix2x3F::Invert(transformMatrix);
     }
 
