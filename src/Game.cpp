@@ -339,13 +339,23 @@ void DrawUi()
     if (gameState->Grid.IsTileValid(mouseTilePosition))
     {
         Tile& tile = gameState->Grid.GetTile(mouseTilePosition);
-        std::string tileTypeString[(int) Items::Count] = {"Wood", "Stone", "Coal", "IronOre", "IronIngot"};
 
-        if (tile.Type != TileType::None)
+        if (tile.Type != TileType::None && tile.Type != TileType::Road)
         {
             for (auto pair: *tile.Inventory)
             {
-                LOG("Inventory: " << pair.second << " of " << tileTypeString[(int) pair.first]);
+                std::string text = "Inventory: " + std::to_string(pair.second) + " of " + Texture::TileTypeString[(int) pair.first];
+
+                if (!tile.IsBuilt)
+                {
+                    text += " / " + std::to_string(Grid::GetNeededItemsToBuild(tile.Type, pair.first));
+                }
+                else
+                {
+                    text += "        ";
+                }
+                
+                LOG(text);
             }
         }
     }
