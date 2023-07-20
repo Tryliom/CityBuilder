@@ -97,12 +97,12 @@ void OnFrame(FrameData *frameData, TimerData *timerData)
 	Timer::DeltaTime = timerData->DeltaTime;
 	Timer::SmoothDeltaTime = timerData->SmoothDeltaTime;
 
-    // Set the console cursor position to the top left corner of the screen using Windows API.
-    #if _WIN32
-        HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-        COORD pos = {0, 0};
-        SetConsoleCursorPosition(hConsole, pos);
-    #endif
+// Set the console cursor position to the top left corner of the screen using Windows API.
+#if _WIN32
+	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+	COORD pos = {0, 0};
+	SetConsoleCursorPosition(hConsole, pos);
+#endif
 }
 
 #ifdef __cplusplus // If used by C++ code,
@@ -240,12 +240,12 @@ void HandleInput()
 
 		if (gameState->Grid.IsTileValid(tilePosition) && gameState->Grid.CanBuild(tilePosition, gameState->SelectedTileType))
 		{
-            gameState->Grid.SetTile(tilePosition, Tile(gameState->SelectedTileType));
+			gameState->Grid.SetTile(tilePosition, Tile(gameState->SelectedTileType));
 
-            if (Input::IsKeyHeld(SAPP_KEYCODE_LEFT_SHIFT))
-            {
-                gameState->Grid.GetTile(tilePosition).IsBuilt = true;
-            }
+			if (Input::IsKeyHeld(SAPP_KEYCODE_LEFT_SHIFT))
+			{
+				gameState->Grid.GetTile(tilePosition).IsBuilt = true;
+			}
 		}
 	}
 
@@ -337,31 +337,31 @@ void DrawUi()
 		.Texture = selectedTileTexture,
 	});
 
-    TilePosition mouseTilePosition = gameState->Grid.GetTilePosition(Graphics::ScreenToWorld(Input::GetMousePosition()));
+	TilePosition mouseTilePosition = gameState->Grid.GetTilePosition(Graphics::ScreenToWorld(Input::GetMousePosition()));
 
-    if (gameState->Grid.IsTileValid(mouseTilePosition))
-    {
-        Tile& tile = gameState->Grid.GetTile(mouseTilePosition);
+	if (gameState->Grid.IsTileValid(mouseTilePosition))
+	{
+		Tile &tile = gameState->Grid.GetTile(mouseTilePosition);
 
-        if (tile.Type != TileType::None && tile.Type != TileType::Road)
-        {
-            for (auto pair: *tile.Inventory)
-            {
-                std::string text = "Inventory: " + std::to_string(pair.second) + " of " + Texture::TileTypeString[(int) pair.first];
+		if (tile.Type != TileType::None && tile.Type != TileType::Road)
+		{
+			for (auto pair : *tile.Inventory)
+			{
+				std::string text = "Inventory: " + std::to_string(pair.second) + " of " + Texture::TileTypeString[(int)pair.first];
 
-                if (!tile.IsBuilt)
-                {
-                    text += " / " + std::to_string(Grid::GetNeededItemsToBuild(tile.Type, pair.first));
-                }
-                else
-                {
-                    text += "        ";
-                }
-                
-                LOG(text);
-            }
-        }
-    }
+				if (!tile.IsBuilt)
+				{
+					text += " / " + std::to_string(Grid::GetNeededItemsToBuild(tile.Type, pair.first));
+				}
+				else
+				{
+					text += "        ";
+				}
+
+				LOG(text);
+			}
+		}
+	}
 }
 
 void GenerateMap()
