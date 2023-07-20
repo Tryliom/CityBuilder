@@ -344,7 +344,7 @@ void DrawUi()
         {
             for (auto pair: *tile.Inventory)
             {
-                std::string text = "Inventory: " + std::to_string(pair.second) + " of " + Texture::TileTypeString[(int) pair.first];
+                std::string text = "Inventory: " + std::to_string(pair.second) + " of " + Texture::ItemToString[(int) pair.first];
 
                 if (!tile.IsBuilt)
                 {
@@ -352,7 +352,7 @@ void DrawUi()
                 }
                 else
                 {
-                    text += "        ";
+                    text += "                      ";
                 }
                 
                 LOG(text);
