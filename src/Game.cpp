@@ -110,6 +110,16 @@ void OnFrame(FrameData *frameData, TimerData *timerData, const simgui_frame_desc
 	// ImGui::SetWindowSize(ImVec2(200, 200), ImGuiCond_Always);
 	// ImGui::Text("PULLLL UP MY BOY");
 	// ImGui::End();	
+	
+	// ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
+    // ImGui::SetNextWindowBgAlpha(0.5); // Transparent background
+	// ImGui::Begin("Example: Simple overlay", &isWindowOpen, window_flags);
+	// ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
+	// //ImGui::SetWindowSize(ImVec2(400, 100), ImGuiCond_Always);
+	// ImGui::Text("My Overlay bdmadlkakjdakldakaklfs \n");
+	// ImGui::Separator();
+	// ImGui::Text("a la ligne \n");
+	// ImGui::End();
 
 	// Update the current camera state.
 	Graphics::camera.Pivot = centerOfScreen;

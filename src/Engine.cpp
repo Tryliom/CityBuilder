@@ -81,14 +81,14 @@ void RunnerOnEvent(const sapp_event* event)
     simgui_handle_event(event);
 }
 
-bool RdxFileExists(const char* path) 
+bool FileExists(const char* path) 
 {
 	return GetFileAttributesA(path) != INVALID_FILE_ATTRIBUTES;
 }
 
-int64_t RdxLastModified(const char* path) 
+int64_t LastModified(const char* path) 
 {
-	if (!RdxFileExists(path)) 
+	if (!FileExists(path)) 
     {
 		return -1;
 	}
@@ -113,7 +113,7 @@ int64_t RdxLastModified(const char* path)
 
 void LoadDLL()
 {
-    uint64_t newLastMod = RdxLastModified("bin/Game.dll");
+    uint64_t newLastMod = LastModified("bin/Game.dll");
 
     if (newLastMod != -1 && newLastMod != lastMod) 
     {
@@ -310,7 +310,7 @@ void frame()
     //     ImGui::End();
     // }
 
-    // 3. Show the ImGui test window. Most of the sample code is in ImGui::ShowDemoWindow()
+    //3. Show the ImGui test window. Most of the sample code is in ImGui::ShowDemoWindow()
     // if (show_test_window) {
     //     ImGui::SetNextWindowPos(ImVec2(460, 20), ImGuiCond_FirstUseEver);
     //     ImGui::ShowDemoWindow();
