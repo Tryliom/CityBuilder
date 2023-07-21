@@ -271,6 +271,7 @@ void frame()
 
     state.vs_window = {(float)width, (float)height};
 
+    frameData.screenSize   = Vector2F{sapp_widthf(), sapp_heightf()};
     frameData.screenCenter = Vector2F{sapp_widthf(), sapp_heightf()} / 2.f;
 
     Timer::Update();
@@ -309,8 +310,6 @@ void frame()
     //     ImGui::Text("Hello");
     //     ImGui::End();
     // }
-
-    
 
     sg_update_buffer(state.bind.vertex_buffers[0], (sg_range){.ptr = frameData.vertexBufferPtr, 
                      .size = frameData.vertexBufferUsed * Graphics::VertexNbAttributes * sizeof(frameData.vertexBufferPtr[0])});

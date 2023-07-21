@@ -60,6 +60,8 @@ ImGuiData currentImGuiData = {};
 Vector2F mousePositionInWorld;
 bool isMouseOnAWindow;
 
+ImTextureID tilemapTexture;
+
 GameState *gameState = nullptr;
 
 // =========== Game Logic ============
@@ -108,6 +110,10 @@ void OnFrame(FrameData *frameData, TimerData *timerData, const simgui_frame_desc
 
 	Graphics::CalculTransformationMatrix(Vector2F::One);
 	DrawUi();
+
+	// Show the ImGui test window. Most of the sample code is in ImGui::ShowDemoWindow()
+	// ImGui::SetNextWindowPos(ImVec2(460, 20), ImGuiCond_FirstUseEver);
+	// ImGui::ShowDemoWindow();
 
 	// ImGui::Begin("OK I PULL UP", &isWindowOpen);
 	// ImGui::SetWindowSize(ImVec2(200, 200), ImGuiCond_Always);
@@ -329,6 +335,20 @@ void DrawUi()
 		.Texture = selectedTileTexture,
 	});
 
+	bool isConstrMenuClosed = false;
+	ImGuiWindowFlags constrMenuFlags = ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize;
+
+	ImGui::Begin("Construction Menu", &isConstrMenuClosed, constrMenuFlags);
+	ImGui::SetWindowSize(ImVec2(200, screenSize.Y));
+	ImVec2 windowSize = ImGui::GetWindowSize();
+	ImGui::SetWindowPos(ImVec2(screenSize.X - 5 - windowSize.x, 5), ImGuiCond_Always);
+
+	// auto uvs = Graphics::GetUvs(Texture(Buildings::Sawmill));
+
+	// ImGui::ImageButton(tilemapTexture, ImVec2(30, 30), ImVec2(uvs[0].X, uvs[0].Y), ImVec2(uvs[2].X, uvs[2].Y));
+
+	ImGui::End();
+
 	TilePosition mouseTilePosition = gameState->Grid.GetTilePosition(mousePositionInWorld);
 
 	if (gameState->Grid.IsTileValid(mouseTilePosition))
@@ -337,13 +357,14 @@ void DrawUi()
 
         if (tile.Type != TileType::None && tile.Type != TileType::Road)
         {
-			bool isWindowOpen = true;
+			bool canBeClosed = false;
 
 			ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | 
 											ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
 			ImGui::SetNextWindowBgAlpha(0.5); // Transparent background
-			ImGui::Begin("Inventory", &isWindowOpen, window_flags);
+			ImGui::Begin("Inventory", &canBeClosed, window_flags);
 			ImGui::SetWindowPos(ImVec2(5, 120), ImGuiCond_Always);
+			ImGui::SetWindowFontScale(1.35f);
 			//ImGui::SetWindowSize(ImVec2(200, 400), ImGuiCond_Always);
 			
             for (auto pair: *tile.Inventory)
@@ -368,8 +389,6 @@ void DrawUi()
 			ImGui::End();
         }
     }
-
-	
 
     // Log the total items we have
     gameState->UnitManager.LogTotalItems();
@@ -442,6 +461,8 @@ void BindWithEngine(Image* tilemap, FrameData* frameData, ImGuiData* engineImGui
 
 	Graphics::textureWidth  = tilemap->GetWidth();
 	Graphics::textureHeight = tilemap->GetHeight();
+
+	tilemapTexture = tilemap->GetBuffer();
 }
 
 void ReceiveDataFromEngine(FrameData* frameData, TimerData* timerData)
