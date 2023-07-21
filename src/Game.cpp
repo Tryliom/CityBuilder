@@ -104,22 +104,12 @@ void OnFrame(FrameData *frameData, TimerData *timerData, const simgui_frame_desc
 	Graphics::CalculTransformationMatrix(Vector2F::One);
 	DrawUi();
 
-	bool isWindowOpen = true;
+	
 
 	// ImGui::Begin("OK I PULL UP", &isWindowOpen);
 	// ImGui::SetWindowSize(ImVec2(200, 200), ImGuiCond_Always);
 	// ImGui::Text("PULLLL UP MY BOY");
 	// ImGui::End();	
-	
-	// ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
-    // ImGui::SetNextWindowBgAlpha(0.5); // Transparent background
-	// ImGui::Begin("Example: Simple overlay", &isWindowOpen, window_flags);
-	// ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), ImGuiCond_Always, ImVec2(0.5f, 0.5f));
-	// //ImGui::SetWindowSize(ImVec2(400, 100), ImGuiCond_Always);
-	// ImGui::Text("My Overlay bdmadlkakjdakldakaklfs \n");
-	// ImGui::Separator();
-	// ImGui::Text("a la ligne \n");
-	// ImGui::End();
 
 	// Update the current camera state.
 	Graphics::camera.Pivot = centerOfScreen;
@@ -333,7 +323,9 @@ void DrawUi()
 		.Texture = selectedTileTexture,
 	});
 
-	TilePosition mouseTilePosition = gameState->Grid.GetTilePosition(Graphics::ScreenToWorld(Input::GetMousePosition()));
+	auto mousePosition = Input::GetMousePosition();
+    Vector2F worldMousePosition = Graphics::ScreenToWorld(mousePosition);
+	TilePosition mouseTilePosition = gameState->Grid.GetTilePosition(worldMousePosition);
 
 	if (gameState->Grid.IsTileValid(mouseTilePosition))
 	{
@@ -341,23 +333,39 @@ void DrawUi()
 
         if (tile.Type != TileType::None && tile.Type != TileType::Road)
         {
+			bool isWindowOpen = true;
+
+			ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | 
+											ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
+			ImGui::SetNextWindowBgAlpha(0.5); // Transparent background
+			ImGui::Begin("Inventory Overlay", &isWindowOpen, window_flags);
+			ImGui::SetWindowPos(ImVec2(5, 120), ImGuiCond_Always);
+			//ImGui::SetWindowSize(ImVec2(400, 100), ImGuiCond_Always);
+			
             for (auto pair: *tile.Inventory)
             {
                 std::string text = "Inventory: " + std::to_string(pair.second) + " of " + Texture::ItemToString[(int) pair.first];
 
                 if (!tile.IsBuilt)
                 {
-                    text += " / " + std::to_string(Grid::GetNeededItemsToBuild(tile.Type, pair.first));
+                    text += " / " + std::to_string(Grid::GetNeededItemsToBuild(tile.Type, pair.first)) + "\n";
                 }
                 else
                 {
                     text += "                                            ";
                 }
                 
-                LOG(text);
+				LOG(text);
+
+                ImGui::Text(text.c_str());
+				ImGui::Separator();
             }
+
+			ImGui::End();
         }
     }
+
+	
 
     // Log the total items we have
     gameState->UnitManager.LogTotalItems();
