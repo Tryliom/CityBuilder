@@ -56,6 +56,8 @@ float speed = 500.f;
 
 ImGuiData currentImGuiData = {};
 
+// The mouse position with the world matrix applied to.
+Vector2F mousePositionInWorld;
 bool isMouseOnAWindow;
 
 GameState *gameState = nullptr;
@@ -106,8 +108,6 @@ void OnFrame(FrameData *frameData, TimerData *timerData, const simgui_frame_desc
 
 	Graphics::CalculTransformationMatrix(Vector2F::One);
 	DrawUi();
-
-	
 
 	// ImGui::Begin("OK I PULL UP", &isWindowOpen);
 	// ImGui::SetWindowSize(ImVec2(200, 200), ImGuiCond_Always);
@@ -177,6 +177,8 @@ void UpdateCamera()
 
 void HandleInput()
 {
+	mousePositionInWorld = Graphics::ScreenToWorld(Input::GetMousePosition());
+
 	if (Input::IsKeyPressed(SAPP_KEYCODE_1))
 	{
 		gameState->SelectedTileType = TileType::Sawmill;
@@ -320,15 +322,14 @@ void DrawUi()
 
 	// Draw the select tile type at the top left
 	Graphics::DrawRect(Graphics::ScreenToWorld({5, 5}), {110, 110}, {0.2f, 0.2f, 0.2f, 0.5f});
-	Graphics::DrawObject({
+	Graphics::DrawObject(
+	{
 		.Position = Graphics::ScreenToWorld({10, 10}),
 		.Size = {100, 100},
 		.Texture = selectedTileTexture,
 	});
 
-	auto mousePosition = Input::GetMousePosition();
-    Vector2F worldMousePosition = Graphics::ScreenToWorld(mousePosition);
-	TilePosition mouseTilePosition = gameState->Grid.GetTilePosition(worldMousePosition);
+	TilePosition mouseTilePosition = gameState->Grid.GetTilePosition(mousePositionInWorld);
 
 	if (gameState->Grid.IsTileValid(mouseTilePosition))
 	{
@@ -341,9 +342,9 @@ void DrawUi()
 			ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | 
 											ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
 			ImGui::SetNextWindowBgAlpha(0.5); // Transparent background
-			ImGui::Begin("Inventory Overlay", &isWindowOpen, window_flags);
+			ImGui::Begin("Inventory", &isWindowOpen, window_flags);
 			ImGui::SetWindowPos(ImVec2(5, 120), ImGuiCond_Always);
-			//ImGui::SetWindowSize(ImVec2(400, 100), ImGuiCond_Always);
+			//ImGui::SetWindowSize(ImVec2(200, 400), ImGuiCond_Always);
 			
             for (auto pair: *tile.Inventory)
             {
@@ -353,10 +354,10 @@ void DrawUi()
                 {
                     text += " / " + std::to_string(Grid::GetNeededItemsToBuild(tile.Type, pair.first)) + "\n";
                 }
-                else
-                {
-                    text += "                                            ";
-                }
+                // else
+                // {
+                //     text += "                                            ";
+                // }
                 
 				LOG(text);
 
