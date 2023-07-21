@@ -45,7 +45,7 @@ private:
 	Texture getRoadTexture(TilePosition position);
 
 public:
-    void Draw();
+    void Draw(bool drawLandAndRoads);
     void Update();
 
 	[[nodiscard]] int GetTileSize() const { return _tileSize; }
