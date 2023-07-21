@@ -1,6 +1,7 @@
 #include "UnitManager.h"
 
 #include <algorithm>
+#include <thread>
 #include "Graphics.h"
 #include "Timer.h"
 #include "Unit.h"
@@ -54,24 +55,32 @@ void UnitManager::UpdateUnits()
 				}
 				else
 				{
-					if (unit.PathToTargetTile.empty())
+					if (!unit.CalculatingPath && unit.NextTile == TilePosition())
 					{
-						unit.PathToTargetTile = _grid->GetPath(_grid->GetTilePosition(unit.Position), unit.TargetTile);
+						// Start a new thread to calculate the path
+						unit.CalculatingPath = true;
+						std::thread([&]()
+			            {
+							auto list = _grid->GetPath(_grid->GetTilePosition(unit.Position), unit.TargetTile);
 
-						// Check if it's already on the target tile
-						if (unit.PathToTargetTile.empty())
-						{
-							unit.SetBehavior(UnitBehavior::Working);
-						}
+							if (list.empty())
+							{
+								unit.SetBehavior(UnitBehavior::Working);
+							}
+							else
+							{
+				                unit.NextTile = list[0];
+							}
+				            unit.CalculatingPath = false;
+			            }).detach();
 					}
-					else
+					else if (unit.NextTile != TilePosition())
 					{
-						TilePosition nextTilePosition = unit.PathToTargetTile.front();
-						Vector2F nextTileWorldPosition = _grid->ToWorldPosition(nextTilePosition) + Vector2F(0.5f, 0.5f) * (float) (_grid->GetTileSize() - unitSize);
+						Vector2F nextTileWorldPosition = _grid->ToWorldPosition(unit.NextTile) + Vector2F(0.5f, 0.5f) * (float) (_grid->GetTileSize() - unitSize);
 						float speedFactor = 1.f;
 
 						// Check if the next tile is a road
-						if (_grid->GetTile(nextTilePosition).Type == TileType::Road)
+						if (_grid->GetTile(_grid->GetTilePosition(unit.Position)).Type == TileType::Road)
 						{
 							speedFactor = 1.5f;
 						}
@@ -79,7 +88,7 @@ void UnitManager::UpdateUnits()
 						speedFactor += Grid::GetSpeedFactor(tile.Type);
 
 						// Check if it's the last tile to set the target position to the center-bottom of the tile
-						if (unit.PathToTargetTile.size() == 1)
+						if (unit.TargetTile == unit.NextTile)
 						{
 							nextTileWorldPosition += Vector2F(0.f, 1.f) * ((float) _grid->GetTileSize()) / 2.f;
 						}
@@ -99,13 +108,13 @@ void UnitManager::UpdateUnits()
 						if (hasReached)
 						{
                             unit.Position = lastPosition;
-							unit.PathToTargetTile.erase(unit.PathToTargetTile.begin());
-						}
+							unit.NextTile = TilePosition();
 
-						// Check if it reached his target position
-						if (unit.PathToTargetTile.empty())
-						{
-							unit.SetBehavior(UnitBehavior::Working);
+							// Check if it's the last tile
+							if (unit.TargetTile == unit.NextTile)
+							{
+								unit.SetBehavior(UnitBehavior::Working);
+							}
 						}
 					}
 				}

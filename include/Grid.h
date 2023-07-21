@@ -9,8 +9,8 @@
 
 struct TilePosition
 {
-    int X;
-    int Y;
+    int X = -1;
+    int Y = -1;
 
     bool operator==(const TilePosition& other) const
     {
