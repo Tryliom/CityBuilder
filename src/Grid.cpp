@@ -191,12 +191,13 @@ Texture Grid::getRoadTexture(TilePosition position)
     return Texture(Road::Single);
 }
 
-void Grid::Draw()
+void Grid::Draw(bool drawLandAndRoads)
 {
     Random::UseSeed();
 
     auto mousePosition = Input::GetMousePosition();
     Vector2F worldMousePosition = Graphics::ScreenToWorld(mousePosition);
+	TilePosition mouse = GetTilePosition(worldMousePosition);
 
     for (int x = 0; x < _width / _tileSize; x++)
     {
@@ -208,7 +209,7 @@ void Grid::Draw()
             auto randomLand = Texture((Land)Random::Range(1, (int)Land::Count - 1));
             auto background = tile.Type != TileType::None ? Texture(Land::Grass) : randomLand;
 
-            if (tile.Type != TileType::Road)
+            if (tile.Type != TileType::Road && drawLandAndRoads)
             {
                 Graphics::DrawObject({
                     .Position = position,
@@ -219,27 +220,35 @@ void Grid::Draw()
 
             if (tile.Type != TileType::None)
             {
-                if (!tile.IsBuilt)
-                {
-                    Graphics::DrawRect(position, size, Color(1, 1, 0, 1.f - tile.Progress / GetMaxConstructionProgress(tile.Type)));
-                }
-                else if (tile.NeedToBeDestroyed)
-                {
-                    Graphics::DrawRect(position, size, Color(1, 0, 0, 1.f - tile.Progress / GetMaxDestructionProgress(tile.Type)));
-                }
+				if (drawLandAndRoads)
+				{
+					if (!tile.IsBuilt)
+					{
+						Graphics::DrawRect(position, size, Color(1, 1, 0, 1.f - tile.Progress / GetMaxConstructionProgress(tile.Type)));
+					}
+					else if (tile.NeedToBeDestroyed)
+					{
+						Graphics::DrawRect(position, size, Color(1, 0, 0, 1.f - tile.Progress / GetMaxDestructionProgress(tile.Type)));
+					}
+				}
 
-                Graphics::DrawObject({.Position = position,
-                                    .Size = size,
-                                    .Texture = GetTexture({x, y})});
+				if (tile.Type == TileType::Road && drawLandAndRoads || !drawLandAndRoads && tile.Type != TileType::Road)
+				{
+					Graphics::DrawObject({
+						.Position = position,
+						.Size = size,
+						.Texture = GetTexture({x, y})
+					});
+				}
             }
 
-            if (position.X < worldMousePosition.X && position.X + _tileSize > worldMousePosition.X &&
-                position.Y < worldMousePosition.Y && position.Y + _tileSize > worldMousePosition.Y)
+            if (!drawLandAndRoads && mouse == TilePosition{x, y})
             {
                 Graphics::DrawRect(
                     position,
                     Vector2F{(float)_tileSize, (float)_tileSize},
-                    Color(1, 1, 1, 0.2f));
+                    Color(1, 1, 1, 0.2f)
+				);
             }
         }
     }

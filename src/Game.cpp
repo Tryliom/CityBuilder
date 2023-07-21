@@ -96,10 +96,13 @@ void OnFrame(FrameData *frameData, TimerData *timerData, const simgui_frame_desc
 
 	Graphics::DrawRect({-(gridWidth / 2 + 10), -(gridHeight / 2 + 10)}, Vector2F(gridWidth + 20, gridHeight + 20), {0.2f, 0.2f, 0.2f, 0.8f});
 	gameState->Grid.Update();
-	gameState->Grid.Draw();
 
 	gameState->UnitManager.UpdateUnits();
-	gameState->UnitManager.DrawUnits();
+
+	gameState->Grid.Draw(true);
+	gameState->UnitManager.DrawUnits(true);
+	gameState->Grid.Draw(false);
+	gameState->UnitManager.DrawUnits(false);
 
 	Graphics::CalculTransformationMatrix(Vector2F::One);
 	DrawUi();

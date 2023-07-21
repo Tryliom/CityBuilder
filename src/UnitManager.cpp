@@ -776,11 +776,16 @@ void UnitManager::SendInactiveBuildersToBuild()
     }
 }
 
-void UnitManager::DrawUnits()
+void UnitManager::DrawUnits(bool drawBehindBuildings)
 {
 	for (auto& unit : _units)
 	{
 		Characters character = GetCharacter(unit.JobTileIndex);
+		TilePosition tilePosition = _grid->GetTilePosition(unit.Position);
+		// Check if the character is positioned before 80% of the height of the tile
+		bool isBehindBuilding = tilePosition == _grid->GetTilePosition(unit.Position + Vector2F(0.f, _grid->GetTileSize() * 0.21f));
+
+		if (drawBehindBuildings != isBehindBuilding) continue;
 
 		Graphics::DrawObject({
             .Position = unit.Position,
