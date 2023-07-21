@@ -52,13 +52,15 @@ static bool show_another_window = false;
 
 // ====== Hot Reload =========
 
-void(*DLL_OnInput) (const sapp_event*)  = nullptr;
-void(*DLL_InitGame)(void*, Image*, FrameData*, ImGuiData*) = nullptr;
-void(*DLL_OnFrame) (void*, Image*, FrameData*, TimerData*, const simgui_frame_desc_t*, ImGuiData*) = nullptr;
+void (*DLL_OnLoad)  (Image*, FrameData*, ImGuiData*) = nullptr;
+void (*DLL_OnInput) (const sapp_event*) = nullptr;
+void (*DLL_InitGame)(void*, Image*, FrameData*, ImGuiData*) = nullptr;
+void (*DLL_OnFrame) (void*, FrameData*, TimerData*, const simgui_frame_desc_t*) = nullptr;
 
 void* gameStateMemory = nullptr;
 
-HMODULE libHandle = NULL; // Handle to a loaded module (DLL).
+// Handle to a loaded module (DLL).
+HMODULE libHandle = NULL; 
 
 uint64_t lastMod = 0;
 
@@ -147,14 +149,19 @@ void LoadDLL()
 
         assert(libHandle != NULL && "Couldn't load Game.dll");
 
+        DLL_OnLoad = (void (*)(Image*, FrameData*, ImGuiData*))GetProcAddress(libHandle, "DLL_OnLoad"); 
+        assert(DLL_OnLoad != NULL && "Couldn't find function DLL_OnLoad in Game.dll");
+
         DLL_OnInput = (void (*)(const sapp_event*))GetProcAddress(libHandle, "DLL_OnInput"); 
         assert(DLL_OnInput != NULL && "Couldn't find function DLL_OnInput in Game.dll");
 
         DLL_InitGame = (void (*)(void*, Image*, FrameData*, ImGuiData*))GetProcAddress(libHandle, "DLL_InitGame"); 
         assert(DLL_InitGame != NULL && "Couldn't find function DLL_InitGame in Game.dll");
 
-        DLL_OnFrame  = (void (*)(void*, Image*, FrameData*, TimerData*, const simgui_frame_desc_t*, ImGuiData*))GetProcAddress(libHandle, "DLL_OnFrame"); 
+        DLL_OnFrame  = (void (*)(void*, FrameData*, TimerData*, const simgui_frame_desc_t*))GetProcAddress(libHandle, "DLL_OnFrame"); 
         assert(DLL_OnFrame != NULL && "Couldn't find function DLL_OnFrame in Game.dll");
+
+        if (DLL_OnLoad) DLL_OnLoad(&tilemap, &frameData, &imguiData);
     }
 }
 
@@ -228,9 +235,6 @@ static void init()
     };
     state.pip = sg_make_pipeline(pip_desc);
 
-    gameStateMemory = malloc(GAME_STATE_MAX_BYTE_SIZE);
-    memset(gameStateMemory, 0, GAME_STATE_MAX_BYTE_SIZE);
-
     // use sokol-imgui with all default-options (we're not doing
     // multi-sampled rendering or using non-default pixel formats)
     simgui_desc_t simgui_desc = { };
@@ -240,6 +244,9 @@ static void init()
     imguiData.Context->IO.DeltaTime = sapp_frame_duration();
     
     imguiData.IO = &ImGui::GetIO();
+
+    gameStateMemory = malloc(GAME_STATE_MAX_BYTE_SIZE);
+    memset(gameStateMemory, 0, GAME_STATE_MAX_BYTE_SIZE);
 
     #ifdef HOT_RELOAD
     LoadDLL();
@@ -271,14 +278,14 @@ void frame()
     timerData.DeltaTime = Timer::DeltaTime;
     timerData.SmoothDeltaTime = Timer::SmoothDeltaTime;
 
-    const simgui_frame_desc_t frame_desc{ width, height, sapp_frame_duration(), sapp_dpi_scale() };
+    const simgui_frame_desc_t imguiframeDesc{ width, height, sapp_frame_duration(), sapp_dpi_scale() };
 
     #ifdef HOT_RELOAD
     LoadDLL();
-    if (DLL_OnFrame) DLL_OnFrame(gameStateMemory, &tilemap, &frameData, &timerData, &frame_desc, &imguiData);
+    if (DLL_OnFrame) DLL_OnFrame(gameStateMemory, &frameData, &timerData, &imguiframeDesc);
     #else
     
-    OnFrame(&frameData, &timerData, &frame_desc);
+    OnFrame(&frameData, &timerData, &imguiframeDesc);
     #endif
 
     // 1. Show a simple window

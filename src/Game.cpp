@@ -17,22 +17,23 @@
 #include "imgui.h"
 #include "util\sokol_imgui.h"
 
+// ========= Game Initialization functions ===========
+
 void GenerateMap();
+
+// ========= Game Update functions ===========
 
 void UpdateCamera();
 void HandleInput();
 void DrawUi();
 
-int gridWidth = 5000, gridHeight = 5000, tileSize = 100;
+// ========= Data exchange functions ===========
 
-Vector2F screenSize;
-Vector2F centerOfScreen;
+void BindWithEngine(Image* tilemap, FrameData* frameData, ImGuiData* engineImGuiData);
+void ReceiveDataFromEngine(FrameData* frameData, TimerData* timerData);
+void SendDataToEngine(FrameData* frameData);
 
-float speed = 500.f;
-
-ImGuiData currentImGuiData = {};
-
-bool isMouseOnAWindow;
+// ========= Game attributes ===========
 
 struct GameState
 {
@@ -46,12 +47,24 @@ struct GameState
 	// int Seed;
 };
 
+int gridWidth = 5000, gridHeight = 5000, tileSize = 100;
+
+Vector2F screenSize;
+Vector2F centerOfScreen;
+
+float speed = 500.f;
+
+ImGuiData currentImGuiData = {};
+
+bool isMouseOnAWindow;
+
 GameState *gameState = nullptr;
+
+// =========== Game Logic ============
 
 void InitGame(void* gameMemory, Image* tilemap, FrameData* frameData, ImGuiData* engineImGuiData)
 {
-	screenSize = frameData->screenSize;
-	centerOfScreen = frameData->screenCenter;
+	BindWithEngine(tilemap, frameData, engineImGuiData);
 
 	gameState = (GameState *)gameMemory;
 
@@ -59,32 +72,19 @@ void InitGame(void* gameMemory, Image* tilemap, FrameData* frameData, ImGuiData*
 	gameState->UnitManager.SetGrid(&gameState->Grid);
 	gameState->SelectedTileType = TileType::Sawmill;
 
-	// Get the textures from the Engine.
-	Graphics::textureWidth  = tilemap->GetWidth();
-	Graphics::textureHeight = tilemap->GetHeight();
-
 	GenerateMap();
 
-	//Graphics::camera.Position = centerOfScreen;
-	Graphics::camera.Pivot = centerOfScreen;
-	gameState->Camera = Graphics::camera;
-
-	// gameState->Seed = Random::GetSeed();
-
-	currentImGuiData.Context = engineImGuiData->Context;
-	currentImGuiData.IO      = engineImGuiData->IO;
-
-	ImGui::SetCurrentContext(engineImGuiData->Context);
-
-	currentImGuiData.Context = ImGui::GetCurrentContext();
+	gameState->Camera.Zoom = 1.f;
 }
 
-void OnFrame(FrameData *frameData, TimerData *timerData, const simgui_frame_desc_t* simgui_frame_desc)
+void OnFrame(FrameData *frameData, TimerData *timerData, const simgui_frame_desc_t* simguiFrameDesc)
 {
+	ReceiveDataFromEngine(frameData, timerData);
+
 	Graphics::ClearFrameBuffers();
 	Graphics::CalculTransformationMatrix();
 
-	simgui_new_frame(simgui_frame_desc);
+	simgui_new_frame(simguiFrameDesc);
 
 	auto mousePosition = Input::GetMousePosition();
 	isMouseOnAWindow = currentImGuiData.IO->WantCaptureMouse;
@@ -106,30 +106,14 @@ void OnFrame(FrameData *frameData, TimerData *timerData, const simgui_frame_desc
 
 	bool isWindowOpen = true;
 
-	// ImGui::Begin("My first Window", &isWindowOpen);
+	// ImGui::Begin("OK I PULL UP", &isWindowOpen);
 	// ImGui::SetWindowSize(ImVec2(200, 200), ImGuiCond_Always);
-	// ImGui::Text("YOOOOOOOO");
+	// ImGui::Text("PULLLL UP MY BOY");
 	// ImGui::End();	
 
-	screenSize = frameData->screenSize;
-	centerOfScreen = frameData->screenCenter;
-	Graphics::camera.Pivot = centerOfScreen;
-
 	// Update the current camera state.
+	Graphics::camera.Pivot = centerOfScreen;
 	gameState->Camera = Graphics::camera;
-
-	// Send the frame data to the engine.
-	frameData->vertexBufferPtr = Graphics::vertexes;
-	frameData->vertexBufferUsed = Graphics::vertexesUsed;
-	frameData->indexBufferPtr = Graphics::indices;
-	frameData->indexBufferUsed = Graphics::indicesUsed;
-
-	// = WARNING = Don't draw anything here because the frame buffers are clear right up there. = WARNING =
-
-	// Get the timer data from the engine.
-	Timer::Time = timerData->Time;
-	Timer::DeltaTime = timerData->DeltaTime;
-	Timer::SmoothDeltaTime = timerData->SmoothDeltaTime;
 
 	// Set the console cursor position to the top left corner of the screen using Windows API.
 	#if _WIN32
@@ -137,56 +121,9 @@ void OnFrame(FrameData *frameData, TimerData *timerData, const simgui_frame_desc
 		COORD pos = {0, 0};
 		SetConsoleCursorPosition(hConsole, pos);
 	#endif
+
+	SendDataToEngine(frameData);
 }
-
-#ifdef __cplusplus // If used by C++ code,
-extern "C"		   // we need to export the C interface
-{
-#if _WIN32
-#define EXPORT __declspec(dllexport)
-#else
-#define EXPORT
-#endif
-
-	EXPORT void DLL_OnInput(const sapp_event *event)
-	{
-		Input::OnInput(event);
-	}
-
-	EXPORT void DLL_InitGame(void* gameMemory, Image* tilemap, FrameData* frameData, ImGuiData* engineImGuiData)
-	{
-		InitGame(gameMemory, tilemap, frameData, engineImGuiData);
-	}
-
-	EXPORT void DLL_OnFrame(void *gameMemory, Image* tilemap, FrameData *frameData, TimerData *timerData, const simgui_frame_desc_t* simgui_frame_desc, ImGuiData* engineImGuiData)
-	{
-		// Update the gameState. When a new DLL is created, it will automatically set his gameState to the old one.
-		gameState = (GameState *)gameMemory;
-
-		Graphics::camera = gameState->Camera;
-
-		// Set the camera and textures data in the new DLL (not clean, but it works).
-		if (Graphics::textureWidth == 0)
-		{
-			// ICI faire que Random::seed = gameState->Seed;
-
-			currentImGuiData.Context = engineImGuiData->Context;
-			currentImGuiData.IO      = engineImGuiData->IO;
-
-			ImGui::SetCurrentContext(engineImGuiData->Context);
-
-			currentImGuiData.Context = ImGui::GetCurrentContext();
-
-			Graphics::textureWidth  = tilemap->GetWidth();
-			Graphics::textureHeight = tilemap->GetHeight();
-		}
-
-		OnFrame(frameData, timerData, simgui_frame_desc);
-
-		// = WARNING = Don't draw anything under the OnFrame() function because the frame buffers clear is inside. = WARNING =
-	}
-}
-#endif
 
 void UpdateCamera()
 {
@@ -470,3 +407,74 @@ void GenerateMap()
 		gameState->UnitManager.AddUnit(Unit(gameState->Grid.ToWorldPosition(gameState->Grid.GetTiles(TileType::MayorHouse)[0]) + Vector2F{Random::Range(0, 25), Random::Range(0, 25)}));
 	}
 }
+
+void BindWithEngine(Image* tilemap, FrameData* frameData, ImGuiData* engineImGuiData)
+{
+	screenSize = frameData->screenSize;
+	centerOfScreen = frameData->screenCenter;
+
+	currentImGuiData.Context = engineImGuiData->Context;
+	currentImGuiData.IO      = engineImGuiData->IO;
+
+	ImGui::SetCurrentContext(engineImGuiData->Context);
+
+	Graphics::textureWidth  = tilemap->GetWidth();
+	Graphics::textureHeight = tilemap->GetHeight();
+}
+
+void ReceiveDataFromEngine(FrameData* frameData, TimerData* timerData)
+{
+	// Update the screen values.
+	screenSize     = frameData->screenSize;
+	centerOfScreen = frameData->screenCenter;
+
+	// Get the timer data from the engine.
+	Timer::Time = timerData->Time;
+	Timer::DeltaTime = timerData->DeltaTime;
+	Timer::SmoothDeltaTime = timerData->SmoothDeltaTime;
+}
+
+void SendDataToEngine(FrameData* frameData)
+{
+	// Send the frame data to the engine.
+	frameData->vertexBufferPtr  = Graphics::vertexes;
+	frameData->vertexBufferUsed = Graphics::vertexesUsed;
+	frameData->indexBufferPtr   = Graphics::indices;
+	frameData->indexBufferUsed  = Graphics::indicesUsed;
+}
+
+#ifdef __cplusplus // If used by C++ code,
+extern "C"		   // we need to export the C interface
+{
+#if _WIN32
+#define EXPORT __declspec(dllexport)
+#else
+#define EXPORT
+#endif
+
+	EXPORT void DLL_OnInput(const sapp_event *event)
+	{
+		Input::OnInput(event);
+	}
+
+	EXPORT void DLL_OnLoad(Image* tilemap, FrameData* frameData, ImGuiData* engineImGuiData)
+	{
+		BindWithEngine(tilemap, frameData, engineImGuiData);
+	}
+
+	EXPORT void DLL_InitGame(void* gameMemory, Image* tilemap, FrameData* frameData, ImGuiData* engineImGuiData)
+	{
+		InitGame(gameMemory, tilemap, frameData, engineImGuiData);
+	}
+
+	EXPORT void DLL_OnFrame(void *gameMemory, FrameData *frameData, TimerData *timerData, const simgui_frame_desc_t* simguiFrameDesc)
+	{
+		// Update the gameState. When a new DLL is created, it will automatically set his gameState to the old one.
+		gameState = (GameState *)gameMemory;
+
+		Graphics::camera = gameState->Camera;
+
+		OnFrame(frameData, timerData, simguiFrameDesc);
+	}
+}
+#endif

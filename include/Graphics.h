@@ -8,8 +8,8 @@
 #include "Constants.h"
 #include <vector>
 
-#include "imgui.h"
-#include "imgui_internal.h"
+struct ImGuiContext;
+struct ImGuiIO;
 
 struct Vertex
 {
