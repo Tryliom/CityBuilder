@@ -114,14 +114,18 @@ void UnitManager::UpdateUnits()
 			else if (tile.Type == TileType::LogisticsCenter) onTickUnitLogistician(unit);
 			else if (tile.Type == TileType::Quarry) OnTickUnitQuarry(unit);
 
-            // Make them move to their job tile if they have nothing to do
-            auto jobPosition = _grid->GetTilePosition(unit.JobTileIndex);
+			if (!unit.IsInactive)
+			{
+				// Make them move to their job tile if they have nothing to do
+				auto jobPosition = _grid->GetTilePosition(unit.JobTileIndex);
 
-            if (lastBehavior == UnitBehavior::Idle && lastBehavior == unit.CurrentBehavior && _grid->GetTilePosition(unit.Position) != jobPosition)
-            {
-                unit.TargetTile = jobPosition;
-                unit.SetBehavior(UnitBehavior::Moving);
-            }
+				if (lastBehavior == UnitBehavior::Idle && lastBehavior == unit.CurrentBehavior && _grid->GetTilePosition(unit.Position) != jobPosition)
+				{
+					unit.TargetTile = jobPosition;
+					unit.SetBehavior(UnitBehavior::Moving);
+					unit.IsInactive = true;
+				}
+			}
 		}
 		else
 		{
@@ -179,7 +183,7 @@ void UnitManager::OnTickUnitSawMill(Unit& unit)
 {
 	Tile& jobTile = _grid->GetTile(unit.JobTileIndex);
 
-	if (unit.CurrentBehavior == UnitBehavior::Idle)
+	if (unit.CurrentBehavior == UnitBehavior::Idle || unit.IsInactive)
 	{
 		// Check if the unit need to drop items at the sawmill
 		if (NeedToDropItemsAtJob(unit, Items::Wood, InventoryReason::MoreThanHalf))
@@ -250,7 +254,7 @@ void UnitManager::OnTickUnitBuilderHut(Unit& unit)
 		}
 	}
 
-	if (unit.CurrentBehavior == UnitBehavior::Idle)
+	if (unit.CurrentBehavior == UnitBehavior::Idle || unit.IsInactive)
 	{
         auto searchAStorage = [&]()
         {
@@ -378,7 +382,7 @@ void UnitManager::onTickUnitLogistician(Unit& unit)
 		}
 	}
 
-	if (unit.CurrentBehavior == UnitBehavior::Idle)
+	if (unit.CurrentBehavior == UnitBehavior::Idle || unit.IsInactive)
 	{
 		// Check if there is a construction to build that need resources
 		auto buildsThatNeedResources = GetTilesThatNeedItemsToBeBuilt();
@@ -660,7 +664,7 @@ void UnitManager::onTickUnitLogistician(Unit& unit)
 
 void UnitManager::OnTickUnitQuarry(Unit& unit)
 {
-	if (unit.CurrentBehavior == UnitBehavior::Idle)
+	if (unit.CurrentBehavior == UnitBehavior::Idle || unit.IsInactive)
 	{
 		TilePosition tilePosition = _grid->GetTilePosition(unit.JobTileIndex);
 
