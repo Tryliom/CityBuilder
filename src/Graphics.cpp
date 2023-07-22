@@ -1,5 +1,6 @@
 #include "Graphics.h"
 #include "Input.h"
+#include "sokol_app.h"
 
 #include <cassert>
 #include <iostream>
@@ -74,6 +75,8 @@ namespace Graphics
 
     void DrawRect(Vector2F position, Vector2F size, Color color, std::vector<Vector2F> uvs)
     {
+		if (!IsVisible(position, size)) return;
+
         if (uvs.empty())
         {
             uvs = {{-1, -1}, {-1, -1}, {-1, -1}, {-1, -1}};
@@ -220,4 +223,20 @@ namespace Graphics
         vertexesUsed = 0;
         indicesUsed = 0;
     }
+
+	bool IsVisible(Vector2F position, Vector2F size)
+	{
+		Vector2F transformedPosition = Matrix2x3F::Multiply(transformMatrix, position);
+		Vector2F transformedSize = size;
+		float width = sapp_widthf();
+		float height = sapp_heightf();
+
+		// If only one of the 4 corners is visible or the camera is inside, the object is visible
+		return
+			(transformedPosition.X >= 0 && transformedPosition.X <= width && transformedPosition.Y >= 0 && transformedPosition.Y <= height) ||
+			(transformedPosition.X + transformedSize.X >= 0 && transformedPosition.X + transformedSize.X <= width && transformedPosition.Y >= 0 && transformedPosition.Y <= height) ||
+			(transformedPosition.X >= 0 && transformedPosition.X <= width && transformedPosition.Y + transformedSize.Y >= 0 && transformedPosition.Y + transformedSize.Y <= height) ||
+			(transformedPosition.X + transformedSize.X >= 0 && transformedPosition.X + transformedSize.X <= width && transformedPosition.Y + transformedSize.Y >= 0 && transformedPosition.Y + transformedSize.Y <= height) ||
+			(transformedPosition.X <= 0 && transformedPosition.X + transformedSize.X >= width && transformedPosition.Y <= 0 && transformedPosition.Y + transformedSize.Y >= height);
+	}
 }

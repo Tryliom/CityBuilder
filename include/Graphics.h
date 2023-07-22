@@ -164,8 +164,6 @@ namespace Graphics
 
     Vector2F ScreenToWorld(Vector2F vec);
 
-    // temp
-
     int GetTextureWidth();
     int GetTextureHeight();
 
@@ -173,4 +171,6 @@ namespace Graphics
     size_t GetIndexBufferSize();
 
 	void ClearFrameBuffers();
+
+	bool IsVisible(Vector2F position, Vector2F size);
 }
