@@ -1,12 +1,10 @@
 #include "Graphics.h"
-#include "Constants.h"
 #include "Input.h"
-#include "Logger.h"
 
-#include <assert.h>
+#include <cassert>
 #include <iostream>
 
-#include <sokol_app.h>
+constexpr float textureBleed = 0.005f;
 
 namespace Graphics
 {
@@ -20,16 +18,18 @@ namespace Graphics
         int tileSheetIndex = static_cast<int>(texture.TileSheetIndex);
         int textureSize = tileSheets[tileSheetIndex].GetHeight();
         int tileMapY = 0;
+		float widthPercent = textureSize / (float) textureWidth;
+		float heightPercent = textureSize / (float) textureHeight;
 
         for (int i = 0; i < tileSheetIndex; i++)
         {
             tileMapY += tileSheets[i].GetHeight() + 1;
         }
 
-        float width = textureSize / (float)textureWidth;
-        float height = textureSize / (float)textureHeight;
-        float X = texture.TileIndex * textureSize / (float)textureWidth;
-        float Y = tileMapY / (float)textureHeight;
+        float width = widthPercent * (1.f - textureBleed);
+        float height = heightPercent * (1.f - textureBleed);
+        float X = texture.TileIndex * textureSize / (float)textureWidth + widthPercent * textureBleed;
+        float Y = tileMapY / (float)textureHeight + heightPercent * textureBleed;
 
         return {
             {X, Y},
