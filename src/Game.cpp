@@ -27,6 +27,10 @@ void UpdateCamera();
 void HandleInput();
 void DrawUi();
 
+// ========== Menues functions ===========
+
+void DrawStartMenu();
+
 // ========= Data exchange functions ===========
 
 void BindWithEngine(Image* tilemap, FrameData* frameData, ImGuiData* engineImGuiData);
@@ -43,6 +47,8 @@ struct GameState
 	UnitManager UnitManager;
 
 	TileType SelectedTileType;
+
+	bool GameStarted = false;
 
 	// int Seed;
 };
@@ -86,17 +92,23 @@ void OnFrame(FrameData *frameData, TimerData *timerData, const simgui_frame_desc
 	ReceiveDataFromEngine(frameData, timerData);
 
 	Graphics::ClearFrameBuffers();
-	Graphics::CalculTransformationMatrix();
 
 	simgui_new_frame(simguiFrameDesc);
 
+	Graphics::CalculTransformationMatrix();
+
 	auto mousePosition = Input::GetMousePosition();
 	isMouseOnAWindow = currentImGuiData.IO->WantCaptureMouse;
-
-	UpdateCamera();
 	HandleInput();
 
 	Input::Update();
+
+	if (!gameState->GameStarted)
+	{
+		DrawStartMenu();
+	}
+
+	UpdateCamera();
 
 	Graphics::DrawRect({-(gridWidth / 2 + 10), -(gridHeight / 2 + 10)}, Vector2F(gridWidth + 20, gridHeight + 20), {0.2f, 0.2f, 0.2f, 0.8f});
 	gameState->Grid.Update();
@@ -113,12 +125,7 @@ void OnFrame(FrameData *frameData, TimerData *timerData, const simgui_frame_desc
 
 	// Show the ImGui test window. Most of the sample code is in ImGui::ShowDemoWindow()
 	// ImGui::SetNextWindowPos(ImVec2(460, 20), ImGuiCond_FirstUseEver);
-	// ImGui::ShowDemoWindow();
-
-	// ImGui::Begin("OK I PULL UP", &isWindowOpen);
-	// ImGui::SetWindowSize(ImVec2(200, 200), ImGuiCond_Always);
-	// ImGui::Text("PULLLL UP MY BOY");
-	// ImGui::End();	
+	// ImGui::ShowDemoWindow();	
 
 	// Update the current camera state.
 	Graphics::camera.Pivot = centerOfScreen;
@@ -343,10 +350,6 @@ void DrawUi()
 	ImVec2 windowSize = ImGui::GetWindowSize();
 	ImGui::SetWindowPos(ImVec2(screenSize.X - 5 - windowSize.x, 5), ImGuiCond_Always);
 
-	// auto uvs = Graphics::GetUvs(Texture(Buildings::Sawmill));
-
-	// ImGui::ImageButton(tilemapTexture, ImVec2(30, 30), ImVec2(uvs[0].X, uvs[0].Y), ImVec2(uvs[2].X, uvs[2].Y));
-
 	ImGui::End();
 
 	TilePosition mouseTilePosition = gameState->Grid.GetTilePosition(mousePositionInWorld);
@@ -447,6 +450,47 @@ void GenerateMap()
 	{
 		gameState->UnitManager.AddUnit(Unit(gameState->Grid.ToWorldPosition(gameState->Grid.GetTiles(TileType::MayorHouse)[0]) + Vector2F{Random::Range(0, 25), Random::Range(0, 25)}));
 	}
+}
+
+void DrawStartMenu()
+{
+	Graphics::CalculTransformationMatrix(Vector2F::One);
+
+	bool isOpen = false;
+	const ImGuiViewport* viewport = ImGui::GetMainViewport();
+	ImGui::SetNextWindowPos(viewport->WorkPos);
+	ImGui::SetNextWindowSize(viewport->WorkSize);
+	ImGuiWindowFlags flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | 
+									ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
+	ImGui::SetNextWindowBgAlpha(0.6); // Transparent background
+	ImGui::Begin("Start Menu", &isOpen, flags);
+	ImGui::SetWindowFontScale(2.f);
+
+	// Center the window content using ImGui layout features
+	ImVec2 windowContentRegion = ImGui::GetContentRegionAvail();
+	ImVec2 buttonSize(250, 75); // Adjust button size as needed
+	ImVec2 windowCenter(ImGui::GetCursorPos().x + windowContentRegion.x * 0.5f - buttonSize.x * 0.5f,
+						ImGui::GetCursorPos().y + windowContentRegion.y * 0.5f - buttonSize.y * 0.5f);
+
+	ImGui::SetCursorPos(ImVec2(windowCenter.x, windowCenter.y / 2.f));
+	if (ImGui::Button("Start", buttonSize)) 
+	{
+		gameState->GameStarted = true;
+	}
+
+	ImGui::SetCursorPos(windowCenter);
+	if (ImGui::Button("Reset", buttonSize)) 
+	{
+		// TODO reset the save.
+	}
+
+	ImGui::SetCursorPos(ImVec2(windowCenter.x, windowCenter.y + windowCenter.y / 2.f));
+	if (ImGui::Button("Exit", buttonSize)) 
+	{
+		exit(1);
+	}
+
+	ImGui::End();
 }
 
 void BindWithEngine(Image* tilemap, FrameData* frameData, ImGuiData* engineImGuiData)

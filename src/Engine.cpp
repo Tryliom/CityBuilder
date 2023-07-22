@@ -176,6 +176,8 @@ static void init()
     frameData.screenSize   = Vector2F{sapp_widthf(), sapp_heightf()};
     frameData.screenCenter = Vector2F{sapp_widthf(), sapp_heightf()} / 2.f;
 
+    //sapp_toggle_fullscreen();
+
 	tilemap.AddImagesAtRow(Graphics::tileSheets);
 
     sg_desc desc = (sg_desc){
