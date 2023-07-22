@@ -1198,22 +1198,3 @@ void UnitManager::SetGrid(Grid *grid)
 
 	_grid = grid;
 }
-
-void UnitManager::LogTotalItems()
-{
-    for (int i = 0; i < 2; i++)
-    {
-        LOG("                                                           ");
-    }
-
-    LOG("Total items:                                                    ");
-    for (auto pair: GetAllUsableItems())
-    {
-        LOG(Texture::ItemToString[(int) pair.first] << ": " << std::to_string(pair.second) + "                                  ");
-    }
-
-    for (int i = 0; i < 10; i++)
-    {
-        LOG("                                                           ");
-    }
-}

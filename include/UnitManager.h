@@ -62,7 +62,6 @@ private:
 public:
 	void UpdateUnits();
 	void DrawUnits(bool drawBehindBuildings);
-    void LogTotalItems();
 
 	void AddUnit(const Unit& unit);
 

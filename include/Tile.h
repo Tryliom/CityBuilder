@@ -1,6 +1,7 @@
 #pragma once
 
 #include <map>
+#include <string>
 
 #include "Texture.h"
 
@@ -22,6 +23,26 @@ enum class TileType
     Road,
     Count
 };
+
+inline std::string TileTypeToString(TileType type)
+{
+	switch (type)
+	{
+		case TileType::None: return "None";
+		case TileType::MayorHouse: return "Mayor House";
+		case TileType::House: return "House";
+		case TileType::BuilderHut: return "Builder Hut";
+		case TileType::Storage: return "Storage";
+		case TileType::Sawmill: return "Sawmill";
+		case TileType::Quarry: return "Quarry";
+		case TileType::LogisticsCenter: return "Logistics Center";
+		case TileType::Furnace: return "Furnace";
+		case TileType::Tree: return "Tree";
+		case TileType::Stone: return "Stone";
+		case TileType::Road: return "Road";
+		default: return "Unknown";
+	}
+}
 
 struct Tile
 {

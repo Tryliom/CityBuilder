@@ -1,4 +1,3 @@
-#include <windows.h>
 #include "sokol_app.h"
 
 #include "Audio.h"
@@ -135,13 +134,6 @@ void OnFrame(FrameData *frameData, TimerData *timerData, const simgui_frame_desc
 	// Update the current camera state.
 	Graphics::camera.Pivot = centerOfScreen;
 	gameState->Camera = Graphics::camera;
-
-	// Set the console cursor position to the top left corner of the screen using Windows API.
-	#if _WIN32
-		HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-		COORD pos = {0, 0};
-		SetConsoleCursorPosition(hConsole, pos);
-	#endif
 
 	SendDataToEngine(frameData);
 }
@@ -374,32 +366,27 @@ void DrawUi()
 			ImGui::SetWindowPos(ImVec2(5, 120), ImGuiCond_Always);
 			ImGui::SetWindowFontScale(1.35f);
 			//ImGui::SetWindowSize(ImVec2(200, 400), ImGuiCond_Always);
+
+			std::string title = "Inventory of " + TileTypeToString(tile.Type);
+	        ImGui::Text("%s", title.c_str());
+	        ImGui::Separator();
 			
             for (auto pair: *tile.Inventory)
             {
-                std::string text = "Inventory: " + std::to_string(pair.second) + " of " + Texture::ItemToString[(int) pair.first];
+                std::string text = std::to_string(pair.second) + " of " + Texture::ItemToString[(int) pair.first];
 
                 if (!tile.IsBuilt)
                 {
                     text += " / " + std::to_string(Grid::GetNeededItemsToBuild(tile.Type, pair.first)) + "\n";
                 }
-                // else
-                // {
-                //     text += "                                            ";
-                // }
-                
-				LOG(text);
 
-                ImGui::Text(text.c_str());
+                ImGui::Text("%s", text.c_str());
 				ImGui::Separator();
             }
 
 			ImGui::End();
         }
     }
-
-    // Log the total items we have
-    gameState->UnitManager.LogTotalItems();
 }
 
 void GenerateMap()
