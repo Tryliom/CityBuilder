@@ -109,12 +109,6 @@ void OnFrame(FrameData *frameData, TimerData *timerData, const simgui_frame_desc
 
 	UpdateCamera();
 
-	// Draw a black rect to each side of the grid
-	Graphics::DrawRect({-(gridWidth / 2 + 10), -(gridHeight / 2 + 10)}, Vector2F(gridWidth + 20, 10), {0.2f, 0.2f, 0.2f, 1});
-	Graphics::DrawRect({-(gridWidth / 2 + 10), -(gridHeight / 2)}, Vector2F(10, gridHeight), {0.2f, 0.2f, 0.2f, 1});
-	Graphics::DrawRect({-(gridWidth / 2 + 10), gridHeight / 2}, Vector2F(gridWidth + 20, 10), {0.2f, 0.2f, 0.2f, 1});
-	Graphics::DrawRect({gridWidth / 2, -(gridHeight / 2)}, Vector2F(10, gridHeight), {0.2f, 0.2f, 0.2f, 1});
-
 	gameState->Grid.Update();
 
 	gameState->UnitManager.UpdateUnits();

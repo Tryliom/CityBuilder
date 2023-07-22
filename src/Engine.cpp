@@ -257,9 +257,10 @@ static void init()
     InitGame(gameStateMemory, &tilemap, &frameData, &imguiData);
     #endif
 
-    // a pass action to clear framebuffer to black
-    state.pass_action = (sg_pass_action){
-        .colors = {{.load_action = SG_LOADACTION_CLEAR, .clear_value = {95 / 255.f, 195 / 255.f, 65 / 255.f, 1.0f}}}};
+    // a pass action to clear framebuffer to green
+    state.pass_action = (sg_pass_action) {
+        .colors = {{.load_action = SG_LOADACTION_CLEAR, .clear_value = {95 / 255.f, 195 / 255.f, 65 / 255.f, 1.0f}}}
+	};
 }
 
 void frame()

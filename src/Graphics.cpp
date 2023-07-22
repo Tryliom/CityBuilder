@@ -1,6 +1,7 @@
 #include "Graphics.h"
 #include "Input.h"
 #include "sokol_app.h"
+#include "Logger.h"
 
 #include <cassert>
 #include <iostream>
@@ -165,8 +166,46 @@ namespace Graphics
 
     void MoveCamera(Vector2F position)
     {
-        camera.Position += position;
-    }
+		const float width = sapp_widthf();
+		const float height = sapp_heightf();
+		const Vector2F MaxSize = { 2500, 2500};
+		const Vector2F MinSize = { -2500, -2500};
+		const Vector2F transformedMaxSize = Matrix2x3F::Multiply(transformMatrix, MaxSize);
+		const Vector2F transformedMinSize = Matrix2x3F::Multiply(transformMatrix, MinSize);
+
+		const Vector2I maxPosition = { transformedMaxSize.X, transformedMaxSize.Y };
+		const Vector2I minPosition = { transformedMinSize.X, transformedMinSize.Y };
+
+		bool clamped = false;
+
+		// Get a world position and check where it's located in the screen space
+		if (0 < minPosition.X)
+		{
+			camera.Position.X = -MinSize.X;
+			clamped = true;
+		}
+		else if (width > maxPosition.X)
+		{
+			camera.Position.X = -MaxSize.X + width;
+			clamped = true;
+		}
+
+		if (0 < minPosition.Y)
+		{
+			camera.Position.Y = -MinSize.Y;
+			clamped = true;
+		}
+		else if (height > maxPosition.Y)
+		{
+			camera.Position.Y = -MaxSize.Y + height;
+			clamped = true;
+		}
+
+		if (!clamped)
+		{
+			camera.Position += position;
+		}
+	}
 
     void Zoom(float scale)
     {
