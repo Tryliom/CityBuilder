@@ -55,7 +55,7 @@ void UnitManager::UpdateUnits()
 				}
 				else
 				{
-					if (!unit.CalculatingPath && unit.NextTile == TilePosition())
+					if (!unit.CalculatingPath)
 					{
 						// Start a new thread to calculate the path
 						unit.CalculatingPath = true;
@@ -69,52 +69,39 @@ void UnitManager::UpdateUnits()
 							}
 							else
 							{
-				                unit.NextTile = list[0];
+                                unit.PathToTargetTile = list;
 							}
-				            unit.CalculatingPath = false;
 			            }).detach();
 					}
-					else if (unit.NextTile != TilePosition())
+
+					if (!unit.PathToTargetTile.empty())
 					{
-						Vector2F nextTileWorldPosition = _grid->ToWorldPosition(unit.NextTile) + Vector2F(0.5f, 0.5f) * (float) (_grid->GetTileSize() - unitSize);
-						float speedFactor = 1.f;
+						auto nextPosition = GetNextUnitPosition(unit);
+						auto nextTileWorldPosition = GetNextTargetPosition(unit);
 
-						// Check if the next tile is a road
-						if (_grid->GetTile(_grid->GetTilePosition(unit.Position)).Type == TileType::Road)
-						{
-							speedFactor = 1.5f;
-						}
-
-						speedFactor += Grid::GetSpeedFactor(tile.Type);
-
-						// Check if it's the last tile to set the target position to the center-bottom of the tile
-						if (unit.TargetTile == unit.NextTile)
-						{
-							nextTileWorldPosition += Vector2F(0.f, 1.f) * ((float) _grid->GetTileSize()) / 2.f;
-						}
-
-                        auto lastPosition = unit.Position;
-
-						// Move it to the center of the next tile
-                        auto offset = (nextTileWorldPosition - unit.Position).Normalized() * unitSpeed * speedFactor * Timer::SmoothDeltaTime;
-
-                        unit.Position += offset;
-
-                        float distance = nextTileWorldPosition.GetDistance(unit.Position);
-                        float previousDistance = nextTileWorldPosition.GetDistance(lastPosition);
-                        bool hasReached = previousDistance < distance || unit.Position == nextTileWorldPosition;
+                        float distance = nextTileWorldPosition.GetDistance(nextPosition);
+                        float previousDistance = nextTileWorldPosition.GetDistance(unit.Position);
+                        bool hasReached = previousDistance < distance || nextPosition == nextTileWorldPosition;
 
 						// Check if it reached the center of the next tile or if it's too far
 						if (hasReached)
 						{
-                            unit.Position = lastPosition;
-							unit.NextTile = TilePosition();
+							unit.PathToTargetTile.erase(unit.PathToTargetTile.begin());
 
 							// Check if it's the last tile
-							if (unit.TargetTile == unit.NextTile)
+							if (unit.PathToTargetTile.empty())
 							{
 								unit.SetBehavior(UnitBehavior::Working);
 							}
+							else
+							{
+								unit.Position = GetNextUnitPosition(unit);
+								unit.CalculatingPath = false;
+							}
+						}
+						else
+						{
+							unit.Position = GetNextUnitPosition(unit);
 						}
 					}
 				}
@@ -783,6 +770,39 @@ void UnitManager::SendInactiveBuildersToBuild()
             OnTickUnitBuilderHut(_units[builder]);
         }
     }
+}
+
+Vector2F UnitManager::GetNextUnitPosition(Unit& unit)
+{
+	Tile& tile = _grid->GetTile(unit.JobTileIndex);
+	Vector2F nextTileWorldPosition = GetNextTargetPosition(unit);
+	float speedFactor = 1.f;
+
+	// Check if the next tile is a road
+	if (_grid->GetTile(_grid->GetTilePosition(unit.Position)).Type == TileType::Road)
+	{
+		speedFactor = 1.5f;
+	}
+
+	speedFactor += Grid::GetSpeedFactor(tile.Type);
+
+	// Move it to the center of the next tile
+	auto offset = (nextTileWorldPosition - unit.Position).Normalized() * unitSpeed * speedFactor * Timer::SmoothDeltaTime;
+
+	return unit.Position + offset;
+}
+
+Vector2F UnitManager::GetNextTargetPosition(Unit& unit)
+{
+	Vector2F nextTileWorldPosition = _grid->ToWorldPosition(unit.PathToTargetTile[0]) + Vector2F(0.5f, 0.5f) * (float) (_grid->GetTileSize() - unitSize);
+
+	// Check if it's the last tile to set the target position to the center-bottom of the tile
+	if (unit.PathToTargetTile.size() == 1)
+	{
+		nextTileWorldPosition += Vector2F(0.f, 1.f) * ((float) _grid->GetTileSize()) / 2.f;
+	}
+
+	return nextTileWorldPosition;
 }
 
 void UnitManager::DrawUnits(bool drawBehindBuildings)

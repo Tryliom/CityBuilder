@@ -30,6 +30,8 @@ private:
 	void OnTickUnitQuarry(Unit& unit);
 
     void SendInactiveBuildersToBuild();
+	Vector2F GetNextUnitPosition(Unit& unit);
+	Vector2F GetNextTargetPosition(Unit& unit);
 
 	Characters GetCharacter(int jobTileIndex);
 	bool IsTileTakenCareBy(TilePosition position, Characters character);
