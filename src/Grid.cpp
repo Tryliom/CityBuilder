@@ -440,9 +440,9 @@ std::vector<TilePosition> Grid::GetTiles(TileType type, TilePosition position, i
 {
     std::vector<TilePosition> tiles;
 
-    for (int x = position.X - radius; x < position.X + radius; x++)
+    for (int x = position.X - radius; x <= position.X + radius; x++)
     {
-        for (int y = position.Y - radius; y < position.Y + radius; y++)
+        for (int y = position.Y - radius; y <= position.Y + radius; y++)
         {
             Tile &tile = _tiles[x + y * _width];
 
@@ -460,9 +460,9 @@ std::vector<TilePosition> Grid::GetTiles(TilePosition position, int radius) cons
 {
     std::vector<TilePosition> tiles;
 
-    for (int x = position.X - radius; x < position.X + radius; x++)
+    for (int x = position.X - radius; x <= position.X + radius; x++)
     {
-        for (int y = position.Y - radius; y < position.Y + radius; y++)
+        for (int y = position.Y - radius; y <= position.Y + radius; y++)
         {
             Tile &tile = _tiles[x + y * _width];
 
