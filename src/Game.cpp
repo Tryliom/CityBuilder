@@ -78,7 +78,17 @@ TileType textureToTileType[] =
 
 int buildingSelected = 0;
 
-bool isButtonSelected[ARR_LEN(buildings)] = {};
+bool isButtonSelected[ARR_LEN(buildings)] =
+{
+	true,
+	false,
+	false,
+	false,
+	false,
+	false,
+	false,
+	false
+};
 
 int gridWidth = 5000, gridHeight = 5000, tileSize = 100;
 
@@ -199,7 +209,7 @@ void UpdateCamera()
 
 		Graphics::Zoom(mouseWheelDelta / 50.f);
 
-		if (Input::IsMouseButtonHeld(SAPP_MOUSEBUTTON_MIDDLE))
+		if (Input::IsMouseButtonHeld(SAPP_MOUSEBUTTON_MIDDLE) || Input::IsMouseButtonHeld(SAPP_MOUSEBUTTON_LEFT) && buildingSelected == -1)
 		{
 			Graphics::MoveCamera((mousePosition - previousMousePosition) * 1.f / Graphics::GetZoom());
 		}
@@ -218,7 +228,7 @@ void HandleInput()
 
 	if (!isMouseOnAWindow)
 	{
-		if (Input::IsMouseButtonHeld(SAPP_MOUSEBUTTON_LEFT))
+		if (Input::IsMouseButtonHeld(SAPP_MOUSEBUTTON_LEFT) && buildingSelected != -1)
 		{
 			auto mousePosition = Input::GetMousePosition();
 			auto mouseWorldPosition = Graphics::ScreenToWorld(mousePosition);
@@ -288,15 +298,6 @@ void HandleInput()
 
 void DrawUi()
 {
-	// Draw the select tile type at the top left
-	Graphics::DrawRect({Graphics::ScreenToWorld({5, 5})}, {110, 110}, {0.2f, 0.2f, 0.2f, 0.5f});
-	Graphics::DrawObject(
-	{
-		.Position = Graphics::ScreenToWorld({10, 10}),
-		.Size = {100, 100},
-		.Texture = buildings[buildingSelected],
-	});
-
 	ImGuiWindowFlags constrMenuFlags = ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_None;
 
 	ImGui::Begin("Construction Menu", NULL, constrMenuFlags);
@@ -305,6 +306,12 @@ void DrawUi()
 	{
 		ImGui::SetWindowCollapsed(true);
 		constrMenuNeverOpened = false;
+	}
+
+	if (ImGui::IsWindowCollapsed() && buildingSelected != -1)
+	{
+		isButtonSelected[buildingSelected] = false;
+		buildingSelected = -1;
 	}
 
 	ImGui::SetWindowSize(ImVec2(200, screenSize.Y));
@@ -328,21 +335,22 @@ void DrawUi()
 			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.35f, 0.40f, 0.61f, 0.62f));
 		}
 
+		ImGui::PushID(i);
+
 		// Use the sg_image handle (converted to ImTextureID) for the image button
 		if (ImGui::ImageButton(*imTilemapTextureID, ImVec2(100, 100), ImVec2(uvs[0].X, uvs[0].Y), ImVec2(uvs[2].X, uvs[2].Y)))
 		{
-			LOG("Button " << i << " clicked");
+			isButtonSelected[buildingSelected] = false;
 			buildingSelected = i;
-			isButtonSelected[i] = true;
-		}
-		else
-		{
-			isButtonSelected[i] = false;
+			isButtonSelected[buildingSelected] = true;
 		}
 
+		ImGui::PopID();
+
 		i++;
-		ImGui::PopStyleColor(2);
 	}
+
+	ImGui::PopStyleColor(i * 2);
 
 	ImGui::End();
 
@@ -368,6 +376,9 @@ void DrawUi()
 			
             for (auto pair: *tile.Inventory)
             {
+				//TODO: Olive, the texture of the item
+				auto texture = Texture((Icons) pair.first);
+
                 std::string text = std::to_string(pair.second) + " of " + Texture::ItemToString[(int) pair.first];
 
                 if (!tile.IsBuilt)

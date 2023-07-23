@@ -74,7 +74,7 @@ namespace Graphics
         vertexes[vertexIndex + 6] = vertex.Color.A;
         vertexes[vertexIndex + 7] = vertex.U;
         vertexes[vertexIndex + 8] = vertex.V;
-		vertexes[vertexIndex + 9] = frameCount;
+		vertexes[vertexIndex + 9] = (float) frameCount;
 
         vertexesUsed++;
     }
@@ -285,10 +285,7 @@ namespace Graphics
 
 		// If only one of the 4 corners is visible or the camera is inside, the object is visible
 		return
-			(transformedPosition.X >= 0 && transformedPosition.X <= width && transformedPosition.Y >= 0 && transformedPosition.Y <= height) ||
-			(transformedPosition.X + transformedSize.X >= 0 && transformedPosition.X + transformedSize.X <= width && transformedPosition.Y >= 0 && transformedPosition.Y <= height) ||
-			(transformedPosition.X >= 0 && transformedPosition.X <= width && transformedPosition.Y + transformedSize.Y >= 0 && transformedPosition.Y + transformedSize.Y <= height) ||
-			(transformedPosition.X + transformedSize.X >= 0 && transformedPosition.X + transformedSize.X <= width && transformedPosition.Y + transformedSize.Y >= 0 && transformedPosition.Y + transformedSize.Y <= height) ||
-			(transformedPosition.X <= 0 && transformedPosition.X + transformedSize.X >= width && transformedPosition.Y <= 0 && transformedPosition.Y + transformedSize.Y >= height);
+			(transformedPosition.X + transformedSize.X >= 0 && transformedPosition.X <= width &&
+			 transformedPosition.Y + transformedSize.Y >= 0 && transformedPosition.Y <= height);
 	}
 }
