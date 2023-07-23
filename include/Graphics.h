@@ -21,6 +21,7 @@ struct Vertex
 struct Camera
 {
     Vector2F Position = { 0, 0 };
+	Vector2F ScreenSize = { 0, 0 };
     float Zoom = 1.f;
 	Vector2F Pivot;
 };
@@ -159,6 +160,8 @@ namespace Graphics
     void Zoom(float scale);
 
     float GetZoom();
+
+	void SetCameraSize(float width, float height);
 
 	void CalculTransformationMatrix(Vector2F scale = {camera.Zoom, camera.Zoom});
 

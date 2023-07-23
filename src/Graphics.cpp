@@ -1,6 +1,5 @@
 #include "Graphics.h"
 #include "Input.h"
-#include "sokol_app.h"
 #include "Logger.h"
 
 #include <cassert>
@@ -76,7 +75,7 @@ namespace Graphics
 
     void DrawRect(Vector2F position, Vector2F size, Color color, std::vector<Vector2F> uvs)
     {
-		//if (!IsVisible(position, size)) return;
+		if (!IsVisible(position, size)) return;
 
         if (uvs.empty())
         {
@@ -166,8 +165,8 @@ namespace Graphics
 
     void MoveCamera(Vector2F position)
     {
-		const float width = sapp_widthf();
-		const float height = sapp_heightf();
+		const float width = camera.ScreenSize.X;
+		const float height = camera.ScreenSize.Y;
 		const Vector2F MaxSize = { 2500, 2500};
 		const Vector2F MinSize = { -2500, -2500};
 		const Vector2F transformedMaxSize = Matrix2x3F::Multiply(transformMatrix, MaxSize);
@@ -226,6 +225,11 @@ namespace Graphics
         return camera.Zoom;
     }
 
+	void SetCameraSize(float width, float height)
+	{
+		camera.ScreenSize = { width, height };
+	}
+
     void CalculTransformationMatrix(Vector2F scale)
     {
         transformMatrix     = Matrix2x3F::TransformMatrix(scale, 0, camera.Position, camera.Pivot);
@@ -267,8 +271,8 @@ namespace Graphics
 	{
 		Vector2F transformedPosition = Matrix2x3F::Multiply(transformMatrix, position);
 		Vector2F transformedSize = size;
-		float width = sapp_widthf();
-		float height = sapp_heightf();
+		float width = camera.ScreenSize.X;
+		float height = camera.ScreenSize.Y;
 
 		// If only one of the 4 corners is visible or the camera is inside, the object is visible
 		return

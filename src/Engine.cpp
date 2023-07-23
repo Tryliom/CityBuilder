@@ -274,8 +274,10 @@ void frame()
 
     state.vs_window = {(float)width, (float)height};
 
-    frameData.screenSize   = Vector2F{sapp_widthf(), sapp_heightf()};
-    frameData.screenCenter = Vector2F{sapp_widthf(), sapp_heightf()} / 2.f;
+    frameData.screenSize   = Vector2I{sapp_width(), sapp_height()};
+    frameData.screenCenter = Vector2I{sapp_width(), sapp_height()} / 2;
+
+	Graphics::SetCameraSize(frameData.screenSize.X, frameData.screenSize.Y);
 
     Timer::Update();
     timerData.Time = Timer::Time;
