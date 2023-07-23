@@ -45,8 +45,6 @@ struct GameState
 	Grid Grid;
 	UnitManager UnitManager;
 
-	TileType SelectedTileType;
-
 	bool GameStarted = false;
 
 	// int Seed;
@@ -64,6 +62,18 @@ Texture buildings[] =
 	Texture(Road::Single),
 	Texture(Buildings::LogisticsCenter),
 	Texture(Buildings::InactiveFurnace)
+};
+
+TileType textureToTileType[] =
+{
+	TileType::Sawmill,
+	TileType::BuilderHut,
+	TileType::Quarry,
+	TileType::Storage,
+	TileType::House,
+	TileType::Road,
+	TileType::LogisticsCenter,
+	TileType::Furnace
 };
 
 int buildingSelected = 0;
@@ -99,7 +109,6 @@ void InitGame(void* gameMemory, Image* tilemap, FrameData* frameData, ImGuiData*
 
 	gameState->Grid = Grid(gridWidth, gridHeight, tileSize);
 	gameState->UnitManager.SetGrid(&gameState->Grid);
-	gameState->SelectedTileType = TileType::Sawmill;
 
 	GenerateMap();
 
@@ -215,9 +224,9 @@ void HandleInput()
 			auto mouseWorldPosition = Graphics::ScreenToWorld(mousePosition);
 			auto tilePosition = gameState->Grid.GetTilePosition(mouseWorldPosition);
 
-			if (gameState->Grid.IsTileValid(tilePosition) && gameState->Grid.CanBuild(tilePosition, gameState->SelectedTileType))
+			if (gameState->Grid.IsTileValid(tilePosition) && gameState->Grid.CanBuild(tilePosition, textureToTileType[buildingSelected]))
 			{
-				gameState->Grid.SetTile(tilePosition, Tile(gameState->SelectedTileType));
+				gameState->Grid.SetTile(tilePosition, Tile(textureToTileType[buildingSelected]));
 
 				if (Input::IsKeyHeld(SAPP_KEYCODE_LEFT_SHIFT))
 				{
