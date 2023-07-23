@@ -94,6 +94,7 @@ void OnFrame(FrameData *frameData, TimerData *timerData, const simgui_frame_desc
 
 	simgui_new_frame(simguiFrameDesc);
 
+	UpdateCamera();
 	Graphics::CalculTransformationMatrix();
 
 	auto mousePosition = Input::GetMousePosition();
@@ -106,9 +107,7 @@ void OnFrame(FrameData *frameData, TimerData *timerData, const simgui_frame_desc
 	{
 		DrawStartMenu();
 	}
-
-	UpdateCamera();
-
+	
 	gameState->Grid.Update();
 
 	gameState->UnitManager.UpdateUnits();
@@ -122,8 +121,8 @@ void OnFrame(FrameData *frameData, TimerData *timerData, const simgui_frame_desc
 	DrawUi();
 
 	// Show the ImGui test window. Most of the sample code is in ImGui::ShowDemoWindow()
-	// ImGui::SetNextWindowPos(ImVec2(460, 20), ImGuiCond_FirstUseEver);
-	// ImGui::ShowDemoWindow();	
+	ImGui::SetNextWindowPos(ImVec2(460, 20), ImGuiCond_FirstUseEver);
+	ImGui::ShowDemoWindow();	
 
 	// Update the current camera state.
 	Graphics::camera.Pivot = centerOfScreen;
@@ -333,10 +332,9 @@ void DrawUi()
 		.Texture = selectedTileTexture,
 	});
 
-	bool isConstrMenuClosed = false;
-	ImGuiWindowFlags constrMenuFlags = ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize;
+	ImGuiWindowFlags constrMenuFlags = ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_None;
 
-	ImGui::Begin("Construction Menu", &isConstrMenuClosed, constrMenuFlags);
+	ImGui::Begin("Construction Menu", NULL, constrMenuFlags);
 	ImGui::SetWindowSize(ImVec2(200, screenSize.Y));
 	ImVec2 windowSize = ImGui::GetWindowSize();
 	ImGui::SetWindowPos(ImVec2(screenSize.X - 5 - windowSize.x, 5), ImGuiCond_Always);
@@ -351,12 +349,10 @@ void DrawUi()
 
         if (tile.Type != TileType::None && tile.Type != TileType::Road)
         {
-			bool canBeClosed = false;
-
 			ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | 
 											ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
 			ImGui::SetNextWindowBgAlpha(0.5); // Transparent background
-			ImGui::Begin("Inventory", &canBeClosed, window_flags);
+			ImGui::Begin("Inventory", NULL, window_flags);
 			ImGui::SetWindowPos(ImVec2(5, 120), ImGuiCond_Always);
 			ImGui::SetWindowFontScale(1.35f);
 			//ImGui::SetWindowSize(ImVec2(200, 400), ImGuiCond_Always);

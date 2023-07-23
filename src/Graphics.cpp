@@ -76,7 +76,7 @@ namespace Graphics
 
     void DrawRect(Vector2F position, Vector2F size, Color color, std::vector<Vector2F> uvs)
     {
-		if (!IsVisible(position, size)) return;
+		//if (!IsVisible(position, size)) return;
 
         if (uvs.empty())
         {

@@ -54,7 +54,7 @@ namespace Graphics
 {
     inline const int VertexNbAttributes = 9;
 
-    inline const int maxVertexes = 100000;
+    inline const int maxVertexes = 110000;
     inline float vertexes[maxVertexes];
     inline int vertexesUsed = 0;
 
