@@ -65,11 +65,12 @@ HMODULE libHandle = NULL;
 uint64_t lastMod = 0;
 
 Image tilemap;
+ImTextureID imTextureID;
 ImGuiData imguiData = {};
 FrameData frameData = {};
 TimerData timerData = {};
 
-void InitGame(void* gameMemory, Image* tilemap, FrameData* frameData, ImGuiData* engineImGuiData);
+void InitGame(void* gameMemory, Image* tilemap, FrameData* frameData, ImGuiData* engineImGuiData, ImTextureID* imTextureID);
 
 void OnFrame(FrameData* frameData, TimerData* timerData, const simgui_frame_desc_t* simgui_frame_desc);
 
@@ -260,7 +261,8 @@ static void init()
     LoadDLL();
     if(DLL_InitGame) DLL_InitGame(gameStateMemory, &tilemap, &frameData, &imguiData);
     #else
-    InitGame(gameStateMemory, &tilemap, &frameData, &imguiData);
+    imTextureID = (ImTextureID)(uintptr_t)state.bind.fs_images[SLOT_tex].id;
+    InitGame(gameStateMemory, &tilemap, &frameData, &imguiData, &imTextureID);
     #endif
 
     // a pass action to clear framebuffer to green
@@ -302,28 +304,6 @@ void frame()
     
     OnFrame(&frameData, &timerData, &imguiframeDesc);
     #endif
-
-    // 1. Show a simple window
-    // Tip: if we don't call ImGui::Begin()/ImGui::End() the widgets appears in a window automatically called "Debug"
-    // static float f = 0.0f;
-    // ImGui::Text("Hello, world!");
-    // ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
-    // ImGui::ColorEdit3("clear color", &state.pass_action.colors[0].clear_value.r);
-    // if (ImGui::Button("Test Window")) show_test_window ^= 1;
-    // if (ImGui::Button("Another Window")) show_another_window ^= 1;
-    // ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-    // ImGui::Text("w: %d, h: %d, dpi_scale: %.1f", sapp_width(), sapp_height(), sapp_dpi_scale());
-    // if (ImGui::Button(sapp_is_fullscreen() ? "Switch to windowed" : "Switch to fullscreen")) {
-    //     sapp_toggle_fullscreen();
-    // }
-
-    // // 2. Show another simple window, this time using an explicit Begin/End pair
-    // if (show_another_window) {
-    //     ImGui::SetNextWindowSize(ImVec2(200,100), ImGuiCond_FirstUseEver);
-    //     ImGui::Begin("Another Window", &show_another_window);
-    //     ImGui::Text("Hello");
-    //     ImGui::End();
-    // }
 
     sg_update_buffer(state.bind.vertex_buffers[0], (sg_range){
 		.ptr = frameData.vertexBufferPtr,
