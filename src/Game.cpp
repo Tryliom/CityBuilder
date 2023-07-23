@@ -32,7 +32,7 @@ void DrawStartMenu();
 
 // ========= Data exchange functions ===========
 
-void BindWithEngine(Image* tilemap, FrameData* frameData, ImGuiData* engineImGuiData);
+void BindWithEngine(Image* tilemap, FrameData* frameData, ImGuiData* engineImGuiData, ImTextureID* imTextureID);
 void ReceiveDataFromEngine(FrameData* frameData, TimerData* timerData);
 void SendDataToEngine(FrameData* frameData);
 
@@ -52,6 +52,10 @@ struct GameState
 	// int Seed;
 };
 
+GameState *gameState = nullptr;
+
+bool isButtonSelected = false;
+
 int gridWidth = 5000, gridHeight = 5000, tileSize = 100;
 
 Vector2F screenSize;
@@ -65,15 +69,17 @@ ImGuiData currentImGuiData = {};
 Vector2F mousePositionInWorld;
 bool isMouseOnAWindow;
 
-ImTextureID tilemapTexture;
+ImTextureID* imTilemapTextureID;
 
-GameState *gameState = nullptr;
+// =========== UI Logic ============
+
+bool constrMenuNeverOpened = true;
 
 // =========== Game Logic ============
 
-void InitGame(void* gameMemory, Image* tilemap, FrameData* frameData, ImGuiData* engineImGuiData)
+void InitGame(void* gameMemory, Image* tilemap, FrameData* frameData, ImGuiData* engineImGuiData, ImTextureID* imTextureID)
 {
-	BindWithEngine(tilemap, frameData, engineImGuiData);
+	BindWithEngine(tilemap, frameData, engineImGuiData, imTextureID);
 
 	gameState = (GameState *)gameMemory;
 
@@ -121,8 +127,8 @@ void OnFrame(FrameData *frameData, TimerData *timerData, const simgui_frame_desc
 	DrawUi();
 
 	// Show the ImGui test window. Most of the sample code is in ImGui::ShowDemoWindow()
-	ImGui::SetNextWindowPos(ImVec2(460, 20), ImGuiCond_FirstUseEver);
-	ImGui::ShowDemoWindow();	
+	// ImGui::SetNextWindowPos(ImVec2(460, 20), ImGuiCond_FirstUseEver);
+	// ImGui::ShowDemoWindow();	
 
 	// Update the current camera state.
 	Graphics::camera.Pivot = centerOfScreen;
@@ -324,20 +330,51 @@ void DrawUi()
 	}
 
 	// Draw the select tile type at the top left
-	Graphics::DrawRect(Graphics::ScreenToWorld({5, 5}), {110, 110}, {0.2f, 0.2f, 0.2f, 0.5f});
+	Graphics::DrawRect({Graphics::ScreenToWorld({5, 5})}, {110, 110}, {0.2f, 0.2f, 0.2f, 0.5f});
 	Graphics::DrawObject(
 	{
 		.Position = Graphics::ScreenToWorld({10, 10}),
 		.Size = {100, 100},
 		.Texture = selectedTileTexture,
 	});
+	
 
 	ImGuiWindowFlags constrMenuFlags = ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_None;
 
 	ImGui::Begin("Construction Menu", NULL, constrMenuFlags);
+
+	if (constrMenuNeverOpened) 
+	{
+		ImGui::SetWindowCollapsed(true);
+		constrMenuNeverOpened = false;
+	}
+
 	ImGui::SetWindowSize(ImVec2(200, screenSize.Y));
 	ImVec2 windowSize = ImGui::GetWindowSize();
 	ImGui::SetWindowPos(ImVec2(screenSize.X - 5 - windowSize.x, 5), ImGuiCond_Always);
+
+	auto uvs = Graphics::GetUvs(Texture(Buildings::Sawmill));
+
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.2f, 0.8f, 0.2f, 1.0f)); // For example, set the active button color to green
+    
+    // Temporarily modify the button background color to indicate the selection
+    if (isButtonSelected)
+    {
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.8f, 0.2f, 1.0f)); // For example, set the active button color to green
+    }
+    else 
+    {
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.35f, 0.40f, 0.61f, 0.62f));
+    }
+
+    // Use the sg_image handle (converted to ImTextureID) for the image button
+    if (ImGui::ImageButton(*imTilemapTextureID, ImVec2(100, 100), ImVec2(uvs[0].X, uvs[0].Y), ImVec2(uvs[2].X, uvs[2].Y)))
+    {
+        isButtonSelected = !isButtonSelected; // Toggle the selected state on button click
+    }
+
+    // Restore the default button background color if not selected
+    ImGui::PopStyleColor(2);
 
 	ImGui::End();
 
@@ -475,9 +512,9 @@ void DrawStartMenu()
 	ImGui::End();
 }
 
-void BindWithEngine(Image* tilemap, FrameData* frameData, ImGuiData* engineImGuiData)
+void BindWithEngine(Image* tilemap, FrameData* frameData, ImGuiData* engineImGuiData, ImTextureID* imTextureID)
 {
-	screenSize = frameData->screenSize;
+	screenSize     = frameData->screenSize;
 	centerOfScreen = frameData->screenCenter;
 
 	currentImGuiData.Context = engineImGuiData->Context;
@@ -488,7 +525,7 @@ void BindWithEngine(Image* tilemap, FrameData* frameData, ImGuiData* engineImGui
 	Graphics::textureWidth  = tilemap->GetWidth();
 	Graphics::textureHeight = tilemap->GetHeight();
 
-	tilemapTexture = tilemap->GetBuffer();
+	imTilemapTextureID = imTextureID;
 }
 
 void ReceiveDataFromEngine(FrameData* frameData, TimerData* timerData)
@@ -526,14 +563,14 @@ extern "C"		   // we need to export the C interface
 		Input::OnInput(event);
 	}
 
-	EXPORT void DLL_OnLoad(Image* tilemap, FrameData* frameData, ImGuiData* engineImGuiData)
+	EXPORT void DLL_OnLoad(Image* tilemap, FrameData* frameData, ImGuiData* engineImGuiData, ImTextureID* imTextureID)
 	{
-		BindWithEngine(tilemap, frameData, engineImGuiData);
+		BindWithEngine(tilemap, frameData, engineImGuiData, imTextureID);
 	}
 
-	EXPORT void DLL_InitGame(void* gameMemory, Image* tilemap, FrameData* frameData, ImGuiData* engineImGuiData)
+	EXPORT void DLL_InitGame(void* gameMemory, Image* tilemap, FrameData* frameData, ImGuiData* engineImGuiData, ImTextureID* imTextureID)
 	{
-		InitGame(gameMemory, tilemap, frameData, engineImGuiData);
+		InitGame(gameMemory, tilemap, frameData, engineImGuiData, imTextureID);
 	}
 
 	EXPORT void DLL_OnFrame(void *gameMemory, FrameData *frameData, TimerData *timerData, const simgui_frame_desc_t* simguiFrameDesc)
