@@ -285,7 +285,10 @@ namespace Graphics
 
 		// If only one of the 4 corners is visible or the camera is inside, the object is visible
 		return
-			(transformedPosition.X + transformedSize.X >= 0 && transformedPosition.X <= width &&
-			 transformedPosition.Y + transformedSize.Y >= 0 && transformedPosition.Y <= height);
+			(transformedPosition.X >= 0 && transformedPosition.X <= width && transformedPosition.Y >= 0 && transformedPosition.Y <= height) ||
+			(transformedPosition.X + transformedSize.X >= 0 && transformedPosition.X + transformedSize.X <= width && transformedPosition.Y >= 0 && transformedPosition.Y <= height) ||
+			(transformedPosition.X >= 0 && transformedPosition.X <= width && transformedPosition.Y + transformedSize.Y >= 0 && transformedPosition.Y + transformedSize.Y <= height) ||
+			(transformedPosition.X + transformedSize.X >= 0 && transformedPosition.X + transformedSize.X <= width && transformedPosition.Y + transformedSize.Y >= 0 && transformedPosition.Y + transformedSize.Y <= height) ||
+			(transformedPosition.X <= 0 && transformedPosition.X + transformedSize.X >= width && transformedPosition.Y <= 0 && transformedPosition.Y + transformedSize.Y >= height);
 	}
 }
