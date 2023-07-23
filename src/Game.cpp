@@ -156,8 +156,8 @@ void OnFrame(FrameData *frameData, TimerData *timerData, const simgui_frame_desc
 	DrawUi();
 
 	// Show the ImGui test window. Most of the sample code is in ImGui::ShowDemoWindow()
-	/*ImGui::SetNextWindowPos(ImVec2(460, 20), ImGuiCond_FirstUseEver);
-	ImGui::ShowDemoWindow();*/
+	ImGui::SetNextWindowPos(ImVec2(460, 20), ImGuiCond_FirstUseEver);
+	ImGui::ShowDemoWindow();
 
 	// Update the current camera state.
 	Graphics::camera.Pivot = centerOfScreen;
@@ -311,9 +311,10 @@ void DrawUi()
 		buildingSelected = -1;
 	}
 
-	ImGui::SetWindowSize(ImVec2(200, screenSize.Y));
+	ImGui::SetWindowSize(ImVec2(200, screenSize.Y - 5));
 	ImVec2 windowSize = ImGui::GetWindowSize();
 	ImGui::SetWindowPos(ImVec2(screenSize.X - 5 - windowSize.x, 5), ImGuiCond_Always);
+
 	int i = 0;
 
 	for (auto& building : buildings)
@@ -334,8 +335,16 @@ void DrawUi()
 
 		ImGui::PushID(i);
 
+		// Center the window content using ImGui layout features
+        ImVec2 windowContentRegion = ImGui::GetContentRegionAvail();
+        ImVec2 buttonSize(80, 80); // Adjust button size as needed
+        ImVec2 windowCenter(ImGui::GetCursorPos().x + windowContentRegion.x * 0.5f - buttonSize.x * 0.5f,
+                            ImGui::GetCursorPos().y + windowContentRegion.y * 0.5f - buttonSize.y * 0.5f);
+
+        ImGui::SetCursorPosX(windowCenter.x);
+
 		// Use the sg_image handle (converted to ImTextureID) for the image button
-		if (ImGui::ImageButton(*imTilemapTextureID, ImVec2(100, 100), ImVec2(uvs[0].X, uvs[0].Y), ImVec2(uvs[2].X, uvs[2].Y)))
+		if (ImGui::ImageButton(*imTilemapTextureID, ImVec2(80, 80), ImVec2(uvs[0].X, uvs[0].Y), ImVec2(uvs[2].X, uvs[2].Y)))
 		{
 			isButtonSelected[buildingSelected] = false;
 			buildingSelected = i;
