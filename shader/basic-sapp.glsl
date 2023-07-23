@@ -7,12 +7,15 @@ uniform vs_window
 in vec4 position;
 in vec4 color0;
 in vec2 uv0;
+in float frame0;
 
 out vec4 color;
 out vec2 uv;
 
 void main()
 {
+	if (frame0 != screen_size.z) return;
+
     gl_Position = ((position * vec4(2, 2, 1, 1)) / vec4(screen_size.x, screen_size.y, 1, 1) - vec4(1, 1, 0, 0)) * vec4(1, -1, 1, 1);
     color = color0;
     uv = uv0;

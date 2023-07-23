@@ -14,6 +14,11 @@ namespace Graphics
         return Graphics::frameCount;
     }
 
+	void IncreaseFrameCount()
+	{
+		Graphics::frameCount++;
+	}
+
     std::vector<Vector2F> GetUvs(Texture texture)
     {
         int tileSheetIndex = static_cast<int>(texture.TileSheetIndex);
@@ -69,6 +74,7 @@ namespace Graphics
         vertexes[vertexIndex + 6] = vertex.Color.A;
         vertexes[vertexIndex + 7] = vertex.U;
         vertexes[vertexIndex + 8] = vertex.V;
+		vertexes[vertexIndex + 9] = frameCount;
 
         vertexesUsed++;
     }
@@ -265,6 +271,9 @@ namespace Graphics
     {
         vertexesUsed = 0;
         indicesUsed = 0;
+
+		memset(vertexes, 0, sizeof(vertexes));
+		memset(indices, 0, sizeof(indices));
     }
 
 	bool IsVisible(Vector2F position, Vector2F size)

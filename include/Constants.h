@@ -11,3 +11,4 @@
 #endif
 
 #define GAME_STATE_MAX_BYTE_SIZE 10000
+#define ARR_LEN(arr) ((int) (sizeof(arr) / sizeof(*arr)))

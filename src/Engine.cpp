@@ -32,7 +32,7 @@ struct vs_window
 {
     float width;
     float height;
-    float pad0, pad1;
+    float frame, pad1;
 };
 
 static struct
@@ -185,7 +185,7 @@ static void init()
         .context = sapp_sgcontext()};
     sg_setup(desc);
 
-    state.vs_window = {sapp_widthf(), sapp_heightf()};
+    state.vs_window = {sapp_widthf(), sapp_heightf(), 0};
 
     state.bind.vertex_buffers[0] = sg_make_buffer((sg_buffer_desc){
         .size = Graphics::maxVertexes * sizeof(frameData.vertexBufferPtr[0]),
@@ -214,24 +214,30 @@ static void init()
         .shader = shd,
         // If the vertex layout doesn't have gaps, don't need to provide strides and offsets
         .layout =
+        {
+            .attrs =
             {
-                .attrs =
-                    {
-                        {.format = SG_VERTEXFORMAT_FLOAT3},
-                        {.format = SG_VERTEXFORMAT_FLOAT4},
-                        {.format = SG_VERTEXFORMAT_FLOAT2}}},
+                {.format = SG_VERTEXFORMAT_FLOAT3},
+                {.format = SG_VERTEXFORMAT_FLOAT4},
+                {.format = SG_VERTEXFORMAT_FLOAT2},
+				{.format = SG_VERTEXFORMAT_FLOAT},
+			}
+		},
         .colors =
-            {
-                {// Set up the alpha blending
-                 .blend =
-                     {
-                         .enabled = true,
-                         .src_factor_rgb = SG_BLENDFACTOR_SRC_ALPHA,
-                         .dst_factor_rgb = SG_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
-                         .op_rgb = SG_BLENDOP_ADD,
-                         .src_factor_alpha = SG_BLENDFACTOR_ONE,
-                         .dst_factor_alpha = SG_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
-                         .op_alpha = SG_BLENDOP_ADD}}},
+        {
+            {// Set up the alpha blending
+             .blend =
+                 {
+                     .enabled = true,
+                     .src_factor_rgb = SG_BLENDFACTOR_SRC_ALPHA,
+                     .dst_factor_rgb = SG_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
+                     .op_rgb = SG_BLENDOP_ADD,
+                     .src_factor_alpha = SG_BLENDFACTOR_ONE,
+                     .dst_factor_alpha = SG_BLENDFACTOR_ONE_MINUS_SRC_ALPHA,
+                     .op_alpha = SG_BLENDOP_ADD
+				 }
+			}
+		},
         .index_type = SG_INDEXTYPE_UINT32,
         .label = "triangle-pipeline",
     };
@@ -258,13 +264,16 @@ static void init()
     #endif
 
     // a pass action to clear framebuffer to green
-    state.pass_action = (sg_pass_action) {
+    state.pass_action = (sg_pass_action)
+	{
         .colors = {{.load_action = SG_LOADACTION_CLEAR, .clear_value = {95 / 255.f, 195 / 255.f, 65 / 255.f, 1.0f}}}
 	};
 }
 
 void frame()
 {
+	Graphics::IncreaseFrameCount();
+
     sg_begin_default_pass(&state.pass_action, sapp_width(), sapp_height());
     sg_apply_pipeline(state.pip);
     sg_apply_bindings(&state.bind);
@@ -272,7 +281,7 @@ void frame()
     auto width  = sapp_width();
     auto height = sapp_height();
 
-    state.vs_window = {(float)width, (float)height};
+    state.vs_window = {(float)width, (float)height, (float) Graphics::GetFrameCount()};
 
     frameData.screenSize   = Vector2I{sapp_width(), sapp_height()};
     frameData.screenCenter = Vector2I{sapp_width(), sapp_height()} / 2;
@@ -316,13 +325,17 @@ void frame()
     //     ImGui::End();
     // }
 
-    sg_update_buffer(state.bind.vertex_buffers[0], (sg_range){.ptr = frameData.vertexBufferPtr, 
-                     .size = frameData.vertexBufferUsed * Graphics::VertexNbAttributes * sizeof(frameData.vertexBufferPtr[0])});
+    sg_update_buffer(state.bind.vertex_buffers[0], (sg_range){
+		.ptr = frameData.vertexBufferPtr,
+		.size = frameData.vertexBufferUsed * Graphics::VertexNbAttributes * sizeof(frameData.vertexBufferPtr[0])
+	});
     sg_update_buffer(state.bind.index_buffer, (sg_range){.ptr = frameData.indexBufferPtr, .size = frameData.indexBufferUsed * sizeof(frameData.indexBufferPtr[0])});
 
     sg_draw(0, frameData.vertexBufferUsed * Graphics::VertexNbAttributes, 1);
+
     sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, (sg_range){.ptr = &state.vs_window, .size = sizeof(state.vs_window)});
-    simgui_render();
+
+	simgui_render();
     sg_end_pass();
     sg_commit();
 }

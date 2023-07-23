@@ -5,6 +5,7 @@
 #include "Random.h"
 #include "Input.h"
 #include "Timer.h"
+#include "Logger.h"
 
 std::map<TileType, std::map<Items, int>> *tileMaxInventory = new std::map<TileType, std::map<Items, int>>{
     {TileType::Sawmill, {{Items::Wood, 50}}},

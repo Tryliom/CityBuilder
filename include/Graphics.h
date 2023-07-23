@@ -53,7 +53,7 @@ struct TextureData
 
 namespace Graphics
 {
-    inline const int VertexNbAttributes = 9;
+    inline const int VertexNbAttributes = 10;
 
     inline const int maxVertexes = 110000;
     inline float vertexes[maxVertexes];
@@ -86,6 +86,7 @@ namespace Graphics
     inline int textureHeight = 0;
 
     int GetFrameCount();
+	void IncreaseFrameCount();
 
     /**
 	 * @brief Get the UVs for a texture name
