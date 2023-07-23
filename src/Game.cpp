@@ -311,7 +311,7 @@ void DrawUi()
 		buildingSelected = -1;
 	}
 
-	ImGui::SetWindowSize(ImVec2(200, screenSize.Y - 5));
+	ImGui::SetWindowSize(ImVec2(200, screenSize.Y - 10));
 	ImVec2 windowSize = ImGui::GetWindowSize();
 	ImGui::SetWindowPos(ImVec2(screenSize.X - 5 - windowSize.x, 5), ImGuiCond_Always);
 
@@ -321,12 +321,12 @@ void DrawUi()
 	{
 		auto uvs = Graphics::GetUvs(building);
 
-		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.2f, 0.8f, 0.2f, 1.0f)); // For example, set the active button color to green
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.7f, 0.8f, 1.f, 1.00f));
 
 		// Temporarily modify the button background color to indicate the selection
 		if (isButtonSelected[i])
 		{
-			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.8f, 0.2f, 1.0f)); // For example, set the active button color to green
+			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.8f, 1.f, 1.00f));
 		}
 		else
 		{
@@ -337,14 +337,14 @@ void DrawUi()
 
 		// Center the window content using ImGui layout features
         ImVec2 windowContentRegion = ImGui::GetContentRegionAvail();
-        ImVec2 buttonSize(80, 80); // Adjust button size as needed
+        ImVec2 buttonSize(75, 75); 
         ImVec2 windowCenter(ImGui::GetCursorPos().x + windowContentRegion.x * 0.5f - buttonSize.x * 0.5f,
                             ImGui::GetCursorPos().y + windowContentRegion.y * 0.5f - buttonSize.y * 0.5f);
 
         ImGui::SetCursorPosX(windowCenter.x);
 
 		// Use the sg_image handle (converted to ImTextureID) for the image button
-		if (ImGui::ImageButton(*imTilemapTextureID, ImVec2(80, 80), ImVec2(uvs[0].X, uvs[0].Y), ImVec2(uvs[2].X, uvs[2].Y)))
+		if (ImGui::ImageButton(*imTilemapTextureID, buttonSize, ImVec2(uvs[0].X, uvs[0].Y), ImVec2(uvs[2].X, uvs[2].Y)))
 		{
 			isButtonSelected[buildingSelected] = false;
 			buildingSelected = i;
@@ -368,35 +368,7 @@ void DrawUi()
 
         if (tile.Type != TileType::None && tile.Type != TileType::Road)
         {
-			ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | 
-											ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
-			ImGui::SetNextWindowBgAlpha(0.5); // Transparent background
-			ImGui::Begin("Inventory", NULL, window_flags);
-			ImGui::SetWindowPos(ImVec2(5, 120), ImGuiCond_Always);
-			ImGui::SetWindowFontScale(1.35f);
-			//ImGui::SetWindowSize(ImVec2(200, 400), ImGuiCond_Always);
-
-			std::string title = "Inventory of " + TileTypeToString(tile.Type);
-	        ImGui::Text("%s", title.c_str());
-	        ImGui::Separator();
-			
-            for (auto pair: *tile.Inventory)
-            {
-				//TODO: Olive, the texture of the item
-				auto texture = Texture((Icons) pair.first);
-
-                std::string text = std::to_string(pair.second) + " of " + Texture::ItemToString[(int) pair.first];
-
-                if (!tile.IsBuilt)
-                {
-                    text += " / " + std::to_string(Grid::GetNeededItemsToBuild(tile.Type, pair.first)) + "\n";
-                }
-
-                ImGui::Text("%s", text.c_str());
-				ImGui::Separator();
-            }
-
-			ImGui::End();
+			GUI::DrawTileInventory(tile);
         }
     }
 }
