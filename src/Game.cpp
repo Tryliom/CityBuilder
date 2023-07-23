@@ -11,6 +11,7 @@
 #include "Logger.h"
 
 #include "Graphics.h"
+#include "GUI.h"
 
 #include "sokol_gfx.h"
 #include "imgui.h"
@@ -25,10 +26,6 @@ void GenerateMap();
 void UpdateCamera();
 void HandleInput();
 void DrawUi();
-
-// ========== Menues functions ===========
-
-void DrawStartMenu();
 
 // ========= Data exchange functions ===========
 
@@ -144,7 +141,7 @@ void OnFrame(FrameData *frameData, TimerData *timerData, const simgui_frame_desc
 
 	if (!gameState->GameStarted)
 	{
-		DrawStartMenu();
+		GUI::DrawStartMenu(&gameState->GameStarted);
 	}
 	
 	gameState->Grid.Update();
@@ -448,47 +445,6 @@ void GenerateMap()
 	{
 		gameState->UnitManager.AddUnit(Unit(gameState->Grid.ToWorldPosition(gameState->Grid.GetTiles(TileType::MayorHouse)[0]) + Vector2F{Random::Range(0, 25), Random::Range(0, 25)}));
 	}
-}
-
-void DrawStartMenu()
-{
-	Graphics::CalculTransformationMatrix(Vector2F::One);
-
-	bool isOpen = false;
-	const ImGuiViewport* viewport = ImGui::GetMainViewport();
-	ImGui::SetNextWindowPos(viewport->WorkPos);
-	ImGui::SetNextWindowSize(viewport->WorkSize);
-	ImGuiWindowFlags flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | 
-									ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
-	ImGui::SetNextWindowBgAlpha(0.6); // Transparent background
-	ImGui::Begin("Start Menu", &isOpen, flags);
-	ImGui::SetWindowFontScale(2.f);
-
-	// Center the window content using ImGui layout features
-	ImVec2 windowContentRegion = ImGui::GetContentRegionAvail();
-	ImVec2 buttonSize(250, 75); // Adjust button size as needed
-	ImVec2 windowCenter(ImGui::GetCursorPos().x + windowContentRegion.x * 0.5f - buttonSize.x * 0.5f,
-						ImGui::GetCursorPos().y + windowContentRegion.y * 0.5f - buttonSize.y * 0.5f);
-
-	ImGui::SetCursorPos(ImVec2(windowCenter.x, windowCenter.y / 2.f));
-	if (ImGui::Button("Start", buttonSize)) 
-	{
-		gameState->GameStarted = true;
-	}
-
-	ImGui::SetCursorPos(windowCenter);
-	if (ImGui::Button("Reset", buttonSize)) 
-	{
-		// TODO reset the save.
-	}
-
-	ImGui::SetCursorPos(ImVec2(windowCenter.x, windowCenter.y + windowCenter.y / 2.f));
-	if (ImGui::Button("Exit", buttonSize)) 
-	{
-		exit(1);
-	}
-
-	ImGui::End();
 }
 
 void BindWithEngine(Image* tilemap, FrameData* frameData, ImGuiData* engineImGuiData, ImTextureID* imTextureID)
