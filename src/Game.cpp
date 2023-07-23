@@ -54,7 +54,21 @@ struct GameState
 
 GameState *gameState = nullptr;
 
-bool isButtonSelected = false;
+Texture buildings[] =
+{
+	Texture(Buildings::Sawmill),
+	Texture(Buildings::BuilderHut),
+	Texture(Buildings::Quarry),
+	Texture(Buildings::Storage),
+	Texture(Buildings::House),
+	Texture(Road::Single),
+	Texture(Buildings::LogisticsCenter),
+	Texture(Buildings::InactiveFurnace)
+};
+
+int buildingSelected = 0;
+
+bool isButtonSelected[ARR_LEN(buildings)] = {};
 
 int gridWidth = 5000, gridHeight = 5000, tileSize = 100;
 
@@ -187,39 +201,6 @@ void HandleInput()
 {
 	mousePositionInWorld = Graphics::ScreenToWorld(Input::GetMousePosition());
 
-	if (Input::IsKeyPressed(SAPP_KEYCODE_1))
-	{
-		gameState->SelectedTileType = TileType::Sawmill;
-	}
-	if (Input::IsKeyPressed(SAPP_KEYCODE_2))
-	{
-		gameState->SelectedTileType = TileType::BuilderHut;
-	}
-	if (Input::IsKeyPressed(SAPP_KEYCODE_3))
-	{
-		gameState->SelectedTileType = TileType::Quarry;
-	}
-	if (Input::IsKeyPressed(SAPP_KEYCODE_4))
-	{
-		gameState->SelectedTileType = TileType::Storage;
-	}
-	if (Input::IsKeyPressed(SAPP_KEYCODE_5))
-	{
-		gameState->SelectedTileType = TileType::House;
-	}
-	if (Input::IsKeyPressed(SAPP_KEYCODE_6))
-	{
-		gameState->SelectedTileType = TileType::Road;
-	}
-	if (Input::IsKeyPressed(SAPP_KEYCODE_7))
-	{
-		gameState->SelectedTileType = TileType::LogisticsCenter;
-	}
-    if (Input::IsKeyPressed(SAPP_KEYCODE_8))
-    {
-        gameState->SelectedTileType = TileType::Furnace;
-    }
-
 	if (Input::IsKeyPressed(SAPP_KEYCODE_F))
 	{
 		// Spawn a unit
@@ -298,45 +279,14 @@ void HandleInput()
 
 void DrawUi()
 {
-	Texture selectedTileTexture;
-
-	switch (gameState->SelectedTileType)
-	{
-        case TileType::Sawmill:
-            selectedTileTexture = Texture(Buildings::Sawmill);
-            break;
-        case TileType::BuilderHut:
-            selectedTileTexture = Texture(Buildings::BuilderHut);
-            break;
-        case TileType::Quarry:
-            selectedTileTexture = Texture(Buildings::Quarry);
-            break;
-        case TileType::Storage:
-            selectedTileTexture = Texture(Buildings::Storage);
-            break;
-        case TileType::House:
-            selectedTileTexture = Texture(Buildings::House);
-            break;
-        case TileType::Road:
-            selectedTileTexture = Texture(Road::Single);
-            break;
-        case TileType::LogisticsCenter:
-            selectedTileTexture = Texture(Buildings::LogisticsCenter);
-            break;
-        case TileType::Furnace:
-            selectedTileTexture = Texture(Buildings::InactiveFurnace);
-            break;
-	}
-
 	// Draw the select tile type at the top left
 	Graphics::DrawRect({Graphics::ScreenToWorld({5, 5})}, {110, 110}, {0.2f, 0.2f, 0.2f, 0.5f});
 	Graphics::DrawObject(
 	{
 		.Position = Graphics::ScreenToWorld({10, 10}),
 		.Size = {100, 100},
-		.Texture = selectedTileTexture,
+		.Texture = buildings[buildingSelected],
 	});
-	
 
 	ImGuiWindowFlags constrMenuFlags = ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_None;
 
@@ -351,29 +301,39 @@ void DrawUi()
 	ImGui::SetWindowSize(ImVec2(200, screenSize.Y));
 	ImVec2 windowSize = ImGui::GetWindowSize();
 	ImGui::SetWindowPos(ImVec2(screenSize.X - 5 - windowSize.x, 5), ImGuiCond_Always);
+	int i = 0;
 
-	auto uvs = Graphics::GetUvs(Texture(Buildings::Sawmill));
+	for (auto& building : buildings)
+	{
+		auto uvs = Graphics::GetUvs(building);
 
-    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.2f, 0.8f, 0.2f, 1.0f)); // For example, set the active button color to green
-    
-    // Temporarily modify the button background color to indicate the selection
-    if (isButtonSelected)
-    {
-        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.8f, 0.2f, 1.0f)); // For example, set the active button color to green
-    }
-    else 
-    {
-        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.35f, 0.40f, 0.61f, 0.62f));
-    }
+		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.2f, 0.8f, 0.2f, 1.0f)); // For example, set the active button color to green
 
-    // Use the sg_image handle (converted to ImTextureID) for the image button
-    if (ImGui::ImageButton(*imTilemapTextureID, ImVec2(100, 100), ImVec2(uvs[0].X, uvs[0].Y), ImVec2(uvs[2].X, uvs[2].Y)))
-    {
-        isButtonSelected = !isButtonSelected; // Toggle the selected state on button click
-    }
+		// Temporarily modify the button background color to indicate the selection
+		if (isButtonSelected[i])
+		{
+			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.8f, 0.2f, 1.0f)); // For example, set the active button color to green
+		}
+		else
+		{
+			ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.35f, 0.40f, 0.61f, 0.62f));
+		}
 
-    // Restore the default button background color if not selected
-    ImGui::PopStyleColor(2);
+		// Use the sg_image handle (converted to ImTextureID) for the image button
+		if (ImGui::ImageButton(*imTilemapTextureID, ImVec2(100, 100), ImVec2(uvs[0].X, uvs[0].Y), ImVec2(uvs[2].X, uvs[2].Y)))
+		{
+			LOG("Button " << i << " clicked");
+			buildingSelected = i;
+			isButtonSelected[i] = true;
+		}
+		else
+		{
+			isButtonSelected[i] = false;
+		}
+
+		i++;
+		ImGui::PopStyleColor(2);
+	}
 
 	ImGui::End();
 
