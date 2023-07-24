@@ -4,6 +4,7 @@
 #include <string>
 
 #include "Texture.h"
+#include "Serialization.h"
 
 enum class TileType
 {
@@ -99,3 +100,6 @@ struct Tile
         return size;
     }
 };
+
+struct Serializer;
+void Serialize(Serializer* ser, Tile* tile);

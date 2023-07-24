@@ -785,3 +785,19 @@ std::vector<TilePosition> Grid::GetNeighbours(TilePosition position) const
 
     return neighbours;
 }
+
+void Serialize(Serializer* ser, Grid* grid)
+{
+    Serialize(ser, &grid->_width);
+    Serialize(ser, &grid->_height);
+    Serialize(ser, &grid->_tileSize);
+
+    for (int x = 0; x < grid->_width / grid->_tileSize; x++)
+    {
+        for (int y = 0; y < grid->_height / grid->_tileSize; y++)
+        {
+            //printf("current Tile : %i, %i \n", x, y); //Debug current Tile
+            Serialize(ser, &grid->_tiles[x + y * grid->_width]);
+        }
+    }
+}

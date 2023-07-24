@@ -19,6 +19,9 @@ bool soundOn = true;
 ImGuiWindowFlags fullScrennWinFlags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | 
                                       ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
 
+void (*SaveGameptr)(const char*) = nullptr;
+void (*LoadGameptr)(const char*) = nullptr;
+
 Texture buildings[] =
 {
 	Texture(Buildings::Sawmill),
@@ -45,6 +48,14 @@ bool isButtonSelected[ARR_LEN(buildings)] =
 
 namespace GUI
 {
+    void InitGUI(void(*SaveGamefunc)(const char* fileName), void(*LoadGamefunc)(const char* fileName))
+    {
+        SaveGameptr = SaveGamefunc;
+        LoadGameptr = LoadGamefunc;
+        assert(SaveGameptr != NULL && "Save fonction not loaded");
+        assert(LoadGameptr != NULL && "Load fonction not loaded");
+    }
+
     void SetupFullScreenWindow()
     {
         const ImGuiViewport* viewport = ImGui::GetMainViewport();
@@ -159,9 +170,13 @@ namespace GUI
             }
 
             ImGui::SetCursorPos(ImVec2(windowCenter.x,  4.5f * yOffset));
-            if (ImGui::Button("Reset", buttonSize)) 
+            if (ImGui::Button("Load", buttonSize)) 
             {
-                // TODO reset the save.
+                if(LoadGameptr)
+                {
+                    LoadGameptr("save1.bin");
+                    *gameStarted = true;
+                }
             }
 
             ImGui::SetCursorPos(ImVec2(windowCenter.x,  6 * yOffset));
@@ -200,7 +215,7 @@ namespace GUI
             ImVec2 windowCenter(ImGui::GetCursorPos().x + windowContentRegion.x * 0.5f - buttonSize.x * 0.5f,
                                 ImGui::GetCursorPos().y + windowContentRegion.y * 0.5f - buttonSize.y * 0.5f);
 
-            float yOffset = ImGui::GetWindowSize().y / 10.f;
+            float yOffset = ImGui::GetWindowSize().y / 14.f;
 
             ImGui::SetCursorPos(ImVec2(windowCenter.x, 1.5f * yOffset));
             if (ImGui::Button("Resume", buttonSize)) 
@@ -217,17 +232,40 @@ namespace GUI
             ImGui::SetCursorPos(ImVec2(windowCenter.x,  4.5f * yOffset));
             if (ImGui::Button("Save", buttonSize)) 
             {
-                // TODO save the game.
+                if(SaveGameptr != nullptr)
+                {
+                    SaveGameptr("save1.bin");
+                }
             }
 
-            ImGui::SetCursorPos(ImVec2(windowCenter.x,  6 * yOffset));
-            if (ImGui::Button("Save and Quit", buttonSize)) 
+            ImGui::SetCursorPos(ImVec2(windowCenter.x, 6 * yOffset));
+            if (ImGui::Button("Load", buttonSize))
             {
-                // TODO save the game
-                exit(1);
+                if (SaveGameptr != nullptr)
+                {
+                    LoadGameptr("save1.bin");
+                }
             }
 
-            ImGui::SetCursorPos(ImVec2(windowCenter.x,  7.5f * yOffset));
+            ImGui::SetCursorPos(ImVec2(windowCenter.x, 7.5 * yOffset));
+            if (ImGui::Button("Save : File2", buttonSize))
+            {
+                if (SaveGameptr != nullptr)
+                {
+                    SaveGameptr("save2.bin");
+                }
+            }
+
+            ImGui::SetCursorPos(ImVec2(windowCenter.x, 9 * yOffset));
+            if (ImGui::Button("Load : File2", buttonSize))
+            {
+                if (SaveGameptr != nullptr)
+                {
+                    LoadGameptr("save2.bin");
+                }
+            }
+
+            ImGui::SetCursorPos(ImVec2(windowCenter.x,  10.5f * yOffset));
             if (ImGui::Button("Quit Game", buttonSize)) 
             {
                 exit(1);

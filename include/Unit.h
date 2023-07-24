@@ -57,3 +57,5 @@ struct Unit
 		}
     }
 };
+
+struct Serializer;

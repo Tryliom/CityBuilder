@@ -6,6 +6,7 @@
 
 #include "Tile.h"
 #include "Maths.h"
+#include "Serialization.h"
 
 struct TilePosition
 {
@@ -33,12 +34,13 @@ class Grid
 public:
 	Grid(int width, int height, int tileSize);
 
-private:
 	int _width;
 	int _height;
 	int _tileSize;
 
-    Tile* _tiles;
+	Tile* _tiles;
+
+private:
 
 	// Texture
 	static Texture getTreeTexture(Tile& tile);
@@ -91,3 +93,7 @@ public:
 	std::vector<TilePosition> GetPath(TilePosition start, TilePosition end);
 	[[nodiscard]] std::vector<TilePosition> GetNeighbours(TilePosition position) const;
 };
+
+
+struct Serializer;
+void Serialize(Serializer* ser, Grid* grid);

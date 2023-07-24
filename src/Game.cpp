@@ -17,6 +17,8 @@
 #include "imgui.h"
 #include "util\sokol_imgui.h"
 
+#include "Serialization.h"
+
 // ========= Game Initialization functions ===========
 
 void GenerateMap();
@@ -85,8 +87,45 @@ bool isMouseOnAWindow;
 
 ImTextureID* imTilemapTextureID;
 
-// =========== Game Logic ============
 
+// ========= GAME SERIALIZATION LOGIC ============
+void SerializeGame(Serializer* serializer)
+{
+	SerializeIncludingVersion(serializer);
+	printf("version : %i \n", serializer->DataVersion);
+	if (serializer->DataVersion >= (SerilizerVersion::SV_INITIAL))
+	{
+		Serialize(serializer, &gameState->Grid);
+		Serialize(serializer, &gameState->UnitManager);
+		Serialize(serializer, &gameState->Camera);
+	}
+	/*
+		//REMOVE Element
+	if (serializer->DataVersion >= VersionWhenElementAdded && LbpSerializer->DataVersion < VersionWhenElementRemoved)
+	{
+		Serialize(LbpSerializer, &(Element));
+	}
+	*/
+}
+
+void SaveGame(const char* fileName)
+{
+	Serializer ser = SerializerOpenFile(true, fileName);
+	SerializeGame(&ser);
+	SerializerFileClose(&ser);
+	printf("Saved \n");
+}
+
+void LoadGame(const char* fileName)
+{
+	Serializer ser = SerializerOpenFile(false, fileName);
+	SerializeGame(&ser);
+	SerializerFileClose(&ser);
+	printf("Load \n");
+}
+
+
+// =========== Game Logic ============
 void InitGame(void* gameMemory, Image* tilemap, FrameData* frameData, ImGuiData* engineImGuiData, ImTextureID* imTextureID)
 {
 	BindWithEngine(tilemap, frameData, engineImGuiData, imTextureID);
@@ -101,10 +140,14 @@ void InitGame(void* gameMemory, Image* tilemap, FrameData* frameData, ImGuiData*
 	gameState->Camera.Zoom = 1.f;
 
 	Audio::SetupSound();
-	Audio::PlaySoundClip(mainTheme, 0.5f, 440, 0, 0, true);
+	Audio::PlaySoundClip(mainTheme, 0.25f, 440, 0, 0, true);
 
+	GUI::InitGUI(&SaveGame, &LoadGame);
 	LOG ("audio" << mainTheme.sampleCount << " " << mainTheme.samplePerSec);
 }
+
+
+
 
 void OnFrame(FrameData *frameData, TimerData *timerData, const simgui_frame_desc_t* simguiFrameDesc)
 {
@@ -144,6 +187,16 @@ void OnFrame(FrameData *frameData, TimerData *timerData, const simgui_frame_desc
 	// Reset the transformation matrix in order to not apply the world transformation to the UI.
 	//Graphics::CalculTransformationMatrix(Vector2F::One);
 	DrawUi();
+
+	if (Input::IsKeyReleased(SAPP_KEYCODE_U))
+	{
+		SaveGame("save1.bin");
+	}
+
+	if (Input::IsKeyReleased(SAPP_KEYCODE_L))
+	{
+		LoadGame("save1.bin");
+	}
 
 	// Show the ImGui test window. Most of the sample code is in ImGui::ShowDemoWindow()
 	// ImGui::SetNextWindowPos(ImVec2(460, 20), ImGuiCond_FirstUseEver);

@@ -5,6 +5,7 @@
 
 #include "Texture.h"
 #include "Unit.h"
+#include "Serialization.h"
 
 class Grid;
 struct TilePosition;
@@ -18,10 +19,11 @@ class UnitManager
 {
 public:
 	UnitManager() = default;
+	std::vector<Unit> _units;
 
 private:
 	Grid* _grid {};
-	std::vector<Unit> _units;
+
 
 	// Unit tick functions
 	void OnTickUnitSawMill(Unit& unit);
@@ -67,3 +69,8 @@ public:
 
 	void SetGrid(Grid* grid);
 };
+
+struct Serializer;
+void Serialize(Serializer* ser, TilePosition* tilePosition);
+void Serialize(Serializer* ser, Unit* unit);
+void Serialize(Serializer* ser, UnitManager* unitManager);

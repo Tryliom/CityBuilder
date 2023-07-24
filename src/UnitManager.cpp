@@ -1198,3 +1198,33 @@ void UnitManager::SetGrid(Grid *grid)
 
 	_grid = grid;
 }
+
+void Serialize(Serializer* ser, TilePosition* tilePosition)
+{
+	Serialize(ser, &tilePosition->X);
+	Serialize(ser, &tilePosition->Y);
+}
+
+void Serialize(Serializer* ser, Unit* unit)
+{
+	Serialize(ser, (int*)&unit->CurrentBehavior);
+	Serialize(ser, &unit->Position);
+	Serialize(ser, &unit->TargetTile);
+
+	for (auto& item : *unit->Inventory)
+	{
+		Serialize(ser, &item.second);//Items(i)
+		//printf("Element %i : %i \n ", item.first, item.second); //Debug Unit Inventory 
+	}
+}
+
+void Serialize(Serializer* ser, UnitManager* unitManager)
+{
+	for (int i = 0; i < unitManager->_units.size(); i++)
+	{
+		Serialize(ser, &unitManager->_units[i]);
+		//printf("Unit %i : \n ", i+1); //Debug Unit Inventory
+	}
+}
+
+

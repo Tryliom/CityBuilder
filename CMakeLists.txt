@@ -11,7 +11,7 @@ set (CMAKE_CXX_STANDARD_REQUIRED ON)
 file(GLOB_RECURSE SRC src/*.cpp include/*.h libs/include/*.h)
 
 # Add executable
-add_executable(${PROJECT_NAME} ${SRC})
+add_executable(${PROJECT_NAME} ${SRC} "src/Serialization.cpp")
 
 # Include libraries
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/libs/include/)

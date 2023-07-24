@@ -292,3 +292,9 @@ namespace Graphics
 			(transformedPosition.X <= 0 && transformedPosition.X + transformedSize.X >= width && transformedPosition.Y <= 0 && transformedPosition.Y + transformedSize.Y >= height);
 	}
 }
+
+void Serialize(Serializer* ser, Camera* camera)
+{
+    Serialize(ser, &camera->Position);
+    Serialize(ser, &camera->Zoom);
+}

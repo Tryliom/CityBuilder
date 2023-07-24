@@ -7,6 +7,7 @@
 #include "DrawableObject.h"
 #include "Constants.h"
 #include <vector>
+#include "Serialization.h"
 
 struct ImGuiContext;
 struct ImGuiIO;
@@ -180,3 +181,6 @@ namespace Graphics
 
 	bool IsVisible(Vector2F position, Vector2F size);
 }
+
+struct Serializer;
+void Serialize(Serializer* ser, Camera* camera);
