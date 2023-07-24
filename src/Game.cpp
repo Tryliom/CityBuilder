@@ -193,7 +193,7 @@ void UpdateCamera()
 
 void HandleInput()
 {
-	if (Input::IsKeyPressed(SAPP_KEYCODE_ESCAPE))
+	if (Input::IsKeyPressed(SAPP_KEYCODE_ESCAPE) && gameState->GameStarted)
 	{
 		gameState->GamePaused = !gameState->GamePaused;
 	}
