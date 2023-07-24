@@ -101,8 +101,9 @@ void InitGame(void* gameMemory, Image* tilemap, FrameData* frameData, ImGuiData*
 	gameState->Camera.Zoom = 1.f;
 
 	Audio::SetupSound();
-	Audio::PlaySoundClip(mainTheme, 1, 440, 0, 0, true);
+	Audio::PlaySoundClip(mainTheme, 0.1f, 440, 0, 0, true);
 
+	LOG ("audio" << mainTheme.sampleCount << " " << mainTheme.samplePerSec);
 }
 
 void OnFrame(FrameData *frameData, TimerData *timerData, const simgui_frame_desc_t* simguiFrameDesc)
