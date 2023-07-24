@@ -136,8 +136,8 @@ void OnFrame(FrameData *frameData, TimerData *timerData, const simgui_frame_desc
 	DrawUi();
 
 	// Show the ImGui test window. Most of the sample code is in ImGui::ShowDemoWindow()
-	ImGui::SetNextWindowPos(ImVec2(460, 20), ImGuiCond_FirstUseEver);
-	ImGui::ShowDemoWindow();
+	// ImGui::SetNextWindowPos(ImVec2(460, 20), ImGuiCond_FirstUseEver);
+	// ImGui::ShowDemoWindow();
 
 	SendDataToEngine(frameData);
 }
