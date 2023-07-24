@@ -101,7 +101,7 @@ void InitGame(void* gameMemory, Image* tilemap, FrameData* frameData, ImGuiData*
 	gameState->Camera.Zoom = 1.f;
 
 	Audio::SetupSound();
-	Audio::PlaySoundClip(mainTheme, 0.1f, 440, 0, 0, true);
+	Audio::PlaySoundClip(mainTheme, 0.5f, 440, 0, 0, true);
 
 	LOG ("audio" << mainTheme.sampleCount << " " << mainTheme.samplePerSec);
 }
