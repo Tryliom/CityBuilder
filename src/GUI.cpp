@@ -8,6 +8,32 @@
 #include "imgui.h"
 #include "util\sokol_imgui.h"
 
+bool constrMenuNeverOpened = true;
+
+Texture buildings[] =
+{
+	Texture(Buildings::Sawmill),
+	Texture(Buildings::BuilderHut),
+	Texture(Buildings::Quarry),
+	Texture(Buildings::Storage),
+	Texture(Buildings::House),
+	Texture(Road::Single),
+	Texture(Buildings::LogisticsCenter),
+	Texture(Buildings::InactiveFurnace)
+};
+
+bool isButtonSelected[ARR_LEN(buildings)] =
+{
+	true,
+	false,
+	false,
+	false,
+	false,
+	false,
+	false,
+	false
+};
+
 namespace GUI
 {
     void DrawStartMenu(bool* gameStarted)
@@ -80,6 +106,74 @@ namespace GUI
             ImGui::Text("%s", text.c_str());
             ImGui::Separator();
         }
+
+        ImGui::End();
+    }
+
+    void DrawConstructionMenu(int* buildingSelected, Vector2F* screenSize, ImTextureID* imTilemapTextureID)
+    {
+        ImGuiWindowFlags constrMenuFlags = ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_None;
+
+        ImGui::Begin("Construction Menu", NULL, constrMenuFlags);
+
+        if (constrMenuNeverOpened) 
+        {
+            ImGui::SetWindowCollapsed(true);
+            constrMenuNeverOpened = false;
+        }
+
+        if (ImGui::IsWindowCollapsed() && *buildingSelected != -1)
+        {
+            isButtonSelected[*buildingSelected] = false;
+            *buildingSelected = -1;
+        }
+
+        ImGui::SetWindowSize(ImVec2(200, screenSize->Y - 10));
+        ImVec2 windowSize = ImGui::GetWindowSize();
+        ImGui::SetWindowPos(ImVec2(screenSize->X - 5 - windowSize.x, 5), ImGuiCond_Always);
+
+        int i = 0;
+
+        for (auto& building : buildings)
+        {
+            auto uvs = Graphics::GetUvs(building);
+
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.7f, 0.8f, 1.f, 1.00f));
+
+            // Temporarily modify the button background color to indicate the selection
+            if (isButtonSelected[i])
+            {
+                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.7f, 0.8f, 1.f, 1.00f));
+            }
+            else
+            {
+                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.35f, 0.40f, 0.61f, 0.62f));
+            }
+
+            ImGui::PushID(i);
+
+            // Center the window content using ImGui layout features
+            ImVec2 windowContentRegion = ImGui::GetContentRegionAvail();
+            ImVec2 buttonSize(75, 75); 
+            ImVec2 windowCenter(ImGui::GetCursorPos().x + windowContentRegion.x * 0.5f - buttonSize.x * 0.5f,
+                                ImGui::GetCursorPos().y + windowContentRegion.y * 0.5f - buttonSize.y * 0.5f);
+
+            ImGui::SetCursorPosX(windowCenter.x);
+
+            // Use the sg_image handle (converted to ImTextureID) for the image button
+            if (ImGui::ImageButton(*imTilemapTextureID, buttonSize, ImVec2(uvs[0].X, uvs[0].Y), ImVec2(uvs[2].X, uvs[2].Y)))
+            {
+                isButtonSelected[*buildingSelected] = false;
+                *buildingSelected = i;
+                isButtonSelected[*buildingSelected] = true;
+            }
+
+            ImGui::PopID();
+
+            i++;
+        }
+
+        ImGui::PopStyleColor(i * 2);
 
         ImGui::End();
     }
