@@ -126,11 +126,17 @@ void OnFrame(FrameData *frameData, TimerData *timerData, const simgui_frame_desc
 {
 	ReceiveDataFromEngine(frameData, timerData);
 
+	Graphics::frameCount = frameData->frameCount;
+
 	Graphics::ClearFrameBuffers();
 
 	simgui_new_frame(simguiFrameDesc);
 
+	Graphics::SetCameraSize(frameData->screenSize.X, frameData->screenSize.Y);
 	UpdateCamera();
+	// Update the current camera state.
+	Graphics::camera.Pivot = centerOfScreen;
+	gameState->Camera = Graphics::camera;
 	Graphics::CalculTransformationMatrix();
 
 	auto mousePosition = Input::GetMousePosition();
@@ -158,10 +164,6 @@ void OnFrame(FrameData *frameData, TimerData *timerData, const simgui_frame_desc
 	// Show the ImGui test window. Most of the sample code is in ImGui::ShowDemoWindow()
 	ImGui::SetNextWindowPos(ImVec2(460, 20), ImGuiCond_FirstUseEver);
 	ImGui::ShowDemoWindow();
-
-	// Update the current camera state.
-	Graphics::camera.Pivot = centerOfScreen;
-	gameState->Camera = Graphics::camera;
 
 	SendDataToEngine(frameData);
 }

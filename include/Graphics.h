@@ -41,6 +41,8 @@ struct FrameData
 
 	Vector2I screenSize;
 	Vector2F screenCenter;
+
+	int frameCount;
 };
 
 struct TextureData

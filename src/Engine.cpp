@@ -52,9 +52,9 @@ static bool show_another_window = false;
 
 // ====== Hot Reload =========
 
-void (*DLL_OnLoad)  (Image*, FrameData*, ImGuiData*) = nullptr;
+void (*DLL_OnLoad)  (Image*, FrameData*, ImGuiData*, ImTextureID*) = nullptr;
 void (*DLL_OnInput) (const sapp_event*) = nullptr;
-void (*DLL_InitGame)(void*, Image*, FrameData*, ImGuiData*) = nullptr;
+void (*DLL_InitGame)(void*, Image*, FrameData*, ImGuiData*, ImTextureID*) = nullptr;
 void (*DLL_OnFrame) (void*, FrameData*, TimerData*, const simgui_frame_desc_t*) = nullptr;
 
 void* gameStateMemory = nullptr;
@@ -150,19 +150,19 @@ void LoadDLL()
 
         assert(libHandle != NULL && "Couldn't load Game.dll");
 
-        DLL_OnLoad = (void (*)(Image*, FrameData*, ImGuiData*))GetProcAddress(libHandle, "DLL_OnLoad"); 
+        DLL_OnLoad = (void (*)(Image*, FrameData*, ImGuiData*, ImTextureID*))GetProcAddress(libHandle, "DLL_OnLoad"); 
         assert(DLL_OnLoad != NULL && "Couldn't find function DLL_OnLoad in Game.dll");
 
         DLL_OnInput = (void (*)(const sapp_event*))GetProcAddress(libHandle, "DLL_OnInput"); 
         assert(DLL_OnInput != NULL && "Couldn't find function DLL_OnInput in Game.dll");
 
-        DLL_InitGame = (void (*)(void*, Image*, FrameData*, ImGuiData*))GetProcAddress(libHandle, "DLL_InitGame"); 
+        DLL_InitGame = (void (*)(void*, Image*, FrameData*, ImGuiData*, ImTextureID*))GetProcAddress(libHandle, "DLL_InitGame"); 
         assert(DLL_InitGame != NULL && "Couldn't find function DLL_InitGame in Game.dll");
 
         DLL_OnFrame  = (void (*)(void*, FrameData*, TimerData*, const simgui_frame_desc_t*))GetProcAddress(libHandle, "DLL_OnFrame"); 
         assert(DLL_OnFrame != NULL && "Couldn't find function DLL_OnFrame in Game.dll");
 
-        if (DLL_OnLoad) DLL_OnLoad(&tilemap, &frameData, &imguiData);
+        if (DLL_OnLoad) DLL_OnLoad(&tilemap, &frameData, &imguiData, &imTextureID);
     }
 }
 
@@ -257,11 +257,12 @@ static void init()
     gameStateMemory = malloc(GAME_STATE_MAX_BYTE_SIZE);
     memset(gameStateMemory, 0, GAME_STATE_MAX_BYTE_SIZE);
 
+    imTextureID = (ImTextureID)(uintptr_t)state.bind.fs_images[SLOT_tex].id;
+
     #ifdef HOT_RELOAD
     LoadDLL();
-    if(DLL_InitGame) DLL_InitGame(gameStateMemory, &tilemap, &frameData, &imguiData);
+    if(DLL_InitGame) DLL_InitGame(gameStateMemory, &tilemap, &frameData, &imguiData, &imTextureID);
     #else
-    imTextureID = (ImTextureID)(uintptr_t)state.bind.fs_images[SLOT_tex].id;
     InitGame(gameStateMemory, &tilemap, &frameData, &imguiData, &imTextureID);
     #endif
 
@@ -288,7 +289,9 @@ void frame()
     frameData.screenSize   = Vector2I{sapp_width(), sapp_height()};
     frameData.screenCenter = Vector2I{sapp_width(), sapp_height()} / 2;
 
-	Graphics::SetCameraSize(frameData.screenSize.X, frameData.screenSize.Y);
+    frameData.frameCount = Graphics::GetFrameCount();
+
+	//Graphics::SetCameraSize(frameData.screenSize.X, frameData.screenSize.Y);
 
     Timer::Update();
     timerData.Time = Timer::Time;
