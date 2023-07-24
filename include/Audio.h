@@ -2,8 +2,6 @@
 
 #include <cstdint>
 
-#define ARR_LEN(arr) ((int) (sizeof(arr) / sizeof(*arr)))
-
 struct SoundClip
 {
     float* samples;
@@ -15,6 +13,8 @@ struct Sound
 {
     double time;
     float amplitude, frequency;
+    // Attributes used to create some effect by changing the amplitude or the frequency.
+    // If you only want to play a .wav file, juste put the values to 0.f;
     float amplitudeFactor, frequencyFactor;
     bool looping;
     SoundClip clip;
