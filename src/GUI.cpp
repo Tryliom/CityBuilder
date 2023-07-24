@@ -107,7 +107,7 @@ namespace GUI
             }
 
             ImGui::SetCursorPos(ImVec2(windowCenter.x,  4.5f * yOffset));
-            if (ImGui::Button("Exit Settings", buttonSize)) 
+            if (ImGui::Button("Return", buttonSize)) 
             {
                 optionMenuOpened = false;
             }
@@ -165,7 +165,7 @@ namespace GUI
             }
 
             ImGui::SetCursorPos(ImVec2(windowCenter.x,  6 * yOffset));
-            if (ImGui::Button("Quite Game", buttonSize)) 
+            if (ImGui::Button("Quit Game", buttonSize)) 
             {
                 exit(1);
             }
@@ -221,14 +221,14 @@ namespace GUI
             }
 
             ImGui::SetCursorPos(ImVec2(windowCenter.x,  6 * yOffset));
-            if (ImGui::Button("Save and Quite", buttonSize)) 
+            if (ImGui::Button("Save and Quit", buttonSize)) 
             {
                 // TODO save the game
                 exit(1);
             }
 
             ImGui::SetCursorPos(ImVec2(windowCenter.x,  7.5f * yOffset));
-            if (ImGui::Button("Quite Game", buttonSize)) 
+            if (ImGui::Button("Quit Game", buttonSize)) 
             {
                 exit(1);
             }

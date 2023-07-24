@@ -141,7 +141,7 @@ void OnFrame(FrameData *frameData, TimerData *timerData, const simgui_frame_desc
 	gameState->UnitManager.DrawUnits(false);
 
 	// Reset the transformation matrix in order to not apply the world transformation to the UI.
-	Graphics::CalculTransformationMatrix(Vector2F::One);
+	//Graphics::CalculTransformationMatrix(Vector2F::One);
 	DrawUi();
 
 	// Show the ImGui test window. Most of the sample code is in ImGui::ShowDemoWindow()
@@ -202,7 +202,7 @@ void UpdateCamera()
 
 void HandleInput()
 {
-	if (Input::IsKeyPressed(SAPP_KEYCODE_ESCAPE))
+	if (Input::IsKeyPressed(SAPP_KEYCODE_ESCAPE) && gameState->GameStarted)
 	{
 		gameState->GamePaused = !gameState->GamePaused;
 	}
