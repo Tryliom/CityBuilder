@@ -192,7 +192,7 @@ Texture Grid::getRoadTexture(TilePosition position)
     return Texture(Road::Single);
 }
 
-void Grid::Draw(bool drawLandAndRoads)
+void Grid::Draw(bool drawLandAndRoads, bool isMouseOnAWindow)
 {
     Random::UseSeed();
 
@@ -243,7 +243,7 @@ void Grid::Draw(bool drawLandAndRoads)
 				}
             }
 
-            if (!drawLandAndRoads && mouse == TilePosition{x, y})
+            if (!drawLandAndRoads && mouse == TilePosition{x, y} && !isMouseOnAWindow)
             {
                 Graphics::DrawRect(
                     position,

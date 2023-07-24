@@ -2,6 +2,8 @@
 #include "Graphics.h"
 #include "Tile.h"
 #include "Grid.h"
+#include "Input.h"
+#include "Logger.h"
 
 #include "sokol_app.h"
 #include "sokol_gfx.h"
@@ -48,6 +50,9 @@ namespace GUI
                                  ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
         ImGui::SetNextWindowBgAlpha(0.6); // Transparent background
         ImGui::Begin("Start Menu", &isOpen, flags);
+
+        ImGui::SetWindowFocus("Start Menu");
+
         ImGui::SetWindowFontScale(2.f);
 
         // Center the window content using ImGui layout features
@@ -77,13 +82,28 @@ namespace GUI
         ImGui::End();
     }
 
-    void DrawTileInventory(Tile& tile)
+    void DrawTileInventory(Tile& tile, bool* isMouseOnAWindow)
     {
+        ImVec2 windowPos(5, 120);
+
+        auto mousePos = Input::GetMousePosition();
+
+        // Check if the tile that the mouse hovers is under the inventory window.
+        // If so, we say that the mouse is not an a window in order to avoid a graphic bug.
+        if (mousePos.X >= windowPos.x && mousePos.X <= windowPos.x  + 200 &&
+            mousePos.Y >= windowPos.y && mousePos.Y <= windowPos.y  + 200)
+        {
+            *isMouseOnAWindow = false;
+        }
+
+        // If the mouse is an a window/menu, doesn't draw the inventory.
+        if(*isMouseOnAWindow) return;
+
         ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | 
 											ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
         ImGui::SetNextWindowBgAlpha(0.5); // Transparent background
         ImGui::Begin("Inventory", NULL, window_flags);
-        ImGui::SetWindowPos(ImVec2(5, 120), ImGuiCond_Always);
+        ImGui::SetWindowPos(windowPos, ImGuiCond_Always);
         ImGui::SetWindowFontScale(1.35f);
         //ImGui::SetWindowSize(ImVec2(200, 400), ImGuiCond_Always);
 

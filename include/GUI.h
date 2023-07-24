@@ -11,7 +11,7 @@ namespace GUI
 {
     void DrawStartMenu(bool* gameStarted);
 
-    void DrawTileInventory(Tile& tile);
+    void DrawTileInventory(Tile& tile, bool* isMouseOnAWindow);
 
     void DrawConstructionMenu(int* buildingSelected, Vector2F* screenSize, ImTextureID* imTilemapTextureID);
 };

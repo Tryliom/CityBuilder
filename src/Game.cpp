@@ -49,8 +49,6 @@ struct GameState
 
 GameState *gameState = nullptr;
 
-
-
 TileType textureToTileType[] =
 {
 	TileType::Sawmill,
@@ -65,14 +63,13 @@ TileType textureToTileType[] =
 
 int buildingSelected = 0;
 
-
-
 int gridWidth = 5000, gridHeight = 5000, tileSize = 100;
 
 Vector2F screenSize;
 Vector2F centerOfScreen;
 
 float speed = 500.f;
+float sprintSpeed = 800.f;
 
 ImGuiData currentImGuiData = {};
 
@@ -102,8 +99,6 @@ void OnFrame(FrameData *frameData, TimerData *timerData, const simgui_frame_desc
 {
 	ReceiveDataFromEngine(frameData, timerData);
 
-	Graphics::frameCount = frameData->frameCount;
-
 	Graphics::ClearFrameBuffers();
 
 	simgui_new_frame(simguiFrameDesc);
@@ -117,6 +112,7 @@ void OnFrame(FrameData *frameData, TimerData *timerData, const simgui_frame_desc
 
 	auto mousePosition = Input::GetMousePosition();
 	isMouseOnAWindow = currentImGuiData.IO->WantCaptureMouse;
+
 	HandleInput();
 
 	Input::Update();
@@ -129,11 +125,12 @@ void OnFrame(FrameData *frameData, TimerData *timerData, const simgui_frame_desc
 	gameState->Grid.Update();
 	gameState->UnitManager.UpdateUnits();
 
-	gameState->Grid.Draw(true);
+	gameState->Grid.Draw(true, isMouseOnAWindow);
 	gameState->UnitManager.DrawUnits(true);
-	gameState->Grid.Draw(false);
+	gameState->Grid.Draw(false, isMouseOnAWindow);
 	gameState->UnitManager.DrawUnits(false);
 
+	// Reset the transformation matrix in order to not apply the world transformation to the UI.
 	Graphics::CalculTransformationMatrix(Vector2F::One);
 	DrawUi();
 
@@ -149,7 +146,7 @@ void UpdateCamera()
 	auto mousePosition = Input::GetMousePosition();
 	auto previousMousePosition = Input::GetPreviousMousePosition();
 	auto smoothDeltaTime = Timer::SmoothDeltaTime;
-	auto movementValue = speed * smoothDeltaTime;
+	auto movementValue = Input::IsKeyHeld(SAPP_KEYCODE_LEFT_SHIFT) ? sprintSpeed * smoothDeltaTime : speed * smoothDeltaTime;
 	auto mouseWorldPosition = Graphics::ScreenToWorld(mousePosition);
 
 	if (Input::IsKeyHeld(SAPP_KEYCODE_A))
@@ -283,7 +280,7 @@ void DrawUi()
 
         if (tile.Type != TileType::None && tile.Type != TileType::Road)
         {
-			GUI::DrawTileInventory(tile);
+			GUI::DrawTileInventory(tile, &isMouseOnAWindow);
         }
     }
 }
@@ -364,6 +361,8 @@ void ReceiveDataFromEngine(FrameData* frameData, TimerData* timerData)
 	// Update the screen values.
 	screenSize     = frameData->screenSize;
 	centerOfScreen = frameData->screenCenter;
+
+	Graphics::frameCount = frameData->frameCount;
 
 	// Get the timer data from the engine.
 	Timer::Time = timerData->Time;
