@@ -43,6 +43,7 @@ struct GameState
 	UnitManager UnitManager;
 
 	bool GameStarted = false;
+	bool GamePaused  = false;
 
 	// int Seed;
 };
@@ -143,6 +144,8 @@ void OnFrame(FrameData *frameData, TimerData *timerData, const simgui_frame_desc
 
 void UpdateCamera()
 {
+	if (!gameState->GameStarted) return;
+
 	auto mousePosition = Input::GetMousePosition();
 	auto previousMousePosition = Input::GetPreviousMousePosition();
 	auto smoothDeltaTime = Timer::SmoothDeltaTime;
@@ -190,6 +193,11 @@ void UpdateCamera()
 
 void HandleInput()
 {
+	if (Input::IsKeyPressed(SAPP_KEYCODE_ESCAPE))
+	{
+		gameState->GamePaused = !gameState->GamePaused;
+	}
+
 	mousePositionInWorld = Graphics::ScreenToWorld(Input::GetMousePosition());
 
 	if (Input::IsKeyPressed(SAPP_KEYCODE_F))
@@ -270,6 +278,11 @@ void HandleInput()
 
 void DrawUi()
 {
+	if (gameState->GamePaused)
+	{
+		GUI::DrawPauseMenu(&gameState->GamePaused);
+	}
+
 	GUI::DrawConstructionMenu(&buildingSelected, &screenSize, imTilemapTextureID);
 
 	TilePosition mouseTilePosition = gameState->Grid.GetTilePosition(mousePositionInWorld);
@@ -405,7 +418,8 @@ extern "C"		   // we need to export the C interface
 
 	EXPORT void DLL_OnFrame(void *gameMemory, FrameData *frameData, TimerData *timerData, const simgui_frame_desc_t* simguiFrameDesc)
 	{
-		// Update the gameState. When a new DLL is created, it will automatically set his gameState to the old one.
+		// Update the gameState. 
+		// When a new DLL is created, it will automatically set his gameState to the old one.
 		gameState = (GameState *)gameMemory;
 
 		Graphics::camera = gameState->Camera;

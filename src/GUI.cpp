@@ -10,7 +10,14 @@
 #include "imgui.h"
 #include "util\sokol_imgui.h"
 
+bool optionMenuOpened = false;
 bool constrMenuNeverOpened = true;
+
+bool mustToggleFullScreen = true;
+bool soundOn = true;
+
+ImGuiWindowFlags fullScrennWinFlags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | 
+                                      ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
 
 Texture buildings[] =
 {
@@ -38,48 +45,198 @@ bool isButtonSelected[ARR_LEN(buildings)] =
 
 namespace GUI
 {
+    void SetupFullScreenWindow()
+    {
+        const ImGuiViewport* viewport = ImGui::GetMainViewport();
+        ImGui::SetNextWindowPos(viewport->WorkPos);
+        ImGui::SetNextWindowSize(viewport->WorkSize);
+        
+        ImGui::SetNextWindowBgAlpha(0.6); // Transparent background
+    }
+
+    void DrawOptionMenu()
+    {
+         if (ImGui::Begin("Settings Menu", NULL, fullScrennWinFlags));
+        {
+            ImGui::SetWindowFocus("Settings Menu");
+
+            ImGui::SetWindowFontScale(2.f);
+
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.35f, 0.40f, 0.61f, 1.f));
+
+            // Center the window content using ImGui layout features
+            ImVec2 windowContentRegion = ImGui::GetContentRegionAvail();
+            ImVec2 buttonSize(250, 75); // Adjust button size as needed
+            ImVec2 windowCenter(ImGui::GetCursorPos().x + windowContentRegion.x * 0.5f - buttonSize.x * 0.5f,
+                                ImGui::GetCursorPos().y + windowContentRegion.y * 0.5f - buttonSize.y * 0.5f);
+
+            float yOffset = ImGui::GetWindowSize().y / 6.f;
+
+            ImGui::SetCursorPos(ImVec2(windowCenter.x, 1.5f * yOffset));
+            if (mustToggleFullScreen)
+            {
+                if (ImGui::Button("Full Screen : ON", buttonSize)) 
+                {
+                    mustToggleFullScreen = false;
+                    sapp_toggle_fullscreen();
+                }
+            }
+            else 
+            {
+                if (ImGui::Button("Full Screen : OFF", buttonSize)) 
+                {
+                    mustToggleFullScreen = true;
+                    sapp_toggle_fullscreen();
+                }
+            }
+
+            ImGui::SetCursorPos(ImVec2(windowCenter.x,  3 * yOffset));
+            if (soundOn)
+            {
+                if (ImGui::Button("Sound : ON", buttonSize)) 
+                {
+                    soundOn = false;
+                }
+            }
+            else
+            {
+                if (ImGui::Button("Sound : OFF", buttonSize)) 
+                {
+                    soundOn = true;
+                }
+            }
+
+            ImGui::SetCursorPos(ImVec2(windowCenter.x,  4.5f * yOffset));
+            if (ImGui::Button("Exit Settings", buttonSize)) 
+            {
+                optionMenuOpened = false;
+            }
+
+            ImGui::PopStyleColor(1);
+
+            ImGui::End();
+        }
+    }
+
     void DrawStartMenu(bool* gameStarted)
     {
         Graphics::CalculTransformationMatrix(Vector2F::One);
 
-        bool isOpen = false;
-        const ImGuiViewport* viewport = ImGui::GetMainViewport();
-        ImGui::SetNextWindowPos(viewport->WorkPos);
-        ImGui::SetNextWindowSize(viewport->WorkSize);
-        ImGuiWindowFlags flags = ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoSavedSettings | 
-                                 ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoNav;
-        ImGui::SetNextWindowBgAlpha(0.6); // Transparent background
-        ImGui::Begin("Start Menu", &isOpen, flags);
+        SetupFullScreenWindow();
 
-        ImGui::SetWindowFocus("Start Menu");
-
-        ImGui::SetWindowFontScale(2.f);
-
-        // Center the window content using ImGui layout features
-        ImVec2 windowContentRegion = ImGui::GetContentRegionAvail();
-        ImVec2 buttonSize(250, 75); // Adjust button size as needed
-        ImVec2 windowCenter(ImGui::GetCursorPos().x + windowContentRegion.x * 0.5f - buttonSize.x * 0.5f,
-                            ImGui::GetCursorPos().y + windowContentRegion.y * 0.5f - buttonSize.y * 0.5f);
-
-        ImGui::SetCursorPos(ImVec2(windowCenter.x, windowCenter.y / 2.f));
-        if (ImGui::Button("Start", buttonSize)) 
+        if (optionMenuOpened)
         {
-            *gameStarted = true;
+            DrawOptionMenu();
+            return;
         }
 
-        ImGui::SetCursorPos(windowCenter);
-        if (ImGui::Button("Reset", buttonSize)) 
+        if (ImGui::Begin("Start Menu", NULL, fullScrennWinFlags));
         {
-            // TODO reset the save.
+            ImGui::SetWindowFocus("Start Menu");
+
+            ImGui::SetWindowFontScale(2.f);
+
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.35f, 0.40f, 0.61f, 1.f));
+
+            // Center the window content using ImGui layout features
+            ImVec2 windowContentRegion = ImGui::GetContentRegionAvail();
+            ImVec2 buttonSize(250, 75); // Adjust button size as needed
+            ImVec2 windowCenter(ImGui::GetCursorPos().x + windowContentRegion.x * 0.5f - buttonSize.x * 0.5f,
+                                ImGui::GetCursorPos().y + windowContentRegion.y * 0.5f - buttonSize.y * 0.5f);
+
+            float yOffset = ImGui::GetWindowSize().y / 8.f;
+
+            ImGui::SetCursorPos(ImVec2(windowCenter.x, 1.5f * yOffset));
+            if (ImGui::Button("Start", buttonSize)) 
+            {
+                *gameStarted = true;
+            }
+
+            ImGui::SetCursorPos(ImVec2(windowCenter.x,  3 * yOffset));
+            if (ImGui::Button("Settings", buttonSize)) 
+            {
+                optionMenuOpened = true;
+            }
+
+            ImGui::SetCursorPos(ImVec2(windowCenter.x,  4.5f * yOffset));
+            if (ImGui::Button("Reset", buttonSize)) 
+            {
+                // TODO reset the save.
+            }
+
+            ImGui::SetCursorPos(ImVec2(windowCenter.x,  6 * yOffset));
+            if (ImGui::Button("Quite Game", buttonSize)) 
+            {
+                exit(1);
+            }
+
+            ImGui::PopStyleColor(1);
+
+            ImGui::End();
+        }
+    }
+
+    void DrawPauseMenu(bool *gamePaused)
+    {
+        SetupFullScreenWindow();
+
+        if (optionMenuOpened)
+        {
+            DrawOptionMenu();
+            return;
         }
 
-        ImGui::SetCursorPos(ImVec2(windowCenter.x, windowCenter.y + windowCenter.y / 2.f));
-        if (ImGui::Button("Exit", buttonSize)) 
+        if (ImGui::Begin("Start Menu", NULL, fullScrennWinFlags));
         {
-            exit(1);
-        }
+            ImGui::SetWindowFocus("Start Menu");
 
-        ImGui::End();
+            ImGui::SetWindowFontScale(2.f);
+
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.35f, 0.40f, 0.61f, 1.f));
+
+            // Center the window content using ImGui layout features
+            ImVec2 windowContentRegion = ImGui::GetContentRegionAvail();
+            ImVec2 buttonSize(250, 75); // Adjust button size as needed
+            ImVec2 windowCenter(ImGui::GetCursorPos().x + windowContentRegion.x * 0.5f - buttonSize.x * 0.5f,
+                                ImGui::GetCursorPos().y + windowContentRegion.y * 0.5f - buttonSize.y * 0.5f);
+
+            float yOffset = ImGui::GetWindowSize().y / 10.f;
+
+            ImGui::SetCursorPos(ImVec2(windowCenter.x, 1.5f * yOffset));
+            if (ImGui::Button("Resume", buttonSize)) 
+            {
+                *gamePaused = false;
+            }
+
+            ImGui::SetCursorPos(ImVec2(windowCenter.x,  3 * yOffset));
+            if (ImGui::Button("Settings", buttonSize)) 
+            {
+                optionMenuOpened = true;
+            }
+
+            ImGui::SetCursorPos(ImVec2(windowCenter.x,  4.5f * yOffset));
+            if (ImGui::Button("Save", buttonSize)) 
+            {
+                // TODO save the game.
+            }
+
+            ImGui::SetCursorPos(ImVec2(windowCenter.x,  6 * yOffset));
+            if (ImGui::Button("Save and Quite", buttonSize)) 
+            {
+                // TODO save the game
+                exit(1);
+            }
+
+            ImGui::SetCursorPos(ImVec2(windowCenter.x,  7.5f * yOffset));
+            if (ImGui::Button("Quite Game", buttonSize)) 
+            {
+                exit(1);
+            }
+
+            ImGui::PopStyleColor(1);
+
+            ImGui::End();
+        }
     }
 
     void DrawTileInventory(Tile& tile, bool* isMouseOnAWindow)
