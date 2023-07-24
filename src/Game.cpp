@@ -35,6 +35,11 @@ void SendDataToEngine(FrameData* frameData);
 
 // ========= Game attributes ===========
 
+
+// ========= Audio ===========
+
+auto mainTheme = Audio::loadSoundClip("assets/MainTheme.wav");
+
 struct GameState
 {
 	Camera Camera;
@@ -94,6 +99,10 @@ void InitGame(void* gameMemory, Image* tilemap, FrameData* frameData, ImGuiData*
 	GenerateMap();
 
 	gameState->Camera.Zoom = 1.f;
+
+	Audio::SetupSound();
+	Audio::PlaySoundClip(mainTheme, 1, 440, 0, 0, true);
+
 }
 
 void OnFrame(FrameData *frameData, TimerData *timerData, const simgui_frame_desc_t* simguiFrameDesc)
