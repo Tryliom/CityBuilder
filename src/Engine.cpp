@@ -1,5 +1,5 @@
 #define SOKOL_IMPL
-#define SOKOL_GLCORE33
+//#define SOKOL_GLCORE33
 #include "sokol_app.h"
 #include "sokol_gfx.h"
 #include "sokol_log.h"
@@ -17,19 +17,17 @@
 #include "Input.h"
 #include "Logger.h"
 #include "Timer.h"
+#include "Platform.h"
 
 #include "Graphics.h"
 
 #include <assert.h>
+
 #ifdef _WIN32
     #include <malloc.h> // NOTE: on unix there is no malloc.h, it's in stdlib or something
     #include <Windows.h> 
     #include <Shlwapi.h> // Include this header for PathCombine function
     #pragma comment(lib, "Shlwapi.lib") // Link to the Shlwapi library
-#endif
-
-#ifdef __APPLE__
-    #include <dlfcn.h>
 #endif
 
 #include <stdint.h>
@@ -92,118 +90,9 @@ void RunnerOnEvent(const sapp_event* event)
     simgui_handle_event(event);
 }
 
-
-#ifdef _WIN32
-
-bool FileExists(const char* path) 
-{
-	return GetFileAttributesA(path) != INVALID_FILE_ATTRIBUTES;
-}
-
-int64_t LastModified(const char* path) 
-{
-	if (!FileExists(path)) 
-    {
-		return -1;
-	}
-
-	FILETIME ftLastWriteTime;
-
-    // Open the file, specifying the desired access rights, sharing mode, and other parameters.
-	HANDLE hFile = CreateFileA(path, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-
-	if (hFile != INVALID_HANDLE_VALUE && GetFileTime(hFile, NULL, NULL, &ftLastWriteTime)) 
-    {
-		ULARGE_INTEGER uli;
-		uli.LowPart  = ftLastWriteTime.dwLowDateTime;
-		uli.HighPart = ftLastWriteTime.dwHighDateTime;
-		CloseHandle(hFile);
-
-		return static_cast<int64_t>(uli.QuadPart / 10000000ULL - 11644473600ULL);
-	}
-
-	return -1;
-}
-
-#else
-
-#include <sys/stat.h> // for mkdir
-#include <sys/types.h>
-
-int64_t LastModified(const char* path) 
-{
-	struct stat info;
-	int err = stat(path, &info);
-	assert(err == 0);
-
-    //struct timespec time = info.st_mtimespec;
-	time_t time = info.st_mtime; // From some documentation: "For historical reasons, it is generally implemented as an integral value representing the number of seconds elapsed since 00:00 hours, Jan 1, 1970 UTC(i.e., a unix timestamp). Although libraries may implement this type using alternative time representations.
-
-	return (uint64_t) time;
-}
-
-#define MAX_PATH 256 // TEMP
-
-#endif
-
-void* PlatformDllOpen(const char* path)
-{
-    #if defined(_WIN32)
-        HINSTANCE hInst;
-        hInst = LoadLibrary(path);
-        if (hInst==NULL) {
-            printf("rdx_dll_open error: %s\n", GetLastError());
-            exit(-1);
-        }
-        return hInst;
-	#elif defined(__APPLE__) || defined(LINUX)
-        void* lib = dlopen(path, RTLD_LOCAL | RTLD_NOW);
-        if (lib == NULL) {
-            char buff[1000];
-            getcwd(buff, 1000);
-            printf("Couldn't load dynamic lib '%s': %s\n", path, dlerror());
-            abort();
-        }
-        return lib;
-	#endif
-}
-
-int PlatformDllClose(void* handle)
-{
-	#ifdef _WIN32
-    int rc = 0;
-	BOOL ok;
-    ok = FreeLibrary((HINSTANCE)handle);
-    if (!ok) {
-		printf("PlatformDllClose error: %s\n", GetLastError());
-        //var.lasterror = GetLastError();
-        //var.err_rutin = "dlclose";
-        rc = -1;
-    }
-    return rc;
-	#elif defined(__APPLE__) || defined(LINUX)
-	return dlclose(handle);
-	#endif
-}
-
-void* PlatformGetSymbol(void* handle, const char* name)
-{
-	#ifdef _WIN32
-	FARPROC fp;
-
-    fp = GetProcAddress((HINSTANCE)handle, name);
-    if (!fp) {
-		printf("PlatformGetSymbol error: %s\n", GetLastError());
-    }
-    return (void *)(intptr_t)fp;
-	#elif defined(__APPLE__) || defined(LINUX)
-	return dlsym(handle, name);
-	#endif
-}
-
 void LoadDLL()
 {
-    int64_t newLastMod = LastModified("bin/Game.dll");
+    int64_t newLastMod = Platform::LastModified("bin/Game.dll");
 
     if (newLastMod != -1 && newLastMod != lastMod) 
     {
@@ -214,7 +103,7 @@ void LoadDLL()
         // Unload the previous DLL if it was loaded
         if (libHandle != NULL)
         {
-            PlatformDllClose(libHandle);
+            Platform::DllClose(libHandle);
             libHandle = NULL; // Reset the handle to indicate that the DLL is no longer loaded
         }
 
@@ -239,20 +128,20 @@ void LoadDLL()
         #endif
 
         // Load new version of the lib : could ask the game to deserialize itself just after loading).
-        libHandle = PlatformDllOpen(newDllPath);
+        libHandle = Platform::DllOpen(newDllPath);
 
         assert(libHandle != NULL && "Couldn't load Game.dll");
 
-        DLL_OnLoad = (void (*)(Image*, FrameData*, ImGuiData*, ImTextureID*))PlatformGetSymbol(libHandle, "DLL_OnLoad"); 
+        DLL_OnLoad = (void (*)(Image*, FrameData*, ImGuiData*, ImTextureID*))Platform::GetSymbol(libHandle, "DLL_OnLoad"); 
         assert(DLL_OnLoad != NULL && "Couldn't find function DLL_OnLoad in Game.dll");
 
-        DLL_OnInput = (void (*)(const sapp_event*))PlatformGetSymbol(libHandle, "DLL_OnInput"); 
+        DLL_OnInput = (void (*)(const sapp_event*))Platform::GetSymbol(libHandle, "DLL_OnInput"); 
         assert(DLL_OnInput != NULL && "Couldn't find function DLL_OnInput in Game.dll");
 
-        DLL_InitGame = (void (*)(void*, Image*, FrameData*, ImGuiData*, ImTextureID*))PlatformGetSymbol(libHandle, "DLL_InitGame"); 
+        DLL_InitGame = (void (*)(void*, Image*, FrameData*, ImGuiData*, ImTextureID*))Platform::GetSymbol(libHandle, "DLL_InitGame"); 
         assert(DLL_InitGame != NULL && "Couldn't find function DLL_InitGame in Game.dll");
 
-        DLL_OnFrame  = (void (*)(void*, FrameData*, TimerData*, const simgui_frame_desc_t*))PlatformGetSymbol(libHandle, "DLL_OnFrame"); 
+        DLL_OnFrame  = (void (*)(void*, FrameData*, TimerData*, const simgui_frame_desc_t*))Platform::GetSymbol(libHandle, "DLL_OnFrame"); 
         assert(DLL_OnFrame != NULL && "Couldn't find function DLL_OnFrame in Game.dll");
 
         if (DLL_OnLoad) DLL_OnLoad(&tilemap, &frameData, &imguiData, &imTextureID);
@@ -270,7 +159,7 @@ static void init()
     frameData.screenSize   = Vector2F{sapp_widthf(), sapp_heightf()};
     frameData.screenCenter = Vector2F{sapp_widthf(), sapp_heightf()} / 2.f;
 
-    sapp_toggle_fullscreen();
+    //sapp_toggle_fullscreen();
 
 	tilemap.AddImagesAtRow(Graphics::tileSheets);
 
