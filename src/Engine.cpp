@@ -122,31 +122,46 @@ void LoadDLL()
 
         lastMod = newLastMod;
 
+        LOG("NEw LIB 1");
+
         // Unload the previous DLL if it was loaded
         if (libHandle != NULL)
         {
+            LOG("NEw LIB 2");
             FreeLibrary(libHandle);
             libHandle = NULL; // Reset the handle to indicate that the DLL is no longer loaded
         }
 
+        LOG("NEw LIB 3");
+
         // Copy Game.dll to a random filename in the same directory before loading
         char exePath[MAX_PATH];
         GetModuleFileNameA(NULL, exePath, MAX_PATH);
+
+        LOG("NEw LIB 4");
 
         char dllPath[MAX_PATH];
         strcpy_s(dllPath, sizeof(dllPath), exePath);
         PathRemoveFileSpecA(dllPath); // Remove the executable filename from the path
         PathAppendA(dllPath, "Game.dll");
 
+        LOG("NEw LIB 5");
+
         char newDllPath[MAX_PATH];
         strcpy_s(newDllPath, sizeof(newDllPath), exePath);
         PathRemoveFileSpecA(newDllPath); // Remove the executable filename from the path
         PathAppendA(newDllPath, "newGame.dll");
 
+        LOG("NEw LIB 6");
+
         CopyFileA(dllPath, newDllPath, FALSE);
+
+         LOG(" CPOY ");
 
         // Load new version of the lib : could ask the game to deserialize itself just after loading).
         libHandle = LoadLibraryA(newDllPath);
+
+        LOG("NEw LIB 7");
 
         assert(libHandle != NULL && "Couldn't load Game.dll");
 
@@ -162,7 +177,11 @@ void LoadDLL()
         DLL_OnFrame  = (void (*)(void*, FrameData*, TimerData*, const simgui_frame_desc_t*))GetProcAddress(libHandle, "DLL_OnFrame"); 
         assert(DLL_OnFrame != NULL && "Couldn't find function DLL_OnFrame in Game.dll");
 
+        LOG("NEw LIB 8");
+
         if (DLL_OnLoad) DLL_OnLoad(&tilemap, &frameData, &imguiData, &imTextureID);
+
+        LOG("NEw LIB 9");
     }
 }
 
@@ -177,7 +196,7 @@ static void init()
     frameData.screenSize   = Vector2F{sapp_widthf(), sapp_heightf()};
     frameData.screenCenter = Vector2F{sapp_widthf(), sapp_heightf()} / 2.f;
 
-    sapp_toggle_fullscreen();
+    //sapp_toggle_fullscreen();
 
 	tilemap.AddImagesAtRow(Graphics::tileSheets);
 

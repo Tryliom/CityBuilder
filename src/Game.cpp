@@ -87,7 +87,6 @@ bool isMouseOnAWindow;
 
 ImTextureID* imTilemapTextureID;
 
-
 // ========= GAME SERIALIZATION LOGIC ============
 void SerializeGame(Serializer* serializer)
 {
@@ -124,7 +123,6 @@ void LoadGame(const char* fileName)
 	printf("Load \n");
 }
 
-
 // =========== Game Logic ============
 void InitGame(void* gameMemory, Image* tilemap, FrameData* frameData, ImGuiData* engineImGuiData, ImTextureID* imTextureID)
 {
@@ -140,14 +138,10 @@ void InitGame(void* gameMemory, Image* tilemap, FrameData* frameData, ImGuiData*
 	gameState->Camera.Zoom = 1.f;
 
 	Audio::SetupSound();
-	Audio::PlaySoundClip(mainTheme, 0.25f, 440, 0, 0, true);
+	Audio::PlaySoundClip(mainTheme, 0.5f, 440, 0, 0, true);
 
 	GUI::InitGUI(&SaveGame, &LoadGame);
-	LOG ("audio" << mainTheme.sampleCount << " " << mainTheme.samplePerSec);
 }
-
-
-
 
 void OnFrame(FrameData *frameData, TimerData *timerData, const simgui_frame_desc_t* simguiFrameDesc)
 {
@@ -430,6 +424,8 @@ void BindWithEngine(Image* tilemap, FrameData* frameData, ImGuiData* engineImGui
 	Graphics::textureHeight = tilemap->GetHeight();
 
 	imTilemapTextureID = imTextureID;
+
+	LOG("BINDED");
 }
 
 void ReceiveDataFromEngine(FrameData* frameData, TimerData* timerData)
@@ -471,6 +467,7 @@ extern "C"		   // we need to export the C interface
 
 	EXPORT void DLL_OnLoad(Image* tilemap, FrameData* frameData, ImGuiData* engineImGuiData, ImTextureID* imTextureID)
 	{
+		LOG("ON LOAD");
 		BindWithEngine(tilemap, frameData, engineImGuiData, imTextureID);
 	}
 
