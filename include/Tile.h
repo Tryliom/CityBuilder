@@ -73,6 +73,11 @@ struct Tile
 		{ Items::IronIngot, 0 }
 	};
 
+	Tile(TileType type)
+	{
+		Type = type;
+	}
+
 	void Reset()
 	{
 		Type = TileType::None;

@@ -8,7 +8,7 @@
 #include "sokol_app.h"
 #include "sokol_gfx.h"
 #include "imgui.h"
-#include "util\sokol_imgui.h"
+#include "util/sokol_imgui.h"
 
 bool optionMenuOpened = false;
 bool constrMenuNeverOpened = true;
@@ -67,7 +67,7 @@ namespace GUI
 
     void DrawOptionMenu()
     {
-         if (ImGui::Begin("Settings Menu", NULL, fullScrennWinFlags));
+        if (ImGui::Begin("Settings Menu", NULL, fullScrennWinFlags))
         {
             ImGui::SetWindowFocus("Settings Menu");
 
@@ -141,7 +141,7 @@ namespace GUI
             return;
         }
 
-        if (ImGui::Begin("Start Menu", NULL, fullScrennWinFlags));
+        if (ImGui::Begin("Start Menu", NULL, fullScrennWinFlags))
         {
             ImGui::SetWindowFocus("Start Menu");
 
@@ -201,7 +201,7 @@ namespace GUI
             return;
         }
 
-        if (ImGui::Begin("Start Menu", NULL, fullScrennWinFlags));
+        if (ImGui::Begin("Start Menu", NULL, fullScrennWinFlags))
         {
             ImGui::SetWindowFocus("Start Menu");
 

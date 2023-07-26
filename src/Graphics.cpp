@@ -147,7 +147,7 @@ namespace Graphics
             AppendVertex({{point.X, point.Y}, color});
         }
 
-        for (int i = 0; i < points.size() - 2; i++)
+        for (int i = 0; i < (int) points.size() - 2; i++)
         {
             indices[indicesUsed++] = startIndex;
             indices[indicesUsed++] = startIndex + i + 1;

@@ -1,5 +1,5 @@
 #define SOKOL_IMPL
-#define SOKOL_GLCORE33
+//#define SOKOL_GLCORE33
 #include "sokol_app.h"
 #include "sokol_gfx.h"
 #include "sokol_log.h"
@@ -7,7 +7,7 @@
 
 #include "imgui.h"
 #include "imgui_internal.h"
-#include "util\sokol_imgui.h"
+#include "util/sokol_imgui.h"
 
 #include "basic-sapp.glsl.h"
 
@@ -20,13 +20,20 @@
 #include "Graphics.h"
 
 #include <assert.h>
-#include <malloc.h>
-#include <Windows.h> 
+#ifdef _WIN32
+    #include <malloc.h> // NOTE: on unix there is no malloc.h, it's in stdlib or something
+    #include <Windows.h> 
+    #include <Shlwapi.h> // Include this header for PathCombine function
+    #pragma comment(lib, "Shlwapi.lib") // Link to the Shlwapi library
+#endif
+
+#ifdef __APPLE__
+    #include <dlfcn.h>
+#endif
+
 #include <stdint.h>
 #include <stdio.h>
-#include <Shlwapi.h> // Include this header for PathCombine function
 
-#pragma comment(lib, "Shlwapi.lib") // Link to the Shlwapi library
 
 struct vs_window
 {
@@ -52,17 +59,17 @@ static bool show_another_window = false;
 
 // ====== Hot Reload =========
 
-void (*DLL_OnLoad)  (Image*, FrameData*, ImGuiData*, ImTextureID*) = nullptr;
-void (*DLL_OnInput) (const sapp_event*) = nullptr;
-void (*DLL_InitGame)(void*, Image*, FrameData*, ImGuiData*, ImTextureID*) = nullptr;
-void (*DLL_OnFrame) (void*, FrameData*, TimerData*, const simgui_frame_desc_t*) = nullptr;
+static void (*DLL_OnLoad)  (Image*, FrameData*, ImGuiData*, ImTextureID*) = nullptr;
+static void (*DLL_OnInput) (const sapp_event*) = nullptr;
+static void (*DLL_InitGame)(void*, Image*, FrameData*, ImGuiData*, ImTextureID*) = nullptr;
+static void (*DLL_OnFrame) (void*, FrameData*, TimerData*, const simgui_frame_desc_t*) = nullptr;
 
 void* gameStateMemory = nullptr;
 
 // Handle to a loaded module (DLL).
-HMODULE libHandle = NULL; 
+void* libHandle = NULL; 
 
-uint64_t lastMod = 0;
+int64_t lastMod = 0;
 
 Image tilemap;
 ImTextureID imTextureID;
@@ -81,6 +88,9 @@ void RunnerOnEvent(const sapp_event* event)
 
     simgui_handle_event(event);
 }
+
+
+#ifdef _WIN32
 
 bool FileExists(const char* path) 
 {
@@ -112,9 +122,85 @@ int64_t LastModified(const char* path)
 	return -1;
 }
 
+#else
+
+#include <sys/stat.h> // for mkdir
+#include <sys/types.h>
+
+int64_t LastModified(const char* path) 
+{
+	struct stat info;
+	int err = stat(path, &info);
+	assert(err == 0);
+
+    //struct timespec time = info.st_mtimespec;
+	time_t time = info.st_mtime; // From some documentation: "For historical reasons, it is generally implemented as an integral value representing the number of seconds elapsed since 00:00 hours, Jan 1, 1970 UTC(i.e., a unix timestamp). Although libraries may implement this type using alternative time representations.
+
+	return (uint64_t) time;
+}
+
+void* PlatformDllOpen(const char* path)
+{
+    #if defined(_WIN32)
+        HINSTANCE hInst;
+        hInst = LoadLibrary(path);
+        if (hInst==NULL) {
+            printf("rdx_dll_open error: %s\n", GetLastError());
+            exit(-1);
+        }
+        return hInst;
+	#elif defined(__APPLE__) || defined(LINUX)
+        void* lib = dlopen(path, RTLD_LOCAL | RTLD_NOW);
+        if (lib == NULL) {
+            char buff[1000];
+            getcwd(buff, 1000);
+            printf("Couldn't load dynamic lib '%s': %s\n", path, dlerror());
+            abort();
+        }
+        return lib;
+	#endif
+}
+
+#define MAX_PATH 256 // TEMP
+
+#endif
+
+int PlatformDllClose(void* handle)
+{
+	#ifdef _WIN32
+    int rc = 0;
+	BOOL ok;
+    ok = FreeLibrary((HINSTANCE)handle);
+    if (!ok) {
+		printf("PlatformDllClose error: %s\n", GetLastError());
+        //var.lasterror = GetLastError();
+        //var.err_rutin = "dlclose";
+        rc = -1;
+    }
+    return rc;
+	#elif defined(__APPLE__) || defined(LINUX)
+	return dlclose(handle);
+	#endif
+}
+
+void* PlatformGetSymbol(void* handle, const char* name)
+{
+	#ifdef _WIN32
+	FARPROC fp;
+
+    fp = GetProcAddress((HINSTANCE)handle, name);
+    if (!fp) {
+		printf("PlatformGetSymbol error: %s\n", GetLastError());
+    }
+    return (void *)(intptr_t)fp;
+	#elif defined(__APPLE__) || defined(LINUX)
+	return dlsym(handle, name);
+	#endif
+}
+
 void LoadDLL()
 {
-    uint64_t newLastMod = LastModified("bin/Game.dll");
+    int64_t newLastMod = LastModified("bin/Game.dll");
 
     if (newLastMod != -1 && newLastMod != lastMod) 
     {
@@ -125,11 +211,12 @@ void LoadDLL()
         // Unload the previous DLL if it was loaded
         if (libHandle != NULL)
         {
-            FreeLibrary(libHandle);
+            PlatformDllClose(libHandle);
             libHandle = NULL; // Reset the handle to indicate that the DLL is no longer loaded
         }
 
         // Copy Game.dll to a random filename in the same directory before loading
+        #ifdef _WIN32
         char exePath[MAX_PATH];
         GetModuleFileNameA(NULL, exePath, MAX_PATH);
 
@@ -144,22 +231,25 @@ void LoadDLL()
         PathAppendA(newDllPath, "newGame.dll");
 
         CopyFileA(dllPath, newDllPath, FALSE);
+        #else
+            char* newDllPath = (char*) "./newGame.dylib";
+        #endif
 
         // Load new version of the lib : could ask the game to deserialize itself just after loading).
-        libHandle = LoadLibraryA(newDllPath);
+        libHandle = PlatformDllOpen(newDllPath);
 
         assert(libHandle != NULL && "Couldn't load Game.dll");
 
-        DLL_OnLoad = (void (*)(Image*, FrameData*, ImGuiData*, ImTextureID*))GetProcAddress(libHandle, "DLL_OnLoad"); 
+        DLL_OnLoad = (void (*)(Image*, FrameData*, ImGuiData*, ImTextureID*))PlatformGetSymbol(libHandle, "DLL_OnLoad"); 
         assert(DLL_OnLoad != NULL && "Couldn't find function DLL_OnLoad in Game.dll");
 
-        DLL_OnInput = (void (*)(const sapp_event*))GetProcAddress(libHandle, "DLL_OnInput"); 
+        DLL_OnInput = (void (*)(const sapp_event*))PlatformGetSymbol(libHandle, "DLL_OnInput"); 
         assert(DLL_OnInput != NULL && "Couldn't find function DLL_OnInput in Game.dll");
 
-        DLL_InitGame = (void (*)(void*, Image*, FrameData*, ImGuiData*, ImTextureID*))GetProcAddress(libHandle, "DLL_InitGame"); 
+        DLL_InitGame = (void (*)(void*, Image*, FrameData*, ImGuiData*, ImTextureID*))PlatformGetSymbol(libHandle, "DLL_InitGame"); 
         assert(DLL_InitGame != NULL && "Couldn't find function DLL_InitGame in Game.dll");
 
-        DLL_OnFrame  = (void (*)(void*, FrameData*, TimerData*, const simgui_frame_desc_t*))GetProcAddress(libHandle, "DLL_OnFrame"); 
+        DLL_OnFrame  = (void (*)(void*, FrameData*, TimerData*, const simgui_frame_desc_t*))PlatformGetSymbol(libHandle, "DLL_OnFrame"); 
         assert(DLL_OnFrame != NULL && "Couldn't find function DLL_OnFrame in Game.dll");
 
         if (DLL_OnLoad) DLL_OnLoad(&tilemap, &frameData, &imguiData, &imTextureID);

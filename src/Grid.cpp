@@ -39,7 +39,7 @@ Grid::Grid(int width, int height, int tileSize)
     {
         for (int y = 0; y < height / tileSize; y++)
         {
-            _tiles[x + y * width] = Tile();
+            _tiles[x + y * width] = Tile(TileType::None);
         }
     }
 }
@@ -414,7 +414,7 @@ void Grid::SetTile(TilePosition position, Tile tile)
 
 void Grid::RemoveTile(TilePosition position)
 {
-    _tiles[position.X + position.Y * _width] = Tile();
+    _tiles[position.X + position.Y * _width] = Tile(TileType::None);
 }
 
 std::vector<TilePosition> Grid::GetTiles(TileType type) const

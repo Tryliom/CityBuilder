@@ -1220,7 +1220,7 @@ void Serialize(Serializer* ser, Unit* unit)
 
 void Serialize(Serializer* ser, UnitManager* unitManager)
 {
-	for (int i = 0; i < unitManager->_units.size(); i++)
+	for (int i = 0; i < (int) unitManager->_units.size(); i++)
 	{
 		Serialize(ser, &unitManager->_units[i]);
 		//printf("Unit %i : \n ", i+1); //Debug Unit Inventory
