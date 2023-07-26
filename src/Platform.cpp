@@ -64,11 +64,13 @@ namespace Platform
         return (uint64_t) time;
     }
 
+    #endif
+
     void* DllOpen(const char* path)
     {
         #if defined(_WIN32)
             HINSTANCE hInst;
-            hInst = LoadLibrary(path);
+            hInst = LoadLibraryA(path);
             if (hInst==NULL) {
                 printf("DllOpen error: %s\n", GetLastError());
                 exit(-1);
@@ -83,8 +85,6 @@ namespace Platform
             return lib;
         #endif
     }
-
-    #endif
 
     int DllClose(void* handle)
     {

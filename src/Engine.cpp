@@ -1,5 +1,5 @@
 #define SOKOL_IMPL
-//#define SOKOL_GLCORE33
+#define SOKOL_GLCORE33
 #include "sokol_app.h"
 #include "sokol_gfx.h"
 #include "sokol_log.h"
@@ -159,7 +159,7 @@ static void init()
     frameData.screenSize   = Vector2F{sapp_widthf(), sapp_heightf()};
     frameData.screenCenter = Vector2F{sapp_widthf(), sapp_heightf()} / 2.f;
 
-    //sapp_toggle_fullscreen();
+    sapp_toggle_fullscreen();
 
 	tilemap.AddImagesAtRow(Graphics::tileSheets);
 
