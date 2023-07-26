@@ -409,8 +409,6 @@ void BindWithEngine(Image* tilemap, FrameData* frameData, ImGuiData* engineImGui
 	Graphics::textureHeight = tilemap->GetHeight();
 
 	imTilemapTextureID = imTextureID;
-
-	LOG("BINDED");
 }
 
 void ReceiveDataFromEngine(FrameData* frameData, TimerData* timerData)
