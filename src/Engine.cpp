@@ -1,5 +1,5 @@
 #define SOKOL_IMPL
-//#define SOKOL_GLCORE33
+#define SOKOL_GLCORE33
 #include "sokol_app.h"
 #include "sokol_gfx.h"
 #include "sokol_log.h"
@@ -142,6 +142,10 @@ int64_t LastModified(const char* path)
 	return (uint64_t) time;
 }
 
+#define MAX_PATH 256 // TEMP
+
+#endif
+
 void* PlatformDllOpen(const char* path)
 {
     #if defined(_WIN32)
@@ -163,10 +167,6 @@ void* PlatformDllOpen(const char* path)
         return lib;
 	#endif
 }
-
-#define MAX_PATH 256 // TEMP
-
-#endif
 
 int PlatformDllClose(void* handle)
 {
@@ -270,7 +270,7 @@ static void init()
     frameData.screenSize   = Vector2F{sapp_widthf(), sapp_heightf()};
     frameData.screenCenter = Vector2F{sapp_widthf(), sapp_heightf()} / 2.f;
 
-    //sapp_toggle_fullscreen();
+    sapp_toggle_fullscreen();
 
 	tilemap.AddImagesAtRow(Graphics::tileSheets);
 
