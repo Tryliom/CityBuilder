@@ -40,8 +40,6 @@ void SendDataToEngine(FrameData* frameData);
 
 // ========= Audio ===========
 
-auto mainTheme = Audio::loadSoundClip("assets/MainTheme.wav");
-
 struct GameState
 {
 	Camera Camera;
@@ -137,9 +135,6 @@ void InitGame(void* gameMemory, Image* tilemap, FrameData* frameData, ImGuiData*
 
 	gameState->Camera.Zoom = 1.f;
 
-	Audio::SetupSound();
-	Audio::PlaySoundClip(mainTheme, 0.5f, 440, 0, 0, true);
-
 	GUI::InitGUI(&SaveGame, &LoadGame);
 }
 
@@ -181,16 +176,6 @@ void OnFrame(FrameData *frameData, TimerData *timerData, const simgui_frame_desc
 	// Reset the transformation matrix in order to not apply the world transformation to the UI.
 	//Graphics::CalculTransformationMatrix(Vector2F::One);
 	DrawUi();
-
-	if (Input::IsKeyReleased(SAPP_KEYCODE_U))
-	{
-		SaveGame("save1.bin");
-	}
-
-	if (Input::IsKeyReleased(SAPP_KEYCODE_L))
-	{
-		LoadGame("save1.bin");
-	}
 
 	// Show the ImGui test window. Most of the sample code is in ImGui::ShowDemoWindow()
 	// ImGui::SetNextWindowPos(ImVec2(460, 20), ImGuiCond_FirstUseEver);
