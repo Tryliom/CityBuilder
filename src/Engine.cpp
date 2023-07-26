@@ -11,6 +11,7 @@
 
 #include "basic-sapp.glsl.h"
 
+#include "Audio.h"
 #include "Constants.h"
 #include "Image.h"
 #include "Input.h"
@@ -76,6 +77,8 @@ ImTextureID imTextureID;
 ImGuiData imguiData = {};
 FrameData frameData = {};
 TimerData timerData = {};
+
+auto mainTheme = Audio::loadSoundClip("assets/mainTheme.wav");
 
 void InitGame(void* gameMemory, Image* tilemap, FrameData* frameData, ImGuiData* engineImGuiData, ImTextureID* imTextureID);
 
@@ -267,7 +270,7 @@ static void init()
     frameData.screenSize   = Vector2F{sapp_widthf(), sapp_heightf()};
     frameData.screenCenter = Vector2F{sapp_widthf(), sapp_heightf()} / 2.f;
 
-    sapp_toggle_fullscreen();
+    //sapp_toggle_fullscreen();
 
 	tilemap.AddImagesAtRow(Graphics::tileSheets);
 
@@ -355,6 +358,9 @@ static void init()
     #else
     InitGame(gameStateMemory, &tilemap, &frameData, &imguiData, &imTextureID);
     #endif
+
+    Audio::SetupSound();
+	Audio::PlaySoundClip(mainTheme, 0.5f, 440, 0, 0, true);
 
     // a pass action to clear framebuffer to green
     state.pass_action = (sg_pass_action)
