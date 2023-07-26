@@ -373,10 +373,6 @@ void frame()
 {
 	Graphics::IncreaseFrameCount();
 
-    sg_begin_default_pass(&state.pass_action, sapp_width(), sapp_height());
-    sg_apply_pipeline(state.pip);
-    sg_apply_bindings(&state.bind);
-
     auto width  = sapp_width();
     auto height = sapp_height();
 
@@ -404,15 +400,34 @@ void frame()
     OnFrame(&frameData, &timerData, &imguiframeDesc);
     #endif
 
+    sg_begin_default_pass(&state.pass_action, sapp_width(), sapp_height());
+    sg_apply_pipeline(state.pip);
+    
+    // Check that the indices are in bounds
+    // NOTE(seb): added this when debugging the graphic issue. Leaving it as it can't hurt!
+    #ifndef NDEBUG
+    for (int index_idx = 0; index_idx < frameData.indexBufferUsed; index_idx++) {
+        int idx = frameData.indexBufferPtr[index_idx];
+        assert(idx < frameData.vertexBufferUsed && "An index was bigger than the index of the last vertex.");
+        assert(idx >= 0 && "An index was smaller than zero.");
+    }
+    #endif
+
     sg_update_buffer(state.bind.vertex_buffers[0], (sg_range){
 		.ptr = frameData.vertexBufferPtr,
 		.size = frameData.vertexBufferUsed * Graphics::VertexNbAttributes * sizeof(frameData.vertexBufferPtr[0])
 	});
-    sg_update_buffer(state.bind.index_buffer, (sg_range){.ptr = frameData.indexBufferPtr, .size = frameData.indexBufferUsed * sizeof(frameData.indexBufferPtr[0])});
 
-    sg_draw(0, frameData.vertexBufferUsed * Graphics::VertexNbAttributes, 1);
+    sg_update_buffer(state.bind.index_buffer, (sg_range){
+        .ptr = frameData.indexBufferPtr,
+        .size = frameData.indexBufferUsed * sizeof(frameData.indexBufferPtr[0])
+    });
 
-    sg_apply_uniforms(SG_SHADERSTAGE_VS, 0, (sg_range){.ptr = &state.vs_window, .size = sizeof(state.vs_window)});
+    sg_apply_uniforms(SG_SHADERSTAGE_VS, SLOT_vs_window, (sg_range){.ptr = &state.vs_window, .size = sizeof(state.vs_window)});
+    sg_apply_bindings(&state.bind);
+
+    //sg_draw(0, frameData.vertexBufferUsed * Graphics::VertexNbAttributes, 1);
+    sg_draw(0, frameData.indexBufferUsed, 1);
 
 	simgui_render();
     sg_end_pass();
