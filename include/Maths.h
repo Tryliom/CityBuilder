@@ -3,6 +3,7 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 #include <cmath>
+#include <numbers>
 
 #ifndef MAX
     #define MAX(a, b) ((a > b) ? a : b)
@@ -26,11 +27,11 @@ namespace MathUtility
     constexpr double epsilon = 0.000001;
 
     // the ratio of the circumference to the radius of a circle, which is equal to 2π
-    constexpr float TAU = 2.0f * M_PI;
+    constexpr float TAU = 2.0f * std::numbers::pi;
 
     inline float DegreesToRadians(float angle)
     {
-        return angle * M_PI / 180;
+        return angle * std::numbers::pi / 180;
     }
 };
 
