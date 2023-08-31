@@ -378,7 +378,10 @@ namespace GUI
             // Use the sg_image handle (converted to ImTextureID) for the image button
             if (ImGui::ImageButton(*imTilemapTextureID, buttonSize, ImVec2(uvs[0].X, uvs[0].Y), ImVec2(uvs[2].X, uvs[2].Y)))
             {
-                isButtonSelected[*buildingSelected] = false;
+                if (*buildingSelected != -1)
+                {
+                    isButtonSelected[*buildingSelected] = false;
+                }
                 *buildingSelected = i;
                 isButtonSelected[*buildingSelected] = true;
             }
