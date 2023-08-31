@@ -4,3 +4,5 @@ out
 .idea
 .vs
 .vscode
+zig-out/
+zig-cache/

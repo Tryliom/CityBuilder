@@ -25,8 +25,8 @@
 
 #ifdef _WIN32
     #include <malloc.h> // NOTE: on unix there is no malloc.h, it's in stdlib or something
-    #include <Windows.h> 
-    #include <Shlwapi.h> // Include this header for PathCombine function
+    #include <windows.h>
+    #include <shlwapi.h> // Include this header for PathCombine function
     #pragma comment(lib, "Shlwapi.lib") // Link to the Shlwapi library
 #endif
 
